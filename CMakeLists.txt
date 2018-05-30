@@ -21,7 +21,7 @@ endif()
 
 
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g -Wall -Wno-unused-variable -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g -Wall -Wno-unused-variable -pthread")
 
 
 
@@ -30,3 +30,4 @@ endif()
 
 
 add_subdirectory(libraries)
+add_subdirectory(programs)

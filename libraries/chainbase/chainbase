@@ -1,0 +1,13 @@
+chainbase
+write   int     int     1000w   23s
+read    int     int     1000w   2s
+
+write   string  string  1000w   39s
+read    string  string  1000w   6s
+
+write   string          1000w   21s
+read    string          1000w   4-5s
+
+write   string * 3              51s
+read    string * 3              6-7s
+

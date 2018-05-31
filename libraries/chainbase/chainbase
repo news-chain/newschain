@@ -1,4 +1,5 @@
 chainbase
+cpu:i7 7700 ,  ssd
 write   int     int     1000w   23s
 read    int     int     1000w   2s
 
@@ -8,6 +9,6 @@ read    string  string  1000w   6s
 write   string          1000w   21s
 read    string          1000w   4-5s
 
-write   string * 3              51s
-read    string * 3              6-7s
+write   string * 3      1000w   51s
+read    string * 3      1000w   6-7s
 

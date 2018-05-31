@@ -6,25 +6,32 @@
 
 
 
+
+
 namespace news{
     namespace app{
+
         class application_impl{
         public:
             application_impl(){
 
             }
+            bpo::options_description     _app_options;
+            bpo::options_description     _cfg_options;
+
+            bpo::variables_map          _map_args;
+
+
+
+        private:
+            boost::program_options::variables_map _options;
+
+
         };
 
-
-
-
-
-
-
-
-
-        application::application():my(new application_impl) {
-
+        application::application()
+                :my(new application_impl()) {
+            io_serv = std::make_shared<boost::asio::io_service>();
         }
 
 
@@ -38,6 +45,136 @@ namespace news{
             return app;
         }
 
+
+
+
+        void application::start_up() {
+
+        }
+
+        template <typename Plugin>
+        auto& application::register_plugin() {
+
+        }
+
+        template <typename Plugin>
+        Plugin* application::find_plugin() const {
+
+        }
+
+        void application::plugin_init(news::app::abstract_plugin &plugin) {
+
+        }
+
+
+        void application::plugin_started(news::app::abstract_plugin &plugin) {
+
+        }
+
+
+        boost::asio::io_service& application::get_io_service() {
+            return *io_serv;
+        }
+
+
+        void application::add_program_options(const bpo::option_description &cli, const bpo::option_description cfg) {
+
+        }
+
+
+        void application::set_program_options() {
+
+            bpo::options_description options_desc("Application config");
+
+            options_desc.add_options()
+                    ("help,h", "print help message")
+                    ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("node_data"), "database and config --directory")
+//                    ("config-dir,c", bpo::value<bfs::path>()->default_value("config.ini"), "config.ini path")
+//                    ("config-log", bpo::value<bfs::path>()->default_value("config_log.ini"), "config logs level")
+                    ("version,v", "print version information");
+
+            my->_app_options.add(options_desc);
+        }
+
+
+        bool application::initialize_impl(int argc, char **argv) {
+            set_program_options();
+
+            bpo::store(bpo::parse_command_line(argc, argv, my->_app_options), my->_map_args);
+
+            if(my->_map_args.count("help")){
+                std::cout << my->_app_options << std::endl;
+                return false;
+            }
+            if(my->_map_args.count("version")){
+                std::cout << "version 0.0.0" << std::endl;
+            }
+
+
+            bfs::path data_dir;
+            if(my->_map_args.count("data-dir")){
+                data_dir = my->_map_args["data-dir"].as<bfs::path>();
+                if(data_dir.is_relative()){
+                    data_dir = bfs::current_path() / data_dir;
+                }
+            }
+            else{     //create
+                //TODO : WIN32 or linux
+                data_dir = bfs::current_path() / "node_data";
+            }
+
+            if(!bfs::exists(data_dir)){
+                write_default_config(data_dir / "config.ini");
+            }
+            return true;
+        }
+
+
+
+        const bpo::variables_map& application::get_args() const {
+            return my->_map_args;
+        }
+
+
+        void application::write_default_config(const bfs::path &path) {
+            if(!bfs::exists(path.parent_path())){
+                bfs::create_directories(path.parent_path());
+                std::cout << "create data-dir: " << path << std::endl;
+            }
+
+            std::ofstream out_cfg( bfs::path(path).make_preferred().string());
+            for(const boost::shared_ptr<bpo::option_description> od : my->_cfg_options.options())
+            {
+                if(!od->description().empty())
+                    out_cfg << "# " << od->description() << "\n";
+                boost::any store;
+                if(!od->semantic()->apply_default(store))
+                    out_cfg << "# " << od->long_name() << " = \n";
+                else
+                {
+                    auto example = od->format_parameter();
+                    if( example.empty() )
+                    {
+                        // This is a boolean switch
+                        out_cfg << od->long_name() << " = " << "false\n";
+                    }
+                    else if( example.length() <= 7 )
+                    {
+                        // The string is formatted "arg"
+                        out_cfg << "# " << od->long_name() << " = \n";
+                    }
+                    else
+                    {
+                        // The string is formatted "arg (=<interesting part>)"
+                        example.erase(0, 6);
+                        example.erase(example.length()-1);
+                        out_cfg << od->long_name() << " = " << example << "\n";
+                    }
+                }
+                out_cfg << "\n";
+            }
+            out_cfg.close();
+        }
 
 
 

@@ -3,21 +3,17 @@
 //
 
 
-#include <boost/program_options.hpp>
+#include <app/application.hpp>
 
 
-
-namespace bpo = boost::program_options;
-
-int main(int argc, char *args[]){
-
-//    bpo::option_description options;
+int main(int argc, char *argv[]){
 
 
-
-
-
-
-
+    try {
+        auto& app = news::app::application::getInstance();
+        app.initialize_impl(argc, argv);
+    }catch (...){
+        return -1;
+    }
     return 0;
 }

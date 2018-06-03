@@ -44,7 +44,10 @@ namespace news{
             /*
              *   init args
              * */
-            bool initialize_impl(int argc, char **argv);
+            template < typename... Plugins>
+            bool initizlize(int argc, char **argv){
+                return initialize_impl(argc, argv,  {find_plugin(Plugins::name())...} );
+            }
 
 
             void start_up();
@@ -55,13 +58,18 @@ namespace news{
              *      add plugin
              * */
             template <typename Plugin>
-            auto &register_plugin();
+            auto &register_plugin(){
+                auto plug = std::make_shared<Plugin>();
+                _plugins[Plugin::name()] = plug;
+                plug->register_dependencies();
+                return *plug;
+            }
 
             /*
              *      find plugin
              * */
             template <typename Plugin>
-                    Plugin* find_plugin() const;
+            Plugin* find_plugin() const;
 
             /*
              *      init plugin
@@ -84,6 +92,27 @@ namespace news{
              *      get args
              * */
             const bpo::variables_map &get_args() const;
+
+            /*
+             *      io_serv stop
+             * */
+            void quit();
+
+            /*
+             *      exec
+             * */
+            void exec();
+
+            /*
+             *  shutdown plugins
+             * */
+            void shutdown();
+
+        protected:
+            bool initialize_impl(int argc, char **argv, std::vector< abstract_plugin* > autostart_plugins);
+
+            abstract_plugin* find_plugin(const std::string &name) const;
+            abstract_plugin* get_plugin(const std::string &name) const;
 
         private:
             application();

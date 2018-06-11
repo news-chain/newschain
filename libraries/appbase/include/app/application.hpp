@@ -59,6 +59,8 @@ namespace news{
              * */
             template <typename Plugin>
             auto &register_plugin(){
+                std::cout << "regist plguin " << Plugin::name() << std::endl;
+
                 auto plug = std::make_shared<Plugin>();
                 _plugins[Plugin::name()] = plug;
                 plug->register_dependencies();
@@ -118,8 +120,8 @@ namespace news{
             application();
             void write_default_config(const bfs::path &path);
 
-            std::map<std::string, std::shared_ptr< abstract_plugin > >   _plugins;
-            std::vector< abstract_plugin *>                              _initialized_plugins;
+            std::map<std::string, std::shared_ptr< abstract_plugin > >   _plugins;              //registered plugin
+            std::vector< abstract_plugin *>                              _initialized_plugins;  //
             std::vector< abstract_plugin *>                              _running_plugins;
 
 

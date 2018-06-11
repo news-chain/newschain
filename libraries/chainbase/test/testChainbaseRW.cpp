@@ -22,23 +22,22 @@ using namespace boost::multi_index;
 struct book : public chainbase::object<0, book> {
 
     template<typename Constructor, typename Allocator>
-    book(  Constructor&& c, Allocator&& a ):str1(a),str2(a),str3(a) {
+    book(  Constructor&& c, Allocator&& a ){
         c(*this);
     }
 
-    id_type id;
-    shared_string str1;
-    shared_string str2;
-    shared_string str3;
+    id_type     id;
+    uint32_t    a;
+    uint32_t         b;
 };
 
 typedef multi_index_container<
         book,
         indexed_by<
                 ordered_unique< member<book,book::id_type,&book::id> >,
-                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,shared_string,str1) >,
-                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,shared_string,str2) >,
-                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,shared_string,str3) >
+//                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,shared_string,str1) >,
+                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,uint32_t,a) >,
+                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,uint32_t,b) >
         >,
         chainbase::allocator<book>
 > book_index;
@@ -49,7 +48,7 @@ BOOST_AUTO_TEST_SUITE(open_and_create_rw)
 
     BOOST_AUTO_TEST_CASE( open_and_create_rw ) {
 //        boost::filesystem::path temp = boost::filesystem::unique_path();
-        boost::filesystem::path temp("fe27-1b3e-3138-16a7");
+        boost::filesystem::path temp("1831-1fc3-5011-eb5f");
         try {
             std::cerr << temp.relative_path() << " \n";
 
@@ -65,17 +64,25 @@ BOOST_AUTO_TEST_SUITE(open_and_create_rw)
             auto now = boost::posix_time::second_clock::local_time();
 
 //            std::string str = "abcdef";
+
 //            for(uint64_t j = 0; j < 10000000; j++){
-//                db.create<book>([str]( book& b ) {
-//                    b.str1.assign(str.begin(), str.end());
-//                    b.str2.assign(str.begin(), str.end());
-//                    b.str3.assign(str.begin(), str.end());
+//                db.create<book>([]( book& b ) {
+//                    b.a = 1;
+//                    b.b = 2;
 //                } );
 //            }
 
+
 //
             for(uint64_t j = 0; j < 10000000; j++){
-                auto bk = db.get(book::id_type(j));
+                const auto &bk = db.get(book::id_type(j));
+                db.modify(bk, [](book &b){
+                    b.a = 3;
+                    b.b = 4;
+                });
+
+
+
             }
 
             auto end = boost::posix_time::second_clock::local_time();

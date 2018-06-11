@@ -19,6 +19,6 @@ add_library(appbase
         include/app/application.hpp
         include/app/plugin.hpp
         src/application.cpp
-        )
+       )
 target_link_libraries(appbase ${Boost_LIBRARIES} fc)
 target_include_directories(appbase PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR})

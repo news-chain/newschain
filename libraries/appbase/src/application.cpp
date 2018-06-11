@@ -3,9 +3,7 @@
 //
 
 #include <app/application.hpp>
-
-
-
+#include <fc/log/logger_config.hpp>
 
 
 namespace news{
@@ -49,6 +47,9 @@ namespace news{
 
 
         void application::start_up() {
+            for(const auto & plugin : _initialized_plugins){
+                plugin->startup();
+            }
 
         }
 
@@ -72,12 +73,12 @@ namespace news{
         }
 
         void application::plugin_init(news::app::abstract_plugin &plugin) {
-
+            _initialized_plugins.push_back(&plugin);
         }
 
 
         void application::plugin_started(news::app::abstract_plugin &plugin) {
-
+            _running_plugins.push_back(&plugin);
         }
 
 
@@ -88,7 +89,7 @@ namespace news{
 
         abstract_plugin* application::find_plugin(const std::string &name) const {
             auto itr = _plugins.find(name);
-            if(itr != _plugins.end()){
+            if(itr == _plugins.end()){
                 return nullptr;
             }
             return itr->second.get();
@@ -123,6 +124,9 @@ namespace news{
 //                    ("config-dir,c", bpo::value<bfs::path>()->default_value("config.ini"), "config.ini path")
 //                    ("config-log", bpo::value<bfs::path>()->default_value("config_log.ini"), "config logs level")
                     ("version,v", "print version information");
+
+            my->_app_options.add(options_desc);
+
 
             for(auto p : _plugins){
                 bpo::options_description plugin_cli_option("Command line option for " + p.second->get_name());
@@ -177,10 +181,24 @@ namespace news{
                 }
 
 
+
+                fc::logging_config config = fc::logging_config::default_config();
+
+
             }catch (boost::program_options::error &e){
                 std::cout << e.what() << std::endl;
                 return false;
             }
+
+            for(const auto &plugin : autostart_plugins){
+                if(plugin != nullptr && plugin->get_state() == abstract_plugin::registered){
+                    plugin->initialize(my->_map_args);
+                }
+            }
+
+
+
+
             return true;
         }
 
@@ -237,14 +255,20 @@ namespace news{
         }
 
         void application::exec() {
-//            signal(SIGPIPE, SIG_IGN);
-//
-//            std::shared_ptr<boost::asio::signal_set> sigint_set(new boost::asio::signal_set(*io_serv, SIGINT));
-//            sigint_set->async_wait([sigint_set, this](const boost::system::error_code &err, int num){
-//                quit();
-//                sigint_set->cancel();
-//            });
+            signal(SIGPIPE, SIG_IGN);
 
+            std::shared_ptr<boost::asio::signal_set> sigint_set(new boost::asio::signal_set(*io_serv, SIGINT));
+            sigint_set->async_wait([sigint_set,this](const boost::system::error_code& err, int num) {
+                quit();
+                sigint_set->cancel();
+            });
+
+            std::shared_ptr<boost::asio::signal_set> sigterm_set(new boost::asio::signal_set(*io_serv, SIGTERM));
+            sigterm_set->async_wait([sigterm_set,this](const boost::system::error_code& err, int num) {
+                quit();
+                sigterm_set->cancel();
+            });
+            io_serv->run();
             shutdown();
 
 

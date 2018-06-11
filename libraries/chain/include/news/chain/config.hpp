@@ -6,3 +6,7 @@
 
 
 #define NEWS_CHAIN_ID        ("123")
+
+
+
+#define NEWS_SYMBOL

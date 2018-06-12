@@ -1,6 +1,6 @@
+add_subdirectory(chainbase)
 add_subdirectory(appbase)
 add_subdirectory(chain)
-add_subdirectory(chainbase)
 add_subdirectory(fc)
 #add_subdirectory(net)
 add_subdirectory(plugins)

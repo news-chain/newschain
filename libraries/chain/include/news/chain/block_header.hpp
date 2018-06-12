@@ -7,7 +7,8 @@
 
 #include <fc/time.hpp>
 #include <news/protocol/types.hpp>
-
+#include <fc/crypto/sha224.hpp>
+#include <fc/bitutil.hpp>
 
 namespace news{
     namespace chain{
@@ -23,6 +24,11 @@ namespace news{
             block_id_type                   previous;
             digest_type                     digest() const;
             extendsions_type                extensions;
+
+            uint32_t                        block_num() const {return fc::endian_reverse_u32(previous._hash[0]) + 1;}
+
+            static uint32_t                 num_from_id(const block_id_type &id);
+
         };
 
 

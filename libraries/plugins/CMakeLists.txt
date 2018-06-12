@@ -1,2 +1,4 @@
+add_subdirectory(chain_plugin)
 add_subdirectory(webserver)
 add_subdirectory(p2p)
+add_subdirectory(producer_plugin)

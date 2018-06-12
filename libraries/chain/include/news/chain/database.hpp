@@ -2,7 +2,48 @@
 // Created by boy on 18-6-11.
 //
 
-#ifndef BASECHAIN_DATABASE_HPP
-#define BASECHAIN_DATABASE_HPP
+#pragma once
 
-#endif //BASECHAIN_DATABASE_HPP
+#include <chainbase/chainbase.hpp>
+#include <news/chain/block_log.hpp>
+
+#include <fc/filesystem.hpp>
+#include <fc/reflect/reflect.hpp>
+
+
+namespace news{
+    namespace chain{
+
+        using namespace chainbase;
+
+        struct open_db_args{
+            fc::path        data_dir;
+            fc::path        shared_mem_dir;
+            uint64_t        shared_mem_size = 0;
+            uint64_t        shared_file_full_threshold = 0;
+            uint64_t        shared_file_scale_rate = 0;
+            chainbase::database::open_flags        chainbase_flag = chainbase::database::read_write;
+            uint32_t        stop_replay_at = 0;
+        };
+
+
+
+
+        class database : public chainbase::database{
+        public:
+            database();
+            ~database();
+
+            void open(const open_db_args &args);
+        private:
+            void initialize_indexes();
+
+            block_log           _block_log;
+
+        };
+
+    }//namespace chain
+}//namesapce news
+
+FC_REFLECT_ENUM( chainbase::database::open_flags,(read_only)(read_write))
+FC_REFLECT(news::chain::open_db_args, (data_dir)(shared_mem_dir)(shared_mem_size)(shared_file_full_threshold)(shared_file_scale_rate)(chainbase_flag)(stop_replay_at))

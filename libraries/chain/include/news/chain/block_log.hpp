@@ -6,6 +6,7 @@
 
 #include <fc/log/logger.hpp>
 #include <fc/filesystem.hpp>
+#include <news/chain/block.hpp>
 
 namespace news{
     namespace chain{
@@ -38,32 +39,35 @@ namespace news{
 
         class block_log {
         public:
-//            block_log(const fc::path& data_dir);
-//            block_log(block_log&& other);
-//            ~block_log();
-//
-//            uint64_t append(const signed_block& b);
-//            void flush();
-//            std::pair<signed_block, uint64_t> read_block(uint64_t file_pos)const;
-//            optional<signed_block> read_block_by_num(uint32_t block_num)const;
-//            optional<signed_block> read_block_by_id(const block_id_type& id)const {
-//                return read_block_by_num(block_header::num_from_id(id));
-//            }
-//
-//            /**
-//             * Return offset of block in file, or block_log::npos if it does not exist.
-//             */
-//            uint64_t get_block_pos(uint32_t block_num) const;
-//            optional<signed_block> read_head()const;
-//            const optional<signed_block>& head()const;
-//
-//            static const uint64_t npos = std::numeric_limits<uint64_t>::max();
+            block_log();
+            block_log(const fc::path& data_dir);
+            block_log(block_log&& other);
+            ~block_log();
 
+            void open(const fc::path& data_dir);
+
+            uint64_t append(const signed_block& b);
+            void flush();
+            std::pair<signed_block, uint64_t> read_block(uint64_t file_pos)const;
+            fc::optional<signed_block> read_block_by_num(uint32_t block_num)const;
+            fc::optional<signed_block> read_block_by_id(const block_id_type& id)const {
+                return read_block_by_num(block_header::num_from_id(id));
+            }
+
+            /**
+             * Return offset of block in file, or block_log::npos if it does not exist.
+             */
+            uint64_t get_block_pos(uint32_t block_num) const;
+            fc::optional<signed_block> read_head()const;
+            const fc::optional<signed_block>& head()const;
+
+            static const uint64_t npos = std::numeric_limits<uint64_t>::max();
+//
         private:
-//            void open(const fc::path& data_dir);
-//            void construct_index();
 
-//            std::unique_ptr<detail::block_log_impl> my;
+            void construct_index();
+
+            std::unique_ptr<detail::block_log_impl> my;
         };
 
     }//namespace chain

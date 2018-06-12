@@ -6,8 +6,9 @@ add_library(news_chain
             src/block_log.cpp
             src/block.cpp
             src/block_header.cpp
+            src/transaction.cpp
             ${HEADERS}
         )
 
-target_link_libraries(news_chain fc news_protocol)
+target_link_libraries(news_chain fc news_protocol chainbase)
 target_include_directories(news_chain PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

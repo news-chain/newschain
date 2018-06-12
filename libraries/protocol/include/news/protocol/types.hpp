@@ -20,7 +20,7 @@ namespace news{
         typedef uint64_t                    account_name;
         typedef fc::ecc::compact_signature  signature_type;
         typedef std::vector< std::tuple< uint16_t, std::vector<char> > > extendsions_type;
-
+        typedef fc::safe<int64_t>           share_type;
 
     }//namespace protocol
 }//namespace news

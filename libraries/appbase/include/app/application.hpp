@@ -110,6 +110,9 @@ namespace news{
              * */
             void shutdown();
 
+            bfs::path   get_data_path();
+
+
         protected:
             bool initialize_impl(int argc, char **argv, std::vector< abstract_plugin* > autostart_plugins);
 

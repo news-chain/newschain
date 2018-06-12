@@ -10,3 +10,5 @@
 
 
 #define NEWS_SYMBOL
+
+#define NEWS_GENESIS_TIME       (fc::time_point_sec(0))

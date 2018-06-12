@@ -19,6 +19,7 @@ namespace news{
 
             bpo::variables_map          _map_args;
 
+            bfs::path                   _data_path;
 
 
         private:
@@ -130,7 +131,7 @@ namespace news{
 
             for(auto p : _plugins){
                 bpo::options_description plugin_cli_option("Command line option for " + p.second->get_name());
-                bpo::options_description plugin_cfg_option("Config options for" + p.second->get_name());
+                bpo::options_description plugin_cfg_option("Config options for " + p.second->get_name());
                 p.second->set_program_options(plugin_cli_option, plugin_cfg_option);
                 if(plugin_cfg_option.options().size()){
                     my->_app_options.add(plugin_cfg_option);
@@ -179,6 +180,7 @@ namespace news{
                 if(!bfs::exists(data_dir)){
                     write_default_config(data_dir / "config.ini");
                 }
+                my->_data_path = data_dir;
 
 
 
@@ -288,6 +290,10 @@ namespace news{
             _running_plugins.clear();
             _initialized_plugins.clear();
             _plugins.clear();
+        }
+
+        bfs::path application::get_data_path() {
+            return my->_data_path;
         }
 
 

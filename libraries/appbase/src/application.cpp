@@ -3,7 +3,7 @@
 //
 
 #include <app/application.hpp>
-#include <fc/log/logger_config.hpp>
+
 
 
 namespace news{
@@ -49,6 +49,7 @@ namespace news{
 
         void application::start_up() {
             for(const auto & plugin : _initialized_plugins){
+                ilog("star_up plugin : ${p}", ("p", plugin->get_name()) );
                 plugin->startup();
             }
 
@@ -70,7 +71,11 @@ namespace news{
 
         template <typename Plugin>
         Plugin* application::find_plugin() const {
-
+            Plugin *plugin = dynamic_cast<Plugin *>(find_plugin(Plugin::name()));
+            if(plugin == nullptr && plugin->get_state() == abstract_plugin::registered){
+                return nullptr;
+            }
+            return plugin;
         }
 
         void application::plugin_init(news::app::abstract_plugin &plugin) {
@@ -192,11 +197,17 @@ namespace news{
                 return false;
             }
 
-            for(const auto &plugin : autostart_plugins){
-                if(plugin != nullptr && plugin->get_state() == abstract_plugin::registered){
-                    plugin->initialize(my->_map_args);
+            try {
+                for(const auto &plugin : autostart_plugins){
+                    if(plugin != nullptr && plugin->get_state() == abstract_plugin::registered){
+                        plugin->initialize(my->_map_args);
+                    }
                 }
+            }catch(std::exception &e) {
+                elog("plugins init error ${e}", ("e", e.what()));
             }
+
+
 
 
 

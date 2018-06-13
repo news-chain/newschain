@@ -13,7 +13,7 @@
 #include <string>
 #include <iostream>
 #include "plugin.hpp"
-
+#include <fc/log/logger_config.hpp>
 
 
 namespace bpo = boost::program_options;
@@ -59,8 +59,8 @@ namespace news{
              * */
             template <typename Plugin>
             auto &register_plugin(){
-                std::cout << "regist plguin " << Plugin::name() << std::endl;
-
+//                std::cout << "regist plguin " << Plugin::name() << std::endl;
+                ilog("register plugin ${p}", ("p", Plugin::name()));
                 auto plug = std::make_shared<Plugin>();
                 _plugins[Plugin::name()] = plug;
                 plug->register_dependencies();
@@ -82,6 +82,16 @@ namespace news{
              *      start plugin
              * */
             void plugin_started(abstract_plugin &plugin);
+
+
+            template<typename Plugin>
+            Plugin& get_plugin(){
+                auto ptr = find_plugin<Plugin>();
+                if(ptr == nullptr){
+                    BOOST_THROW_EXCEPTION(std::runtime_error("unable find plugin" + Plugin::name()));
+                }
+                return *ptr;
+            }
 
 
             /*
@@ -128,7 +138,7 @@ namespace news{
             std::vector< abstract_plugin *>                              _running_plugins;
 
 
-            std::shared_ptr< boost::asio::io_service> io_serv;
+            std::shared_ptr< boost::asio::io_service> io_serv;              //use for timer
             std::unique_ptr< class application_impl > my;
 
 

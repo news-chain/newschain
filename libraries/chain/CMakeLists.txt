@@ -3,9 +3,9 @@ file(GLOB HEADERS "include/news/chain/*.hpp")
 
 add_library(news_chain
             src/database.cpp
-            src/block_log.cpp
             src/block.cpp
             src/block_header.cpp
+            src/block_log.cpp
             src/transaction.cpp
             ${HEADERS}
         )

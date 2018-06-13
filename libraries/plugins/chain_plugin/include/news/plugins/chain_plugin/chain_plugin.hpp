@@ -10,6 +10,7 @@
 #include <fc/string.hpp>
 #include <fc/exception/exception.hpp>
 #include <news/chain/database.hpp>
+#include <news/protocol/types.hpp>
 
 #define NEWS_CHAIN_PLUGIN_NAME ("chain_plugin")
 
@@ -19,6 +20,9 @@ using namespace std;
 namespace news{
     namespace plugins{
         namespace chain_plugin{
+
+
+            using namespace news::chain;
 
             namespace detail{
                 class chain_plugin_impl;
@@ -33,6 +37,13 @@ namespace news{
 
                 static const std::string& name() { static std::string name = NEWS_CHAIN_PLUGIN_NAME; return name; }
                 virtual void set_program_options(options_description&, options_description& cfg) override;
+
+
+
+                news::chain::signed_block generate_block(const fc::time_point_sec when, const news::protocol::account_name &producer, const fc::ecc::private_key &sign_pk, uint32_t skip = 0);
+
+                database &get_database();
+                const database &get_database() const;
 
             protected:
                 virtual void plugin_initialize(const variables_map& options) override;

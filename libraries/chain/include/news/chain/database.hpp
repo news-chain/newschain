@@ -9,7 +9,8 @@
 
 #include <fc/filesystem.hpp>
 #include <fc/reflect/reflect.hpp>
-
+#include <news/protocol/config.hpp>
+#include <news/chain/global_property_object.hpp>
 
 namespace news{
     namespace chain{
@@ -24,6 +25,8 @@ namespace news{
             uint64_t        shared_file_scale_rate = 0;
             chainbase::database::open_flags        chainbase_flag = chainbase::database::read_write;
             uint32_t        stop_replay_at = 0;
+
+
         };
 
 
@@ -35,6 +38,15 @@ namespace news{
             ~database();
 
             void open(const open_db_args &args);
+
+            uint32_t    get_slot_at_time(fc::time_point_sec when);
+            fc::time_point  get_slot_time(uint32_t slot_num ) const;
+
+            const global_property_object &get_global_property_object() const;
+            uint32_t                        head_block_num() const;
+            fc::time_point                  head_block_time() const;
+
+            account_name                    get_scheduled_producer(uint32_t num) const;
         private:
             void initialize_indexes();
 

@@ -59,7 +59,7 @@ namespace news{
 
                 cfg.add_options()
                         ("shared-file-size", bpo::value<std::string>()->default_value("20G"), "size of shared memory size.")
-                        ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"), "the location of the chain shared memory files (absolute path or relative to application data dir)")
+                       // ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"), "the location of the chain shared memory files (absolute path or relative to application data dir)")
                         ("flush-state-interval", bpo::value<uint32_t >()->default_value(1000), "flush shared memory changes to disk every N blocks");
 
 
@@ -76,9 +76,10 @@ namespace news{
 
                     _my->flush_state_interval = options.at("flush-state-interval").as<uint32_t>();
                     _my->shared_memory_size = fc::parse_size( options.at("shared-file-size").as<string>());
-                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
+//                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
+                    _my->stop_replay_at = 0;
                 }catch (const fc::exception &e){
-                    elog("plugin init error ${e}", ("e", e.what()));
+                    elog("plugin init error ${e} , ${p}", ("e", e.what())("p", this->get_name()));
                 }
 
             }
@@ -103,7 +104,7 @@ namespace news{
                     //TODO replay
                 }
                 else{
-                    ilog("open database dir: ${d}", ("d", _my->shared_memory_path));
+                    ilog("open database dir: ${d}", ("d", _my->shared_memory_path.string()));
                     try {
                         _my->db.open(db_open_args);
 
@@ -118,6 +119,22 @@ namespace news{
             void chain_plugin::plugin_shutdown() {
 
             }
+
+            news::chain::signed_block
+            chain_plugin::generate_block(const fc::time_point_sec when, const news::protocol::account_name &producer,
+                                         const fc::ecc::private_key &sign_pk, uint32_t skip) {
+                return chain::signed_block();
+            }
+
+            const database &chain_plugin::get_database() const {
+                return _my->db;
+            }
+
+            database &chain_plugin::get_database() {
+                return _my->db;
+            }
+
+
         }//namespace chain_plugin
     }//namespace plugins
 }//namespace news

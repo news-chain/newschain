@@ -6,6 +6,7 @@
 #include <app/application.hpp>
 #include <news/plugins/webserver/webserver_plugin.hpp>
 #include <news/plugins/producer_plugin/producer_plugin.hpp>
+#include <news/plugins/chain_plugin/chain_plugin.hpp>
 
 int main(int argc, char *argv[]){
 
@@ -14,8 +15,8 @@ int main(int argc, char *argv[]){
 
         auto& app = news::app::application::getInstance();
         app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
-        app.register_plugin< news::plugins::webserver::webserver_plugin >();
-        bool init = app.initizlize<news::plugins::webserver::webserver_plugin>(argc, argv);
+        app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
+        bool init = app.initizlize<news::plugins::chain_plugin::chain_plugin, news::plugins::producer_plugin::producer_plugin>(argc, argv);
         if(!init){
             std::cout << "application init error " << std::endl;
             return -1;

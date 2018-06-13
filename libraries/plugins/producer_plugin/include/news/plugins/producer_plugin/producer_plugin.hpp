@@ -5,15 +5,23 @@
 #pragma once
 
 
-#include <app/application.hpp>
+
+
 #include <boost/program_options.hpp>
-#include <memory>
-#include <fc/time.hpp>
 #include <boost/timer.hpp>
-#include <fc/variant_object.hpp>
 #include <boost/bind.hpp>
-#include <news/protocol/config.hpp>
+
+#include <memory>
+
 #include <fc/log/logger.hpp>
+#include <fc/time.hpp>
+#include <fc/variant_object.hpp>
+
+#include <app/application.hpp>
+#include <news/protocol/config.hpp>
+#include <news/protocol/types.hpp>
+#include <news/plugins/chain_plugin/chain_plugin.hpp>
+
 
 #define NEWS_PRODUCER_PLUGIN_NAME ("producer_plugin")
 
@@ -30,8 +38,9 @@ namespace news{
             no_private_key = 4,
             low_participation = 5,
             lag = 6,
-            exception_producing_block = 7,
-            wait_for_genesis = 8
+            consecutive = 7,
+            exception_producing_block = 8,
+            wait_for_genesis = 9
         };
     }
 

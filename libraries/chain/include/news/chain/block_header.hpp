@@ -9,7 +9,7 @@
 #include <news/protocol/types.hpp>
 #include <fc/crypto/sha224.hpp>
 #include <fc/bitutil.hpp>
-
+#include <fc/io/raw.hpp>
 namespace news{
     namespace chain{
 
@@ -23,7 +23,7 @@ namespace news{
             checksum_type                   transaction_merkle_root;
             block_id_type                   previous;
             digest_type                     digest() const;
-            extendsions_type                extensions;
+//            extendsions_type                extensions;
 
             uint32_t                        block_num() const {return fc::endian_reverse_u32(previous._hash[0]) + 1;}
 
@@ -47,5 +47,5 @@ namespace news{
 
 
 
-FC_REFLECT(news::chain::block_header, (timestamp)(producer)(transaction_merkle_root)(previous)(extensions))
+FC_REFLECT(news::chain::block_header, (timestamp)(producer)(transaction_merkle_root)(previous))
 FC_REFLECT_DERIVED(news::chain::signed_block_header, (news::chain::block_header), (producer_signature))

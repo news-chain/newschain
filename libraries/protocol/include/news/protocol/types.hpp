@@ -8,6 +8,19 @@
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
+#include <fc/reflect/reflect.hpp>
+#include <news/protocol/config.hpp>
+#include <fc/exception/exception.hpp>
+#include <fc/crypto/base58.hpp>
+
+
+
+
+
+
+
+
+
 
 namespace news{
     namespace protocol{
@@ -19,8 +32,44 @@ namespace news{
         typedef fc::sha256                  digest_type;
         typedef uint64_t                    account_name;
         typedef fc::ecc::compact_signature  signature_type;
-        typedef std::vector< std::tuple< uint16_t, std::vector<char> > > extendsions_type;
+//        typedef std::vector< std::tuple< uint16_t, std::vector<char> > > extendsions_type;
         typedef fc::safe<int64_t>           share_type;
+
+
+
+
+
+        struct public_key_type
+        {
+            struct binary_key
+            {
+                binary_key() {}
+                uint32_t                 check = 0;
+                fc::ecc::public_key_data data;
+            };
+            fc::ecc::public_key_data key_data;
+            public_key_type();
+            public_key_type( const fc::ecc::public_key_data& data );
+            public_key_type( const fc::ecc::public_key& pubkey );
+            explicit public_key_type( const std::string& base58str );
+            operator fc::ecc::public_key_data() const;
+            operator fc::ecc::public_key() const;
+            explicit operator std::string() const;
+            friend bool operator == ( const public_key_type& p1, const fc::ecc::public_key& p2);
+            friend bool operator == ( const public_key_type& p1, const public_key_type& p2);
+            friend bool operator < ( const public_key_type& p1, const public_key_type& p2) { return p1.key_data < p2.key_data; }
+            friend bool operator != ( const public_key_type& p1, const public_key_type& p2);
+        };
+
+
+
+
 
     }//namespace protocol
 }//namespace news
+
+
+//FC_REFLECT_TYPENAME(news::protocol::extendsions_type)
+FC_REFLECT( news::protocol::public_key_type, (key_data) )
+FC_REFLECT( news::protocol::public_key_type::binary_key, (data)(check) )
+FC_REFLECT_TYPENAME(news::protocol::share_type)

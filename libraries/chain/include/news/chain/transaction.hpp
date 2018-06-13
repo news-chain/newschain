@@ -7,7 +7,7 @@
 
 //#include <cstdint>
 #include <fc/time.hpp>
-
+#include <fc/reflect/reflect.hpp>
 namespace news{
     namespace chain{
 
@@ -20,3 +20,8 @@ namespace news{
 
     }//namespace chain
 }//namespace news
+
+
+
+
+FC_REFLECT(news::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration))

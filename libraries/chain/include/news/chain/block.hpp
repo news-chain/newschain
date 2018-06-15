@@ -27,4 +27,4 @@ namespace news{
 }//namespace news
 
 
-FC_REFLECT_DERIVED(news::chain::signed_block, (news::chain::signed_block_header), (transactions))
+FC_REFLECT_DERIVED(news::chain::signed_block, (news::chain::signed_block_header),(transactions))

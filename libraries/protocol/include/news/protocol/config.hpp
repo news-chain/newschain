@@ -13,4 +13,11 @@
 
 #define NEWS_GENESIS_TIME       (fc::time_point_sec(0))
 #define NEWS_ADDRESS_PREFIX     ("NT")
+
+
+
+#define NEWS_MAX_BLOCK_SIZE     (1024 * 1024 * 3L)
+#define NEWS_MIN_BLOCK_SIZE     (64 * 8 * 8L)
+
 #define NEWS_BLOCK_INTERVAL     3
+#define IRREVERSIBLE_BLOCK_NUM  (20)            //about 1min

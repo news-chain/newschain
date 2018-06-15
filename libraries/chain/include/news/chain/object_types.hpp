@@ -4,28 +4,27 @@
 
 #pragma once
 
-#define OBJECT_CTOR1(NAME) \
-    NAME() = delete; \
-    public: \
-    template<typename Constructor, typename Allocator> \
-    NAME(Constructor&& c, chainbase::allocator<Allocator>) \
-    { c(*this); }
-#define OBJECT_CTOR2_MACRO(x, y, field) ,field(a)
-#define OBJECT_CTOR2(NAME, FIELDS) \
-    NAME() = delete; \
-    public: \
-    template<typename Constructor, typename Allocator> \
-    NAME(Constructor&& c, chainbase::allocator<Allocator> a) \
-    : id(0) BOOST_PP_SEQ_FOR_EACH(OBJECT_CTOR2_MACRO, _, FIELDS) \
-    { c(*this); }
-#define OBJECT_CTOR(...) BOOST_PP_OVERLOAD(OBJECT_CTOR, __VA_ARGS__)(__VA_ARGS__)
+
+
 
 
 namespace news{
     namespace chain{
 
+
+        class block_summary_object;
+
+
+
         enum object_type{
-            global_property_dynamic_obj = 0
+            global_property_dynamic_obj = 0,
+            block_summary_object_type,
+            transaction_object_type
         };
+
+//        typedef oid<block_summary_object>           block_summary_object_id_type;
+
+
+
     }// news::chain
 }//news

@@ -7,6 +7,7 @@ add_library(news_chain
             src/block_header.cpp
             src/block_log.cpp
             src/transaction.cpp
+            src/fork_database.cpp
             ${HEADERS}
         )
 

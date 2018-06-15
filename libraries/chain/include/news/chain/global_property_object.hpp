@@ -17,27 +17,27 @@ namespace news{
         using namespace chainbase;
 //        using namespace boost::mu
         using namespace boost::multi_index;
-        class global_property_object : public chainbase::object<object_type::global_property_dynamic_obj, global_property_object>{
-//        public:
-            OBJECT_CTOR1(global_property_object);
+        class dynamic_global_property_object : public chainbase::object<object_type::global_property_dynamic_obj, dynamic_global_property_object>{
+        public:
+            CHAINBASE_DEFAULT_CONSTRUCTOR(dynamic_global_property_object);
 
             id_type             id;
             uint32_t            head_block_num = 0;
             block_id_type       head_block_id;
             fc::time_point      time;
             account_name        current_producer;
-
+            uint32_t            last_irreversible_block_num = 0;
         };
 
         struct by_id;
         typedef multi_index_container<
-        global_property_object,
+                dynamic_global_property_object,
         indexed_by<
                 ordered_unique< tag< by_id >,
-                member< global_property_object, global_property_object::id_type, &global_property_object::id > >
+                member< dynamic_global_property_object, dynamic_global_property_object::id_type, &dynamic_global_property_object::id > >
         >,
-        allocator< global_property_object >
-        > global_property_object_index;
+        allocator< dynamic_global_property_object >
+        > dynamic_global_property_object_index;
 
 
 
@@ -46,6 +46,6 @@ namespace news{
 }//namespace news
 
 
-FC_REFLECT(news::chain::global_property_object, (id)(head_block_num)(head_block_id)(time)(current_producer))
+FC_REFLECT(news::chain::dynamic_global_property_object, (id)(head_block_num)(head_block_id)(time)(current_producer))
 
-CHAINBASE_SET_INDEX_TYPE( news::chain::global_property_object, news::chain::global_property_object_index )
+CHAINBASE_SET_INDEX_TYPE( news::chain::dynamic_global_property_object, news::chain::dynamic_global_property_object_index )

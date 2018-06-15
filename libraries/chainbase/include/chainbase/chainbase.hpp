@@ -728,7 +728,7 @@ namespace chainbase {
                int64_t _revision = -1;
          };
 
-         session start_undo_session( bool enabled );
+         session start_undo_session( bool enabled  = true);
 
          int64_t revision()const {
              if( _index_list.size() == 0 ) return -1;

@@ -8,12 +8,15 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <map>
 
 #include <memory>
 #include <string>
 #include <iostream>
 #include "plugin.hpp"
 #include <fc/log/logger_config.hpp>
+#include <news/protocol/types.hpp>
+
 
 
 namespace bpo = boost::program_options;
@@ -71,7 +74,13 @@ namespace news{
              *      find plugin
              * */
             template <typename Plugin>
-            Plugin* find_plugin() const;
+            Plugin* find_plugin() const{
+                Plugin *plugin = dynamic_cast<Plugin *>(find_plugin(Plugin::name()));
+                if(plugin == nullptr && plugin->get_state() == abstract_plugin::registered){
+                    return nullptr;
+                }
+                return plugin;
+            };
 
             /*
              *      init plugin

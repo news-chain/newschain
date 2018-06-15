@@ -69,15 +69,6 @@ namespace news{
         /////////////plugin//////////////
         /////////////////////////////////
 
-        template <typename Plugin>
-        Plugin* application::find_plugin() const {
-            Plugin *plugin = dynamic_cast<Plugin *>(find_plugin(Plugin::name()));
-            if(plugin == nullptr && plugin->get_state() == abstract_plugin::registered){
-                return nullptr;
-            }
-            return plugin;
-        }
-
         void application::plugin_init(news::app::abstract_plugin &plugin) {
             _initialized_plugins.push_back(&plugin);
         }
@@ -108,10 +99,6 @@ namespace news{
             }
             return itr->second.get();
         }
-
-
-
-
 
 
         void application::add_program_options(const bpo::option_description &cli, const bpo::option_description cfg) {

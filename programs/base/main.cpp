@@ -14,8 +14,8 @@ int main(int argc, char *argv[]){
     try {
 
         auto& app = news::app::application::getInstance();
-        app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
         app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
+        app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
         bool init = app.initizlize<news::plugins::chain_plugin::chain_plugin, news::plugins::producer_plugin::producer_plugin>(argc, argv);
         if(!init){
             std::cout << "application init error " << std::endl;

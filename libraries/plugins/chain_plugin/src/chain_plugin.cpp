@@ -123,7 +123,7 @@ namespace news{
             news::chain::signed_block
             chain_plugin::generate_block(const fc::time_point_sec when, const news::protocol::account_name &producer,
                                          const fc::ecc::private_key &sign_pk, uint32_t skip) {
-                return chain::signed_block();
+                return  _my->db.generate_block(when, producer, sign_pk, (validation_steps)skip);
             }
 
             const database &chain_plugin::get_database() const {

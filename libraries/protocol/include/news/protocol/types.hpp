@@ -5,13 +5,16 @@
 #pragma once
 
 
+
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/reflect/reflect.hpp>
-#include <news/protocol/config.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/io/raw.hpp>
+
+#include <news/protocol/config.hpp>
 
 
 
@@ -44,8 +47,8 @@ namespace news{
             struct binary_key
             {
                 binary_key() {}
-                uint32_t                 check = 0;
                 fc::ecc::public_key_data data;
+                uint32_t                 check = 0;
             };
             fc::ecc::public_key_data key_data;
             public_key_type();
@@ -69,7 +72,13 @@ namespace news{
 }//namespace news
 
 
-//FC_REFLECT_TYPENAME(news::protocol::extendsions_type)
-FC_REFLECT( news::protocol::public_key_type, (key_data) )
+namespace fc{
+    void to_variant(const news::protocol::public_key_type &var, fc::variant &vo);
+    void from_variant(const fc::variant &var, news::protocol::public_key_type &vo);
+}
+
+
+
 FC_REFLECT( news::protocol::public_key_type::binary_key, (data)(check) )
+FC_REFLECT( news::protocol::public_key_type, (key_data) )
 FC_REFLECT_TYPENAME(news::protocol::share_type)

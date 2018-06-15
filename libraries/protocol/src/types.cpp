@@ -70,3 +70,15 @@ namespace news{
 
     }//namespace protocol
 }//news
+
+
+
+namespace fc{
+    void to_variant(const news::protocol::public_key_type &var, fc::variant &vo){
+        vo = std::string(var);
+    }
+
+    void from_variant(const fc::variant &var, news::protocol::public_key_type &vo){
+        vo = news::protocol::public_key_type(var.as_string());
+    }
+}

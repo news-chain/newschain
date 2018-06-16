@@ -18,6 +18,7 @@
 #include <news/chain/fork_database.hpp>
 #include <news/chain/transaction.hpp>
 #include <news/chain/transaction_object.hpp>
+#include <news/chain/block.hpp>
 
 namespace news{
     namespace chain{
@@ -30,7 +31,7 @@ namespace news{
             uint64_t        shared_mem_size = 0;
             uint64_t        shared_file_full_threshold = 0;
             uint64_t        shared_file_scale_rate = 0;
-            chainbase::database::open_flags        chainbase_flag = chainbase::database::read_write;
+            uint32_t        chainbase_flag = 0;
             uint32_t        stop_replay_at = 0;
 
 
@@ -99,6 +100,7 @@ namespace news{
             bool                            is_know_transaction(const transaction_id_type &trx_id);
             void                            _push_transaction(const signed_transaction &trx);
             void                            pop_block();
+            fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
             //
             template<typename Function>
             auto with_skip_flags(validation_steps flags, Function   &&ff){
@@ -132,18 +134,20 @@ namespace news{
 
         private:
 
-            block_log                       _block_log;
-            fork_database                   _fork_database;
-            std::vector<signed_transaction> _pending_trx;
-            validation_steps                _skip_flags = skip_nothing;
-            bool                            _is_producing = false;
+            block_log                                       _block_log;
+            fork_database                                   _fork_database;
+            std::vector<signed_transaction>                 _pending_trx;
+            validation_steps                                _skip_flags = skip_nothing;
+            bool                                            _is_producing = false;
+            fc::optional< chainbase::database::session >    _pending_tx_session;
+            std::deque<signed_transaction>                  _popped_tx;
         };
 
     }//namespace chain
 }//namesapce news
 
-FC_REFLECT_ENUM( chainbase::database::open_flags,(read_only)(read_write))
 FC_REFLECT(news::chain::open_db_args, (data_dir)(shared_mem_dir)(shared_mem_size)(shared_file_full_threshold)(shared_file_scale_rate)(chainbase_flag)(stop_replay_at))
+
 FC_REFLECT_ENUM(news::chain::validation_steps,
                 (skip_nothing)
                         (skip_witness_signature)

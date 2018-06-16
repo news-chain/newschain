@@ -9,7 +9,8 @@
 #include <news/protocol/types.hpp>
 #include <fc/crypto/sha224.hpp>
 #include <fc/bitutil.hpp>
-#include <fc/io/raw.hpp>
+
+
 namespace news{
     namespace chain{
 
@@ -43,9 +44,6 @@ namespace news{
 
     }//namespace chain
 }//namespace news
-
-
-
 
 FC_REFLECT(news::chain::block_header, (timestamp)(producer)(transaction_merkle_root)(previous))
 FC_REFLECT_DERIVED(news::chain::signed_block_header, (news::chain::block_header), (producer_signature))

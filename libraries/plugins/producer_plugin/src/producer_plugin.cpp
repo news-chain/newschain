@@ -126,6 +126,7 @@ namespace news{
 
                     //TODO add skip flag
                     auto block = _chain_plugin.generate_block(now, producer, private_key->second, 0);
+//                    ilog("block : ${b}", ("b", block));
                     cap("n", block.block_num())("t", block.timestamp)("p", block.producer);
                     //TODO broadcast block
 
@@ -156,7 +157,7 @@ namespace news{
 
                     switch (result){
                         case block_production_condition::produced:
-                            ilog("Genarated block #${n} time: ${t} by ${p}", (capture));
+                            ilog("Genarated block #${n} time ${t} by ${p}", (capture));
                         case block_production_condition::not_synced:
 //                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
                             break;

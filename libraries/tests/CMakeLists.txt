@@ -1,1 +1,2 @@
 add_subdirectory(ripemd160)
+add_subdirectory(testFc)

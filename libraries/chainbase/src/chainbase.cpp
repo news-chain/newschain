@@ -30,104 +30,97 @@ namespace chainbase {
       bool                    windows = false;
    };
 
-   void database::open( const bfs::path& dir, uint32_t flags, uint64_t shared_file_size ) {
-
-      bool write = flags & database::read_write;
-
-      if( !bfs::exists( dir ) ) {
-         if( !write ) BOOST_THROW_EXCEPTION( std::runtime_error( "database file not found at " + dir.native() ) );
-      }
-
+   void database::open( const bfs::path& dir, uint32_t flags, size_t shared_file_size )
+   {
       bfs::create_directories( dir );
       if( _data_dir != dir ) close();
 
       _data_dir = dir;
+
+#ifndef ENABLE_STD_ALLOCATOR
       auto abs_path = bfs::absolute( dir / "shared_memory.bin" );
 
       if( bfs::exists( abs_path ) )
       {
-         if( write )
+         _file_size = bfs::file_size( abs_path );
+         if( shared_file_size > _file_size )
          {
-            auto existing_file_size = bfs::file_size( abs_path );
-            if( shared_file_size > existing_file_size )
-            {
-               if( !bip::managed_mapped_file::grow( abs_path.generic_string().c_str(), shared_file_size - existing_file_size ) )
-                  BOOST_THROW_EXCEPTION( std::runtime_error( "could not grow database file to requested size." ) );
-            }
+            if( !bip::managed_mapped_file::grow( abs_path.generic_string().c_str(), shared_file_size - _file_size ) )
+               BOOST_THROW_EXCEPTION( std::runtime_error( "could not grow database file to requested size." ) );
 
-            _segment.reset( new bip::managed_mapped_file( bip::open_only,
-                                                          abs_path.generic_string().c_str()
-                                                          ) );
-         } else {
-            _segment.reset( new bip::managed_mapped_file( bip::open_read_only,
-                                                          abs_path.generic_string().c_str()
-                                                          ) );
-            _read_only = true;
+            _file_size = shared_file_size;
          }
+
+         _segment.reset( new bip::managed_mapped_file( bip::open_only,
+                                                       abs_path.generic_string().c_str()
+                                                       ) );
 
          auto env = _segment->find< environment_check >( "environment" );
          if( !env.first || !( *env.first == environment_check()) ) {
             BOOST_THROW_EXCEPTION( std::runtime_error( "database created by a different compiler, build, or operating system" ) );
          }
       } else {
+         _file_size = shared_file_size;
          _segment.reset( new bip::managed_mapped_file( bip::create_only,
                                                        abs_path.generic_string().c_str(), shared_file_size
                                                        ) );
          _segment->find_or_construct< environment_check >( "environment" )();
       }
 
-
-      abs_path = bfs::absolute( dir / "shared_memory.meta" );
-
-      if( bfs::exists( abs_path ) )
-      {
-         _meta.reset( new bip::managed_mapped_file( bip::open_only, abs_path.generic_string().c_str()
-                                                    ) );
-
-         _rw_manager = _meta->find< read_write_mutex_manager >( "rw_manager" ).first;
-         if( !_rw_manager )
-            BOOST_THROW_EXCEPTION( std::runtime_error( "could not find read write lock manager" ) );
-      }
-      else
-      {
-         _meta.reset( new bip::managed_mapped_file( bip::create_only,
-                                                    abs_path.generic_string().c_str(), sizeof( read_write_mutex_manager ) * 2
-                                                    ) );
-
-         _rw_manager = _meta->find_or_construct< read_write_mutex_manager >( "rw_manager" )();
-      }
-
-      if( write )
-      {
-         _flock = bip::file_lock( abs_path.generic_string().c_str() );
-         if( !_flock.try_lock() )
-            BOOST_THROW_EXCEPTION( std::runtime_error( "could not gain write access to the shared memory file" ) );
-      }
+      _flock = bip::file_lock( abs_path.generic_string().c_str() );
+      if( !_flock.try_lock() )
+         BOOST_THROW_EXCEPTION( std::runtime_error( "could not gain write access to the shared memory file" ) );
+#endif
    }
 
    void database::flush() {
+#ifndef ENABLE_STD_ALLOCATOR
       if( _segment )
          _segment->flush();
       if( _meta )
          _meta->flush();
+#endif
    }
 
    void database::close()
    {
+#ifndef ENABLE_STD_ALLOCATOR
       _segment.reset();
       _meta.reset();
       _data_dir = bfs::path();
+#endif
    }
 
    void database::wipe( const bfs::path& dir )
    {
+#ifndef ENABLE_STD_ALLOCATOR
       _segment.reset();
       _meta.reset();
       bfs::remove_all( dir / "shared_memory.bin" );
       bfs::remove_all( dir / "shared_memory.meta" );
       _data_dir = bfs::path();
+#endif
       _index_list.clear();
       _index_map.clear();
+   }
+
+   void database::resize( size_t new_shared_file_size )
+   {
+      if( _undo_session_count )
+         BOOST_THROW_EXCEPTION( std::runtime_error( "Cannot resize shared memory file while undo session is active" ) );
+
+      _segment.reset();
+      _meta.reset();
+
+      open( _data_dir, 0, new_shared_file_size );
+
+      _index_list.clear();
+      _index_map.clear();
+
+      for( auto& index_type : _index_types )
+      {
+         index_type->add_index( *this );
+      }
    }
 
    void database::set_require_locking( bool enable_require_locking )
@@ -178,18 +171,14 @@ namespace chainbase {
       }
    }
 
-   database::session database::start_undo_session( bool enabled )
+   database::session database::start_undo_session()
    {
-      if( enabled ) {
-         vector< std::unique_ptr<abstract_session> > _sub_sessions;
-         _sub_sessions.reserve( _index_list.size() );
-         for( auto& item : _index_list ) {
-            _sub_sessions.push_back( item->start_undo_session( enabled ) );
-         }
-         return session( std::move( _sub_sessions ) );
-      } else {
-         return session();
+      vector< std::unique_ptr<abstract_session> > _sub_sessions;
+      _sub_sessions.reserve( _index_list.size() );
+      for( auto& item : _index_list ) {
+         _sub_sessions.push_back( item->start_undo_session() );
       }
+      return session( std::move( _sub_sessions ), _undo_session_count );
    }
 
 }  // namespace chainbase

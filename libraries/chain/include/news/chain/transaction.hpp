@@ -37,6 +37,17 @@ namespace news{
 }//namespace news
 
 
+namespace fc{
+    void to_variant(news::chain::signed_transaction &strx, fc::variant &vo);
+    void from_variant(const fc::variant &var, news::chain::signed_transaction &trx);
+
+
+    void to_variant(news::chain::transaction &trx, fc::variant &vo);
+    void from_variant(const fc::variant &var, news::chain::transaction &trx);
+
+}
+
+
 
 
 FC_REFLECT(news::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration))

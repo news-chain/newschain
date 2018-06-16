@@ -9,22 +9,29 @@
 #include <news/chain/transaction.hpp>
 
 
-#include <fstream>
-
-
 namespace news{
     namespace chain{
 
 
         struct signed_block : public signed_block_header{
             checksum_type                       caculate_merkle_root() const;
-            std::vector<transaction>            transactions;
+//            std::vector<transaction>            transactions;
+            uint32_t            transactions = 0;
+
         };
 
 
 
     }//namespace chain
 }//namespace news
+
+
+namespace  fc{
+    void to_variant(const news::chain::signed_block &block, fc::variant &var);
+    //TODO from_variant ?
+}
+
+
 
 
 FC_REFLECT_DERIVED(news::chain::signed_block, (news::chain::signed_block_header),(transactions))

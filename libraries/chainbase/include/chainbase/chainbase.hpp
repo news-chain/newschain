@@ -20,6 +20,9 @@
 #include <boost/thread.hpp>
 #include <boost/throw_exception.hpp>
 
+#include <chainbase/allocators.hpp>
+#include <chainbase/util/object_id.hpp>
+
 #include <array>
 #include <atomic>
 #include <fstream>
@@ -40,20 +43,50 @@
    #define CHAINBASE_REQUIRE_WRITE_LOCK(m, t)
 #endif
 
+namespace helpers
+{
+   struct index_statistic_info
+   {
+      std::string _value_type_name;
+      size_t      _item_count = 0;
+      size_t      _item_sizeof = 0;
+      /// Additional (ie dynamic container) allocations held in stored items
+      size_t      _item_additional_allocation = 0;
+      /// Additional memory used for container internal structures (like tree nodes).
+      size_t      _additional_container_allocation = 0;
+   };
+
+   template <class IndexType>
+   void gather_index_static_data(const IndexType& index, index_statistic_info* info)
+   {
+      info->_value_type_name = boost::core::demangle(typeid(typename IndexType::value_type).name());
+      info->_item_count = index.size();
+      info->_item_sizeof = sizeof(typename IndexType::value_type);
+      info->_item_additional_allocation = 0;
+      size_t pureNodeSize = sizeof(typename IndexType::node_type) -
+         sizeof(typename IndexType::value_type);
+      info->_additional_container_allocation = info->_item_count*pureNodeSize;
+   }
+
+   template <class IndexType>
+   class index_statistic_provider
+   {
+   public:
+      index_statistic_info gather_statistics(const IndexType& index, bool onlyStaticInfo) const
+      {
+         index_statistic_info info;
+         gather_index_static_data(index, &info);
+         return info;
+      }
+   };
+} /// namespace helpers
+
 namespace chainbase {
 
    namespace bip = boost::interprocess;
    namespace bfs = boost::filesystem;
    using std::unique_ptr;
    using std::vector;
-
-   template<typename T>
-   using allocator = bip::allocator<T, bip::managed_mapped_file::segment_manager>;
-
-   typedef bip::basic_string< char, std::char_traits< char >, allocator< char > > shared_string;
-
-   template<typename T>
-   using shared_vector = std::vector<T, allocator<T> >;
 
    struct strcmp_less
    {
@@ -62,6 +95,7 @@ namespace chainbase {
          return less( a.c_str(), b.c_str() );
       }
 
+#ifndef ENABLE_STD_ALLOCATOR
       bool operator()( const shared_string& a, const std::string& b )const
       {
          return less( a.c_str(), b.c_str() );
@@ -71,32 +105,12 @@ namespace chainbase {
       {
          return less( a.c_str(), b.c_str() );
       }
+#endif
       private:
          inline bool less( const char* a, const char* b )const
          {
             return std::strcmp( a, b ) < 0;
          }
-   };
-
-   typedef boost::interprocess::interprocess_sharable_mutex read_write_mutex;
-   typedef boost::interprocess::sharable_lock< read_write_mutex > read_lock;
-   typedef boost::unique_lock< read_write_mutex > write_lock;
-
-   /**
-    *  Object ID type that includes the type of the object it references
-    */
-   template<typename T>
-   class oid {
-      public:
-         oid( int64_t i = 0 ):_id(i){}
-
-         oid& operator++() { ++_id; return *this; }
-
-         friend bool operator < ( const oid& a, const oid& b ) { return a._id < b._id; }
-         friend bool operator > ( const oid& a, const oid& b ) { return a._id > b._id; }
-         friend bool operator == ( const oid& a, const oid& b ) { return a._id == b._id; }
-         friend bool operator != ( const oid& a, const oid& b ) { return a._id != b._id; }
-         int64_t _id = 0;
    };
 
    template<uint16_t TypeNumber, typename Derived>
@@ -133,9 +147,9 @@ namespace chainbase {
 
          template<typename T>
          undo_state( allocator<T> al )
-         :old_values( id_value_allocator_type( al.get_segment_manager() ) ),
-          removed_values( id_value_allocator_type( al.get_segment_manager() ) ),
-          new_ids( id_allocator_type( al.get_segment_manager() ) ){}
+         :old_values( id_value_allocator_type( al ) ),
+          removed_values( id_value_allocator_type( al ) ),
+          new_ids( id_allocator_type( al ) ){}
 
          typedef boost::interprocess::map< id_type, value_type, std::less<id_type>, id_value_allocator_type >  id_value_type_map;
          typedef boost::interprocess::set< id_type, std::less<id_type>, id_allocator_type >                    id_type_set;
@@ -160,6 +174,10 @@ namespace chainbase {
       public:
          int_incrementer( int32_t& target ) : _target(target)
          { ++_target; }
+
+         int_incrementer( int_incrementer& ii ) : _target( ii._target )
+         { ++_target; }
+
          ~int_incrementer()
          { --_target; }
 
@@ -180,10 +198,9 @@ namespace chainbase {
    class generic_index
    {
       public:
-         typedef bip::managed_mapped_file::segment_manager             segment_manager_type;
          typedef MultiIndexType                                        index_type;
          typedef typename index_type::value_type                       value_type;
-         typedef bip::allocator< generic_index, segment_manager_type > allocator_type;
+         typedef allocator< generic_index >                            allocator_type;
          typedef undo_state< value_type >                              undo_state_type;
 
          generic_index( allocator<value_type> a )
@@ -287,15 +304,12 @@ namespace chainbase {
                int64_t        _revision = 0;
          };
 
-         session start_undo_session( bool enabled ) {
-            if( enabled ) {
-               _stack.emplace_back( _indices.get_allocator() );
-               _stack.back().old_next_id = _next_id;
-               _stack.back().revision = ++_revision;
-               return session( *this, _revision );
-            } else {
-               return session( *this, -1 );
-            }
+         session start_undo_session()
+         {
+            _stack.emplace_back( _indices.get_allocator() );
+            _stack.back().old_next_id = _next_id;
+            _stack.back().revision = ++_revision;
+            return session( *this, _revision );
          }
 
          const index_type& indicies()const { return _indices; }
@@ -318,7 +332,7 @@ namespace chainbase {
                if( !ok ) BOOST_THROW_EXCEPTION( std::logic_error( "Could not modify object, most likely a uniqueness constraint was violated" ) );
             }
 
-            for( auto id : head.new_ids )
+            for( const auto& id : head.new_ids )
             {
                _indices.erase( _indices.find( id ) );
             }
@@ -411,7 +425,7 @@ namespace chainbase {
             }
 
             // *+new, but we assume the N/A cases don't happen, leaving type B nop+new -> new
-            for( auto id : state.new_ids )
+            for( const auto& id : state.new_ids )
                prev_state.new_ids.insert(id);
 
             // *+del
@@ -465,13 +479,6 @@ namespace chainbase {
          {
             if( _stack.size() != 0 ) BOOST_THROW_EXCEPTION( std::logic_error("cannot set revision while there is an existing undo stack") );
             _revision = revision;
-         }
-
-         void remove_object( int64_t id )
-         {
-            const value_type* val = find( typename value_type::id_type(id) );
-            if( !val ) BOOST_THROW_EXCEPTION( std::out_of_range( boost::lexical_cast<std::string>(id) ) );
-            remove( *val );
          }
 
       private:
@@ -571,10 +578,12 @@ namespace chainbase {
    class abstract_index
    {
       public:
+         typedef helpers::index_statistic_info statistic_info;
+
          abstract_index( void* i ):_idx_ptr(i){}
          virtual ~abstract_index(){}
          virtual void     set_revision( int64_t revision ) = 0;
-         virtual unique_ptr<abstract_session> start_undo_session( bool enabled ) = 0;
+         virtual unique_ptr<abstract_session> start_undo_session() = 0;
 
          virtual int64_t revision()const = 0;
          virtual void    undo()const = 0;
@@ -583,7 +592,8 @@ namespace chainbase {
          virtual void    undo_all()const = 0;
          virtual uint32_t type_id()const  = 0;
 
-         virtual void remove_object( int64_t id ) = 0;
+         virtual statistic_info get_statistics(bool onlyStaticInfo) const = 0;
+         virtual size_t size() const = 0;
 
          void add_index_extension( std::shared_ptr< index_extension > ext )  { _extensions.push_back( ext ); }
          const index_extensions& get_index_extensions()const  { return _extensions; }
@@ -596,10 +606,12 @@ namespace chainbase {
    template<typename BaseIndex>
    class index_impl : public abstract_index {
       public:
+         using abstract_index::statistic_info;
+
          index_impl( BaseIndex& base ):abstract_index( &base ),_base(base){}
 
-         virtual unique_ptr<abstract_session> start_undo_session( bool enabled ) override {
-            return unique_ptr<abstract_session>(new session_impl<typename BaseIndex::session>( _base.start_undo_session( enabled ) ) );
+         virtual unique_ptr<abstract_session> start_undo_session() override {
+            return unique_ptr<abstract_session>(new session_impl<typename BaseIndex::session>( _base.start_undo_session() ) );
          }
 
          virtual void     set_revision( int64_t revision ) override { _base.set_revision( revision ); }
@@ -610,7 +622,15 @@ namespace chainbase {
          virtual void     undo_all() const override {_base.undo_all(); }
          virtual uint32_t type_id()const override { return BaseIndex::value_type::type_id; }
 
-         virtual void     remove_object( int64_t id ) override { return _base.remove_object( id ); }
+         virtual statistic_info get_statistics(bool onlyStaticInfo) const override final
+         {
+            typedef typename BaseIndex::index_type index_type;
+            helpers::index_statistic_provider<index_type> provider;
+            return provider.gather_statistics(_base.indices(), onlyStaticInfo);
+         }
+         virtual size_t size() const override final
+            { return _base.indicies().size(); }
+
       private:
          BaseIndex& _base;
    };
@@ -653,22 +673,44 @@ namespace chainbase {
          std::atomic< uint32_t >                                    _current_lock;
    };
 
+   struct lock_exception : public std::exception
+   {
+      explicit lock_exception() {}
+      virtual ~lock_exception() {}
+
+      virtual const char* what() const noexcept { return "Unable to acquire database lock"; }
+   };
 
    /**
     *  This class
     */
    class database
    {
-      public:
-         enum open_flags {
-            read_only     = 0,
-            read_write    = 1
+      private:
+         class abstract_index_type
+         {
+            public:
+               abstract_index_type() {}
+               virtual ~abstract_index_type() {}
+
+               virtual void add_index( database& db ) = 0;
          };
 
-         void open( const bfs::path& dir, uint32_t write = read_only, uint64_t shared_file_size = 0 );
+         template< typename IndexType >
+         class index_type_impl : public abstract_index_type
+         {
+            virtual void add_index( database& db ) override
+            {
+               db.add_index_helper< IndexType >();
+            }
+         };
+
+      public:
+         void open( const bfs::path& dir, uint32_t flags = 0, size_t shared_file_size = 0 );
          void close();
          void flush();
          void wipe( const bfs::path& dir );
+         void resize( size_t new_shared_file_size );
          void set_require_locking( bool enable_require_locking );
 
 #ifdef CHAINBASE_CHECK_LOCKING
@@ -676,7 +718,7 @@ namespace chainbase {
 
          void require_read_lock( const char* method, const char* tname )const
          {
-            if( BOOST_UNLIKELY( _enable_require_locking & _read_only & (_read_lock_count <= 0) ) )
+            if( BOOST_UNLIKELY( _enable_require_locking & (_read_lock_count <= 0) ) )
                require_lock_fail(method, "read", tname);
          }
 
@@ -689,8 +731,14 @@ namespace chainbase {
 
          struct session {
             public:
-               session( session&& s ):_index_sessions( std::move(s._index_sessions) ),_revision( s._revision ){}
-               session( vector<std::unique_ptr<abstract_session>>&& s ):_index_sessions( std::move(s) )
+               session( session&& s )
+                  : _index_sessions( std::move(s._index_sessions) ),
+                    _revision( s._revision ),
+                    _session_incrementer( s._session_incrementer )
+               {}
+
+               session( vector<std::unique_ptr<abstract_session>>&& s, int32_t& session_count )
+                  : _index_sessions( std::move(s) ), _session_incrementer( session_count )
                {
                   if( _index_sessions.size() )
                      _revision = _index_sessions[0]->revision();
@@ -722,13 +770,13 @@ namespace chainbase {
 
             private:
                friend class database;
-               session(){}
 
                vector< std::unique_ptr<abstract_session> > _index_sessions;
                int64_t _revision = -1;
+               int_incrementer _session_incrementer;
          };
 
-         session start_undo_session( bool enabled  = true);
+         session start_undo_session();
 
          int64_t revision()const {
              if( _index_list.size() == 0 ) return -1;
@@ -744,47 +792,45 @@ namespace chainbase {
          void set_revision( int64_t revision )
          {
              CHAINBASE_REQUIRE_WRITE_LOCK( "set_revision", int64_t );
-             for( auto i : _index_list ) i->set_revision( revision );
+             for( const auto& i : _index_list ) i->set_revision( revision );
          }
 
 
          template<typename MultiIndexType>
-         void add_index() {
-             const uint16_t type_id = generic_index<MultiIndexType>::value_type::type_id;
-             typedef generic_index<MultiIndexType>          index_type;
-             typedef typename index_type::allocator_type    index_alloc;
-
-             std::string type_name = boost::core::demangle( typeid( typename index_type::value_type ).name() );
-
-             if( !( _index_map.size() <= type_id || _index_map[ type_id ] == nullptr ) ) {
-                BOOST_THROW_EXCEPTION( std::logic_error( type_name + "::type_id is already in use" ) );
-             }
-
-             index_type* idx_ptr =  nullptr;
-             if( !_read_only ) {
-                idx_ptr = _segment->find_or_construct< index_type >( type_name.c_str() )( index_alloc( _segment->get_segment_manager() ) );
-             } else {
-                idx_ptr = _segment->find< index_type >( type_name.c_str() ).first;
-                if( !idx_ptr ) BOOST_THROW_EXCEPTION( std::runtime_error( "unable to find index for " + type_name + " in read only database" ) );
-             }
-
-             idx_ptr->validate();
-
-             if( type_id >= _index_map.size() )
-                _index_map.resize( type_id + 1 );
-
-             auto new_index = new index<index_type>( *idx_ptr );
-             _index_map[ type_id ].reset( new_index );
-             _index_list.push_back( new_index );
+         void add_index()
+         {
+            _index_types.push_back( unique_ptr< abstract_index_type >( new index_type_impl< MultiIndexType >() ) );
+            _index_types.back()->add_index( *this );
          }
 
+#ifndef ENABLE_STD_ALLOCATOR
          auto get_segment_manager() -> decltype( ((bip::managed_mapped_file*)nullptr)->get_segment_manager()) {
             return _segment->get_segment_manager();
+         }
+#endif
+         unsigned long long get_total_system_memory() const
+         {
+#if !defined( __APPLE__ ) // OS X does not support _SC_AVPHYS_PAGES
+            long pages = sysconf(_SC_AVPHYS_PAGES);
+            long page_size = sysconf(_SC_PAGE_SIZE);
+            return pages * page_size;
+#else
+            return 0;
+#endif
          }
 
          size_t get_free_memory()const
          {
+#ifdef ENABLE_STD_ALLOCATOR
+            return get_total_system_memory();
+#else
             return _segment->get_segment_manager()->get_free_memory();
+#endif
+         }
+
+         size_t get_max_memory()const
+         {
+            return _file_size;
          }
 
          template<typename MultiIndexType>
@@ -924,7 +970,12 @@ namespace chainbase {
          template< typename Lambda >
          auto with_read_lock( Lambda&& callback, uint64_t wait_micro = 1000000 ) -> decltype( (*(Lambda*)nullptr)() )
          {
-            read_lock lock( _rw_manager->current_lock(), bip::defer_lock_type() );
+#ifndef ENABLE_STD_ALLOCATOR
+            read_lock lock( _rw_manager.current_lock(), bip::defer_lock_type() );
+#else
+            read_lock lock( _rw_manager.current_lock(), boost::defer_lock_t() );
+#endif
+
 #ifdef CHAINBASE_CHECK_LOCKING
             BOOST_ATTRIBUTE_UNUSED
             int_incrementer ii( _read_lock_count );
@@ -937,7 +988,7 @@ namespace chainbase {
             else
             {
                if( !lock.timed_lock( boost::posix_time::microsec_clock::universal_time() + boost::posix_time::microseconds( wait_micro ) ) )
-                  BOOST_THROW_EXCEPTION( std::runtime_error( "unable to acquire lock" ) );
+                  BOOST_THROW_EXCEPTION( lock_exception() );
             }
 
             return callback();
@@ -946,10 +997,7 @@ namespace chainbase {
          template< typename Lambda >
          auto with_write_lock( Lambda&& callback, uint64_t wait_micro = 1000000 ) -> decltype( (*(Lambda*)nullptr)() )
          {
-            if( _read_only )
-               BOOST_THROW_EXCEPTION( std::logic_error( "cannot acquire write lock on read-only process" ) );
-
-            write_lock lock( _rw_manager->current_lock(), boost::defer_lock_t() );
+            write_lock lock( _rw_manager.current_lock(), boost::defer_lock_t() );
 #ifdef CHAINBASE_CHECK_LOCKING
             BOOST_ATTRIBUTE_UNUSED
             int_incrementer ii( _write_lock_count );
@@ -963,9 +1011,9 @@ namespace chainbase {
             {
                while( !lock.timed_lock( boost::posix_time::microsec_clock::universal_time() + boost::posix_time::microseconds( wait_micro ) ) )
                {
-                  _rw_manager->next_lock();
-                  std::cerr << "Lock timeout, moving to lock " << _rw_manager->current_lock_num() << std::endl;
-                  lock = write_lock( _rw_manager->current_lock(), boost::defer_lock_t() );
+                  _rw_manager.next_lock();
+                  std::cerr << "Lock timeout, moving to lock " << _rw_manager.current_lock_num() << std::endl;
+                  lock = write_lock( _rw_manager.current_lock(), boost::defer_lock_t() );
                }
             }
 
@@ -987,28 +1035,67 @@ namespace chainbase {
             }
          }
 
+         typedef vector<abstract_index*> abstract_index_cntr_t;
+
+         const abstract_index_cntr_t& get_abstract_index_cntr() const
+            { return _index_list; }
+
       private:
+         template<typename MultiIndexType>
+         void add_index_helper() {
+             const uint16_t type_id = generic_index<MultiIndexType>::value_type::type_id;
+             typedef generic_index<MultiIndexType>          index_type;
+             typedef typename index_type::allocator_type    index_alloc;
+
+             std::string type_name = boost::core::demangle( typeid( typename index_type::value_type ).name() );
+
+             if( !( _index_map.size() <= type_id || _index_map[ type_id ] == nullptr ) ) {
+                BOOST_THROW_EXCEPTION( std::logic_error( type_name + "::type_id is already in use" ) );
+             }
+
+             index_type* idx_ptr =  nullptr;
+#ifndef ENABLE_STD_ALLOCATOR
+             idx_ptr = _segment->find_or_construct< index_type >( type_name.c_str() )( index_alloc( _segment->get_segment_manager() ) );
+#else
+             idx_ptr = new index_type( index_alloc() );
+#endif
+             idx_ptr->validate();
+
+             if( type_id >= _index_map.size() )
+                _index_map.resize( type_id + 1 );
+
+             auto new_index = new index<index_type>( *idx_ptr );
+             _index_map[ type_id ].reset( new_index );
+             _index_list.push_back( new_index );
+         }
+
+         read_write_mutex_manager                                    _rw_manager;
+#ifndef ENABLE_STD_ALLOCATOR
          unique_ptr<bip::managed_mapped_file>                        _segment;
          unique_ptr<bip::managed_mapped_file>                        _meta;
-         read_write_mutex_manager*                                   _rw_manager = nullptr;
-         bool                                                        _read_only = false;
          bip::file_lock                                              _flock;
+#endif
 
          /**
           * This is a sparse list of known indicies kept to accelerate creation of undo sessions
           */
-         vector<abstract_index*>                                     _index_list;
+         abstract_index_cntr_t                                       _index_list;
 
          /**
           * This is a full map (size 2^16) of all possible index designed for constant time lookup
           */
          vector<unique_ptr<abstract_index>>                          _index_map;
 
+         vector<unique_ptr<abstract_index_type>>                     _index_types;
+
          bfs::path                                                   _data_dir;
 
          int32_t                                                     _read_lock_count = 0;
          int32_t                                                     _write_lock_count = 0;
          bool                                                        _enable_require_locking = false;
+
+         int32_t                                                     _undo_session_count = 0;
+         size_t                                                      _file_size = 0;
    };
 
    template<typename Object, typename... Args>

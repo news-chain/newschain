@@ -45,9 +45,27 @@ namespace news{
             chainbase::database::open(args.shared_mem_dir, args.chainbase_flag, args.shared_mem_size);
 
             _block_log.open(args.data_dir / "block_log");
+
             initialize_indexes();
             init_genesis(args);
-            auto header = _block_log.head();
+
+            auto log_header = _block_log.head();
+            with_write_lock([&](){
+                undo_all();
+                FC_ASSERT( revision() == head_block_num(), "Chainbase revision does not match head block num", ("rev", revision())("head_block ", head_block_num()));
+                //TODO do_validate_invariants
+
+            });
+
+
+            if(head_block_num()){
+                auto head_block = _block_log.read_block_by_num(head_block_num());
+                FC_ASSERT(head_block.valid() && head_block_id() == head_block->id(), "Chain state does not match block log. Please reindex blockchain.");
+                _fork_database.start_block(*head_block);
+            }
+            transaction tx;
+            //TODO init hardforks
+
         }
 
         void database::initialize_indexes() {
@@ -130,7 +148,7 @@ namespace news{
 
             //TODO push block
             push_block(pengding_block, skip);
-
+            update_global_property_object(pengding_block);
             return pengding_block;
         }
 
@@ -164,17 +182,29 @@ namespace news{
             static_assert(IRREVERSIBLE_BLOCK_NUM > 0, "irreversible_block_num must be nonzero.");
             const auto &gpo = get_global_property_object();
             if(!(_skip_flags & skip_block_log)){
+                uint32_t log_head_num = 0;
                 const  auto &temp_head = _block_log.head();
-                if(temp_head->block_num() < gpo.last_irreversible_block_num){
-                    uint32_t log_head_num = temp_head->block_num();
+                if(temp_head){
+                    log_head_num = temp_head->block_num();
+                }
+                if(log_head_num < gpo.last_irreversible_block_num){
                     while(log_head_num < gpo.last_irreversible_block_num){
                         shared_ptr<fork_item> fitem = _fork_database.fetch_block_on_main_branch_by_number(log_head_num + 1);
                         FC_ASSERT(fitem, "Current fork in the fork database does not contain the last_irreversible_block");
                         _block_log.append(fitem->data);
+                        elog("block log append block ${b}", ("b", fitem->data.block_num()));
                         log_head_num++;
                     }
                 }
             }
+
+            if(gpo.head_block_num > IRREVERSIBLE_BLOCK_NUM){
+                modify(gpo, [&](dynamic_global_property_object &obj){
+                    obj.last_irreversible_block_num = head_block_num() - IRREVERSIBLE_BLOCK_NUM;
+                });
+            }
+
+
 
         }
 
@@ -199,11 +229,13 @@ namespace news{
                     FC_ASSERT(merkle_root == block.transaction_merkle_root, "merkle check failed",("new_block merkle root", block.producer_signature)("caculate merkle root ", merkle_root));
                 }catch (fc::assert_exception &e){
                     //TODO catch exception
+                    elog("_apply_block ", ("e", e.what()));
                 }
 
                 auto block_size = fc::raw::pack_size(block);
                 if(block_size < NEWS_MIN_BLOCK_SIZE){
                    elog("block size si too small ", ("block_num", block.block_num())("block_size", block_size));
+//                   elog("block : ${b}", ("b", block.timestamp));
                 }
 
 
@@ -232,33 +264,65 @@ namespace news{
                 shared_ptr<fork_item> new_block = _fork_database.push_block(block);
                 //TODO find producer?
 
+                //If the head block from the longest chain does not build off of the current head, we need to switch forks.
                 if(new_block->data.previous == head_block_id()){
+
+                    //If the newly pushed block is the same height as head, we get head back in new_head
+                    //Only switch forks if new_head is actually higher than head
                     if(new_block->data.block_num() > head_block_num()){
+
+
                         wlog("switching to for : ${id}", ("id", new_block->data.id()));
                         auto branches = _fork_database.fetch_branch_from(new_block->data.id(), head_block_id());
 
                         while(head_block_id() != branches.second.back()->data.previous)
                             pop_block();
 
-                        //push all blocks on the new block
+//                        push all blocks on the new block
                         for(auto ritr = branches.first.rbegin(); ritr != branches.first.rend(); ritr++){
                             ilog("push blocks from for ${n} ${id}", ("n", (*ritr)->data.block_num())("id", (*ritr)->data.id()));
-                            uint32_t delta = 0;
-//                            if(ritr != branches.first.rbegin()){
-//                            }
+
+                           fc::optional<fc::exception> exception;
+                            try {
+                                auto session = start_undo_session();
+                                apply_block((*ritr)->data, skip);
+                                session.push();
+                            }catch (const fc::exception &e){
+                                exception = e;
+                            }
+
+                            if(exception){
+                                 wlog( "exception thrown while switching forks ${e}", ("e",exception->to_detail_string() ) );
+                                // remove the rest of branches.first from the fork_db, those blocks are invalid
+                                while(ritr != branches.first.rend()){
+                                    _fork_database.remove((*ritr)->data.id());
+                                    ritr++;
+                                }
+                                _fork_database.set_head(branches.second.front());
+
+                                // pop all blocks from the bad fork
+                                while(head_block_id() != branches.second.back()->data.previous){
+                                    pop_block();
+                                }
+
+                                for(auto itr = branches.second.rbegin(); itr != branches.second.rend(); itr++){
+                                    auto session = start_undo_session();
+                                    apply_block((*itr)->data, skip);
+                                    session.push();
+                                }
+                                throw  *exception;
+                            }
+
                         }
-
+                        return true;
+                    }else{
+                        return false;
                     }
-
                 }
-                else{
-                    return false;
-                }
-
             }
 
             try {
-                auto session = start_undo_session(true);
+                auto session = start_undo_session();
                 apply_block(block, skip);
                 session.push();
             }catch (const fc::exception &e){
@@ -313,7 +377,34 @@ namespace news{
         }
 
         void database::pop_block() {
+            try {
+                _pending_tx_session.reset();
+                auto head_id = head_block_id();
+                fc::optional<signed_block> head_block = fetch_block_by_id(head_id);
+                FC_ASSERT(head_block.valid(), "there is no block to pop");
+                _fork_database.pop_block();
+                undo();
 
+                //TODO record poped transaction , insert next blocks?
+//                _popped_tx.insert(_popped_tx.begin(), head_block->transactions.begin())
+
+            }FC_CAPTURE_AND_RETHROW()
+
+        }
+
+        fc::optional<signed_block> database::fetch_block_by_id(const block_id_type &id) const {
+            try {
+                auto b = _fork_database.fetch_block(id);
+                if(!b){
+                    auto temp = _block_log.read_block_by_num(news::chain::block_header::num_from_id(id));
+                    if(temp && temp->id() == id){
+                        return temp;
+                    }
+                    temp.reset();
+                    return temp;
+                }
+                return b->data;
+            }FC_CAPTURE_AND_RETHROW()
         }
 
 

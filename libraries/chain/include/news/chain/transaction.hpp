@@ -8,13 +8,13 @@
 //#include <cstdint>
 #include <fc/time.hpp>
 #include <fc/reflect/reflect.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 
 
 namespace news{
     namespace chain{
 
-        using namespace protocol;
+        using namespace base;
 
         struct transaction{
             uint16_t                ref_block_num = 0;

@@ -1,15 +1,26 @@
 
-file(GLOB HEADERS "include/news/chain/*.hpp")
+file(GLOB CHAIN_HEADERS "include/news/chain/*.hpp")
 
 add_library(news_chain
-            src/database.cpp
-            src/block.cpp
-            src/block_header.cpp
-            src/block_log.cpp
-            src/transaction.cpp
-            src/fork_database.cpp
-            ${HEADERS}
+            src/chain/database.cpp
+            src/chain/block.cpp
+            src/chain/block_header.cpp
+            src/chain/block_log.cpp
+            src/chain/transaction.cpp
+            src/chain/fork_database.cpp
+            ${CHAIN_HEADERS}
         )
 
 target_link_libraries(news_chain fc news_protocol chainbase)
 target_include_directories(news_chain PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+
+
+
+file(GLOB BASE_HEADDERS "include/news/base/*.hpp")
+add_library(news_protocol
+            src/base/types.cpp
+                ${BASE_HEADDERS}
+            )
+target_link_libraries(news_protocol fc )
+target_include_directories(news_protocol PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

@@ -4,10 +4,10 @@
 
 
 
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 
 namespace news{
-    namespace protocol{
+    namespace base{
 
         public_key_type::public_key_type():key_data() {
 
@@ -68,17 +68,17 @@ namespace news{
         }
 
 
-    }//namespace protocol
+    }//namespace base
 }//news
 
 
 
 namespace fc{
-    void to_variant(const news::protocol::public_key_type &var, fc::variant &vo){
+    void to_variant(const news::base::public_key_type &var, fc::variant &vo){
         vo = std::string(var);
     }
 
-    void from_variant(const fc::variant &var, news::protocol::public_key_type &vo){
-        vo = news::protocol::public_key_type(var.as_string());
+    void from_variant(const fc::variant &var, news::base::public_key_type &vo){
+        vo = news::base::public_key_type(var.as_string());
     }
 }

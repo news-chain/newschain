@@ -6,7 +6,7 @@
 
 
 #include <fc/time.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 #include <fc/crypto/sha224.hpp>
 #include <fc/bitutil.hpp>
 
@@ -14,7 +14,7 @@
 namespace news{
     namespace chain{
 
-        using namespace news::protocol;
+        using namespace news::base;
 
 
 

@@ -5,7 +5,7 @@
 #pragma once
 
 namespace news{
-    namespace protocol{
+    namespace base{
 
         struct asset_symbol{
             asset_symbol(){}
@@ -17,7 +17,7 @@ namespace news{
         };
 
 
-    }//namespace protocol
+    }//namespace base
 }//namespace news
 
 

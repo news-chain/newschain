@@ -18,8 +18,8 @@
 #include <fc/variant_object.hpp>
 
 #include <app/application.hpp>
-#include <news/protocol/config.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/config.hpp>
+#include <news/base/types.hpp>
 #include <news/plugins/chain_plugin/chain_plugin.hpp>
 
 

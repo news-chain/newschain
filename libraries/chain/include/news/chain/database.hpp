@@ -11,7 +11,7 @@
 #include <fc/scoped_exit.hpp>
 
 
-#include <news/protocol/config.hpp>
+#include <news/base/config.hpp>
 #include <news/chain/block_log.hpp>
 #include <news/chain/global_property_object.hpp>
 #include <news/chain/block_summary_object.hpp>

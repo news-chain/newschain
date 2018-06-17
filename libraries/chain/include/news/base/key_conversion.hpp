@@ -10,7 +10,7 @@
 #include <fc/crypto/base58.hpp>
 
 namespace news{
-    namespace protocol{
+    namespace base{
 
 
         std::string key_to_wif(const fc::sha256 &private_secret){
@@ -53,5 +53,5 @@ namespace news{
             return fc::optional<fc::ecc::private_key>();
         }
 
-    }//namespace protocol
+    }//namespace base
 }//namespace news

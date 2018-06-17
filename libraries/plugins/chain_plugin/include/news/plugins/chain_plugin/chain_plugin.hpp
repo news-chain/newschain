@@ -10,7 +10,7 @@
 #include <fc/string.hpp>
 #include <fc/exception/exception.hpp>
 #include <news/chain/database.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 
 #define NEWS_CHAIN_PLUGIN_NAME ("chain_plugin")
 
@@ -40,7 +40,7 @@ namespace news{
 
 
 
-                news::chain::signed_block generate_block(const fc::time_point_sec when, const news::protocol::account_name &producer, const fc::ecc::private_key &sign_pk, uint32_t skip = 0);
+                news::chain::signed_block generate_block(const fc::time_point_sec when, const news::base::account_name &producer, const fc::ecc::private_key &sign_pk, uint32_t skip = 0);
 
                 database &get_database();
                 const database &get_database() const;

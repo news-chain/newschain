@@ -38,7 +38,7 @@ namespace news{
             return signee() == expected_signee;
         }
 
-        uint32_t block_header::num_from_id(const news::protocol::block_id_type &id) {
+        uint32_t block_header::num_from_id(const news::base::block_id_type &id) {
             return fc::endian_reverse_u32(id._hash[0]);
         }
 

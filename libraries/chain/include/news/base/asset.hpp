@@ -17,9 +17,9 @@
 
 #pragma once
 
-#include <news/protocol/asset_symbol.hpp>
+#include <news/base/asset_symbol.hpp>
 namespace news{
-    namespace protocol{
+    namespace base{
 
 
         struct asset {
@@ -38,6 +38,6 @@ namespace news{
 
 
 
-    }//namespace protocol
+    }//namespace base
 }//namespace news
 

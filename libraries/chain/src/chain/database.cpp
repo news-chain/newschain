@@ -143,12 +143,10 @@ namespace news{
                 FC_ASSERT(fc::raw::pack_size(pengding_block) <= NEWS_MAX_BLOCK_SIZE);
             }
 
-//            update_global_property_object(pengding_block);
-
 
             //TODO push block
             push_block(pengding_block, skip);
-            update_global_property_object(pengding_block);
+
             return pengding_block;
         }
 
@@ -199,7 +197,7 @@ namespace news{
                         shared_ptr<fork_item> fitem = _fork_database.fetch_block_on_main_branch_by_number(log_head_num + 1);
                         FC_ASSERT(fitem, "Current fork in the fork database does not contain the last_irreversible_block");
                         _block_log.append(fitem->data);
-                        elog("block log append block ${b}", ("b", fitem->data.block_num()));
+//                        elog("block log append block ${b}", ("b", fitem->data.block_num()));
                         log_head_num++;
                     }
                 }
@@ -247,7 +245,7 @@ namespace news{
 
 
                 update_last_irreversible_block();
-
+                update_global_property_object(block);
 
 
             }FC_CAPTURE_AND_RETHROW()

@@ -15,7 +15,7 @@
 #include <iostream>
 #include "plugin.hpp"
 #include <fc/log/logger_config.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 
 
 

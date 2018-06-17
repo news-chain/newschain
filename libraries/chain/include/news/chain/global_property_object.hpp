@@ -6,14 +6,14 @@
 
 #include <chainbase/chainbase.hpp>
 #include <news/chain/object_types.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 namespace news{
     namespace chain{
 
-        using namespace news::protocol;
+        using namespace news::base;
         using namespace chainbase;
 //        using namespace boost::mu
         using namespace boost::multi_index;

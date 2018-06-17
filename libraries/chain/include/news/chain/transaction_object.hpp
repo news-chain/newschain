@@ -7,7 +7,7 @@
 #include <chainbase/chainbase.hpp>
 #include <news/chain/object_types.hpp>
 #include <fc/time.hpp>
-#include <news/protocol/types.hpp>
+#include <news/base/types.hpp>
 
 
 #include <boost/multi_index/ordered_index.hpp>
@@ -28,7 +28,7 @@ namespace news{
 
             id_type                                 id;
             fc::time_point_sec                      expiration;
-            news::protocol::transaction_id_type     trx_id;
+            news::base::transaction_id_type     trx_id;
         };
 
 
@@ -40,7 +40,7 @@ namespace news{
                 transaction_object,
                 indexed_by<
                         ordered_unique< tag<by_id>, member<transaction_object, transaction_object::id_type, &transaction_object::id>>,
-                        hashed_unique< tag<by_trx_id>, member<transaction_object, news::protocol::transaction_id_type, &transaction_object::trx_id>, std::hash<news::protocol::transaction_id_type> >,
+                        hashed_unique< tag<by_trx_id>, member<transaction_object, news::base::transaction_id_type, &transaction_object::trx_id>, std::hash<news::base::transaction_id_type> >,
                         ordered_non_unique< tag< by_expiration>, member<transaction_object, fc::time_point_sec, &transaction_object::expiration> >
                         >,
                         chainbase::allocator <transaction_object>

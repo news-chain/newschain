@@ -19,7 +19,8 @@ namespace news{
         enum object_type{
             global_property_dynamic_obj = 0,
             block_summary_object_type,
-            transaction_object_type
+            transaction_object_type,
+            account_object_type
         };
 
 //        typedef oid<block_summary_object>           block_summary_object_id_type;

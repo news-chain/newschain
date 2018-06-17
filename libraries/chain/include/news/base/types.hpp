@@ -14,7 +14,7 @@
 #include <fc/crypto/base58.hpp>
 #include <fc/io/raw.hpp>
 
-#include <news/protocol/config.hpp>
+#include <news/base/config.hpp>
 
 
 
@@ -26,7 +26,7 @@
 
 
 namespace news{
-    namespace protocol{
+    namespace base{
 
         typedef fc::sha256                  digest_type;
         typedef fc::sha256                  checksum_type;
@@ -68,17 +68,17 @@ namespace news{
 
 
 
-    }//namespace protocol
+    }//namespace base
 }//namespace news
 
 
 namespace fc{
-    void to_variant(const news::protocol::public_key_type &var, fc::variant &vo);
-    void from_variant(const fc::variant &var, news::protocol::public_key_type &vo);
+    void to_variant(const news::base::public_key_type &var, fc::variant &vo);
+    void from_variant(const fc::variant &var, news::base::public_key_type &vo);
 }
 
 
 
-FC_REFLECT( news::protocol::public_key_type::binary_key, (data)(check) )
-FC_REFLECT( news::protocol::public_key_type, (key_data) )
-FC_REFLECT_TYPENAME(news::protocol::share_type)
+FC_REFLECT( news::base::public_key_type::binary_key, (data)(check) )
+FC_REFLECT( news::base::public_key_type, (key_data) )
+FC_REFLECT_TYPENAME(news::base::share_type)

@@ -78,6 +78,8 @@ namespace news{
                     _my->shared_memory_size = fc::parse_size( options.at("shared-file-size").as<string>());
 //                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
                     _my->stop_replay_at = 0;
+
+                    _my->replay = options.at("replay-blockchain").as<bool>();
                 }catch (const fc::exception &e){
                     elog("plugin init error ${e} , ${p}", ("e", e.what())("p", this->get_name()));
                 }
@@ -122,7 +124,7 @@ namespace news{
             }
 
             news::chain::signed_block
-            chain_plugin::generate_block(const fc::time_point_sec when, const news::protocol::account_name &producer,
+            chain_plugin::generate_block(const fc::time_point_sec when, const news::base::account_name &producer,
                                          const fc::ecc::private_key &sign_pk, uint32_t skip) {
                 return  _my->db.generate_block(when, producer, sign_pk, (validation_steps)skip);
             }

@@ -5,7 +5,7 @@
 
 
 #include <news/plugins/producer_plugin/producer_plugin.hpp>
-#include <news/protocol/key_conversion.hpp>
+#include <news/base/key_conversion.hpp>
 
 
 
@@ -14,7 +14,7 @@ namespace news{
         namespace producer_plugin{
 
 
-            using namespace news::protocol;
+            using namespace news::base;
 
             void new_chain_banner()
             {
@@ -51,10 +51,10 @@ namespace news{
 
                     boost::asio::deadline_timer                                         _timer;
 
-                    std::map<news::protocol::public_key_type, fc::ecc::private_key>     _private_keys;
+                    std::map<news::base::public_key_type, fc::ecc::private_key>     _private_keys;
                     news::plugins::chain_plugin::chain_plugin&                           _chain_plugin;
                     news::chain::database&                                              _db;
-                    std::set< news::protocol::account_name >                            _producers;
+                    std::set< news::base::account_name >                            _producers;
 
                 };
 
@@ -110,7 +110,7 @@ namespace news{
                     auto scheduled_time = _db.get_slot_time(slot);
 
                     //TODO find producer public_key  from  witness_object
-                    news::protocol::public_key_type key = _private_keys.begin()->first;
+                    news::base::public_key_type key = _private_keys.begin()->first;
                     auto private_key = _private_keys.find(key);
                     if(private_key == _private_keys.end()){
                         cap("k", (std::string)key);
@@ -216,7 +216,7 @@ namespace news{
                 if(options.count("private-key")){
                     const std::vector<std::string> keys = options["private-key"].as<std::vector<std::string>>();
                     for(const std::string &wif_key : keys){
-                        fc::optional<fc::ecc::private_key> pk = news::protocol::wif_to_key(wif_key);
+                        fc::optional<fc::ecc::private_key> pk = news::base::wif_to_key(wif_key);
                         FC_ASSERT(pk.valid(), "unable to parse private key");
                         _my->_private_keys[pk->get_public_key()] = *pk;
                     }
@@ -228,7 +228,7 @@ namespace news{
 
             void producer_plugin::plugin_startup() {
                 //for test add , remove later
-                _my->_producers.insert(news::protocol::account_name(0));
+                _my->_producers.insert(news::base::account_name(0));
                 auto test_pk = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("pk")));
                 auto test_public_key = public_key_type(test_pk.get_public_key());
                 _my->_private_keys[test_public_key] = test_pk;

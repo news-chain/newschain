@@ -40,7 +40,7 @@ namespace news{
         enum validation_steps
         {
             skip_nothing                    = 0,
-            skip_witness_signature          = 1 << 0,  ///< used while reindexing
+            skip_producer_signature          = 1 << 0,  ///< used while reindexing
             skip_transaction_signatures     = 1 << 1,  ///< used by non-witness nodes
             skip_transaction_dupe_check     = 1 << 2,  ///< used while reindexing
             skip_fork_db                    = 1 << 3,  ///< used while reindexing
@@ -62,7 +62,8 @@ namespace news{
             database();
             ~database();
 
-            void open(const open_db_args &args);
+            void                            open(const open_db_args &args);
+            uint32_t                            reindex(const open_db_args &args);
 
             bool                            is_producing()const{return _is_producing;}
             void                            set_producing(bool p){_is_producing = p;}
@@ -77,11 +78,11 @@ namespace news{
 
             account_name                    get_scheduled_producer(uint32_t num) const;
 
-            signed_block                    generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed, validation_steps skip);
+            signed_block                    generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed, uint64_t skip);
             signed_block                    generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
 
-            bool                            push_block(const signed_block &block, validation_steps skip);
-            void                            push_transaction(const signed_transaction &trx, validation_steps skip = skip_nothing);
+            bool                            push_block(const signed_block &block, uint64_t skip);
+            void                            push_transaction(const signed_transaction &trx, uint64_t skip = skip_nothing);
 
             void                            create_block_summary(const signed_block &b);
         private:
@@ -93,9 +94,9 @@ namespace news{
             void                            update_last_irreversible_block();
 
 
-            bool                            _push_block(const signed_block &block, validation_steps skip);
-            void                            apply_block(const signed_block &block, validation_steps skip = skip_nothing);
-            void                            _apply_block(const signed_block &block, validation_steps skip = skip_nothing);
+            bool                            _push_block(const signed_block &block, uint64_t skip);
+            void                            apply_block(const signed_block &block, uint64_t skip = skip_nothing);
+            void                            _apply_block(const signed_block &block, uint64_t skip = skip_nothing);
 
             bool                            is_know_transaction(const transaction_id_type &trx_id);
             void                            _push_transaction(const signed_transaction &trx);
@@ -103,7 +104,7 @@ namespace news{
             fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
             //
             template<typename Function>
-            auto with_skip_flags(validation_steps flags, Function   &&ff){
+            auto with_skip_flags(uint64_t flags, Function   &&ff){
                 auto on_exit = fc::make_scoped_exit([old_flags = _skip_flags, this](){
                     _skip_flags = old_flags;
                 });
@@ -137,7 +138,7 @@ namespace news{
             block_log                                       _block_log;
             fork_database                                   _fork_database;
             std::vector<signed_transaction>                 _pending_trx;
-            validation_steps                                _skip_flags = skip_nothing;
+            uint64_t                                        _skip_flags = skip_nothing;
             bool                                            _is_producing = false;
             fc::optional< chainbase::database::session >    _pending_tx_session;
             std::deque<signed_transaction>                  _popped_tx;
@@ -150,7 +151,7 @@ FC_REFLECT(news::chain::open_db_args, (data_dir)(shared_mem_dir)(shared_mem_size
 
 FC_REFLECT_ENUM(news::chain::validation_steps,
                 (skip_nothing)
-                        (skip_witness_signature)
+                        (skip_producer_signature)
                         (skip_transaction_signatures)
                         (skip_transaction_dupe_check)
                         (skip_fork_db)

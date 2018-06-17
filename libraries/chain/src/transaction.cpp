@@ -28,12 +28,11 @@ namespace news{
 
 
 namespace  fc{
-    void to_variant(news::chain::signed_transaction &strx, fc::variant &vo){
+    void to_variant(const news::chain::signed_transaction &strx, fc::variant &vo){
         try {
             vo = fc::mutable_variant_object("ref_block_num", strx.ref_block_num)
                     ("ref_block_prefix", strx.ref_block_prefix)
-                    ("expiration", strx.expiration)
-                    ("id", strx.id());
+                    ("expiration", strx.expiration);
         }FC_CAPTURE_AND_RETHROW()
     }
 
@@ -41,7 +40,7 @@ namespace  fc{
 
     }
 
-    void to_variant(news::chain::transaction &trx, fc::variant &vo){
+    void to_variant(const news::chain::transaction &trx, fc::variant &vo){
         try {
             vo = fc::mutable_variant_object("ref_block_num", trx.ref_block_num)
                     ("ref_block_prefix", trx.ref_block_prefix)

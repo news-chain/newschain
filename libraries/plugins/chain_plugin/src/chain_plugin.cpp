@@ -101,7 +101,8 @@ namespace news{
 
 
                 if(_my->replay){
-                    //TODO replay
+                    //TODO stop at blocks num ?
+                    _my->db.reindex(db_open_args);
                 }
                 else{
                     ilog("open database dir: ${d}", ("d", _my->shared_memory_path.string()));

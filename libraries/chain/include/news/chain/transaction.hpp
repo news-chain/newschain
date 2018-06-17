@@ -38,12 +38,13 @@ namespace news{
 
 
 namespace fc{
-    void to_variant(news::chain::signed_transaction &strx, fc::variant &vo);
+    void to_variant(const news::chain::signed_transaction &strx, fc::variant &vo);
     void from_variant(const fc::variant &var, news::chain::signed_transaction &trx);
 
 
-    void to_variant(news::chain::transaction &trx, fc::variant &vo);
+    void to_variant(const news::chain::transaction &trx, fc::variant &vo);
     void from_variant(const fc::variant &var, news::chain::transaction &trx);
+
 
 }
 

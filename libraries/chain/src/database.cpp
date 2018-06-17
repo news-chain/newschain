@@ -63,7 +63,7 @@ namespace news{
                 FC_ASSERT(head_block.valid() && head_block_id() == head_block->id(), "Chain state does not match block log. Please reindex blockchain.");
                 _fork_database.start_block(*head_block);
             }
-            transaction tx;
+
             //TODO init hardforks
 
         }
@@ -126,7 +126,7 @@ namespace news{
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
-                                              const fc::ecc::private_key private_key_by_signed, validation_steps skip) {
+                                              const fc::ecc::private_key private_key_by_signed, uint64_t skip) {
 
             //
             signed_block pengding_block;
@@ -135,7 +135,7 @@ namespace news{
             pengding_block.previous = head_block_id();
             pengding_block.transaction_merkle_root = pengding_block.caculate_merkle_root();
             pengding_block.producer = producer;
-            if(!(skip & skip_witness_signature)){
+            if(!(skip & skip_producer_signature)){
                 pengding_block.sign(private_key_by_signed);
             }
 
@@ -180,7 +180,14 @@ namespace news{
 
         void database::update_last_irreversible_block() {
             static_assert(IRREVERSIBLE_BLOCK_NUM > 0, "irreversible_block_num must be nonzero.");
+
+
+            //update
+
+
+
             const auto &gpo = get_global_property_object();
+            commit(gpo.last_irreversible_block_num);
             if(!(_skip_flags & skip_block_log)){
                 uint32_t log_head_num = 0;
                 const  auto &temp_head = _block_log.head();
@@ -209,7 +216,7 @@ namespace news{
         }
 
 
-        void database::apply_block(const signed_block &block, validation_steps skip) {
+        void database::apply_block(const signed_block &block, uint64_t skip) {
             try {
                 auto block_num = block.block_num();
                 //TODO checkpoints
@@ -222,7 +229,7 @@ namespace news{
             }FC_CAPTURE_AND_RETHROW()
         }
 
-        void database::_apply_block(const signed_block &block, validation_steps skip) {
+        void database::_apply_block(const signed_block &block, uint64_t skip) {
             try {
                 auto merkle_root = block.caculate_merkle_root();
                 try {
@@ -247,7 +254,7 @@ namespace news{
         }
 
 
-        bool database::push_block(const signed_block &block, validation_steps skip) {
+        bool database::push_block(const signed_block &block, uint64_t skip) {
             bool result = false;
             with_skip_flags(skip, [&](){
                     without_pengding_transactions([&](){
@@ -259,78 +266,82 @@ namespace news{
             return false;
         }
 
-        bool database::_push_block(const signed_block &block, validation_steps skip) {
-            if(!(skip & skip_fork_db)){
-                shared_ptr<fork_item> new_block = _fork_database.push_block(block);
-                //TODO find producer?
+        bool database::_push_block(const signed_block &block, uint64_t skip) {
+//            elog("_push block  ${b}", ("b", block));
+            try{
+                if(!(skip & skip_fork_db)){
+                    shared_ptr<fork_item> new_block = _fork_database.push_block(block);
+                    //TODO find producer?
 
-                //If the head block from the longest chain does not build off of the current head, we need to switch forks.
-                if(new_block->data.previous == head_block_id()){
+                    //If the head block from the longest chain does not build off of the current head, we need to switch forks.
+                    if(new_block->data.previous != head_block_id()){
 
-                    //If the newly pushed block is the same height as head, we get head back in new_head
-                    //Only switch forks if new_head is actually higher than head
-                    if(new_block->data.block_num() > head_block_num()){
+                        //If the newly pushed block is the same height as head, we get head back in new_head
+                        //Only switch forks if new_head is actually higher than head
+                        if(new_block->data.block_num() > head_block_num()){
 
 
-                        wlog("switching to for : ${id}", ("id", new_block->data.id()));
-                        auto branches = _fork_database.fetch_branch_from(new_block->data.id(), head_block_id());
+                            wlog("switching to for : ${id}", ("id", new_block->data.id()));
+                            auto branches = _fork_database.fetch_branch_from(new_block->data.id(), head_block_id());
 
-                        while(head_block_id() != branches.second.back()->data.previous)
-                            pop_block();
+                            while(head_block_id() != branches.second.back()->data.previous)
+                                pop_block();
 
 //                        push all blocks on the new block
-                        for(auto ritr = branches.first.rbegin(); ritr != branches.first.rend(); ritr++){
-                            ilog("push blocks from for ${n} ${id}", ("n", (*ritr)->data.block_num())("id", (*ritr)->data.id()));
+                            for(auto ritr = branches.first.rbegin(); ritr != branches.first.rend(); ritr++){
+                                ilog("push blocks from for ${n} ${id}", ("n", (*ritr)->data.block_num())("id", (*ritr)->data.id()));
 
-                           fc::optional<fc::exception> exception;
-                            try {
-                                auto session = start_undo_session();
-                                apply_block((*ritr)->data, skip);
-                                session.push();
-                            }catch (const fc::exception &e){
-                                exception = e;
-                            }
-
-                            if(exception){
-                                 wlog( "exception thrown while switching forks ${e}", ("e",exception->to_detail_string() ) );
-                                // remove the rest of branches.first from the fork_db, those blocks are invalid
-                                while(ritr != branches.first.rend()){
-                                    _fork_database.remove((*ritr)->data.id());
-                                    ritr++;
-                                }
-                                _fork_database.set_head(branches.second.front());
-
-                                // pop all blocks from the bad fork
-                                while(head_block_id() != branches.second.back()->data.previous){
-                                    pop_block();
-                                }
-
-                                for(auto itr = branches.second.rbegin(); itr != branches.second.rend(); itr++){
+                                fc::optional<fc::exception> exception;
+                                try {
                                     auto session = start_undo_session();
-                                    apply_block((*itr)->data, skip);
+                                    apply_block((*ritr)->data, skip);
                                     session.push();
+                                }catch (const fc::exception &e){
+                                    exception = e;
                                 }
-                                throw  *exception;
-                            }
 
+                                if(exception){
+                                    wlog( "exception thrown while switching forks ${e}", ("e",exception->to_detail_string() ) );
+                                    // remove the rest of branches.first from the fork_db, those blocks are invalid
+                                    while(ritr != branches.first.rend()){
+                                        _fork_database.remove((*ritr)->data.id());
+                                        ritr++;
+                                    }
+                                    _fork_database.set_head(branches.second.front());
+
+                                    // pop all blocks from the bad fork
+                                    while(head_block_id() != branches.second.back()->data.previous){
+                                        pop_block();
+                                    }
+
+                                    for(auto itr = branches.second.rbegin(); itr != branches.second.rend(); itr++){
+                                        auto session = start_undo_session();
+                                        apply_block((*itr)->data, skip);
+                                        session.push();
+                                    }
+                                    throw  *exception;
+                                }
+
+                            }
+                            return true;
+                        }else{
+                            return false;
                         }
-                        return true;
-                    }else{
-                        return false;
                     }
                 }
-            }
 
-            try {
-                auto session = start_undo_session();
-                apply_block(block, skip);
-                session.push();
-            }catch (const fc::exception &e){
-                elog("Failed to push new block:\n${e}", ("e", e.to_detail_string()));
-                _fork_database.remove(block.id());
-                throw ;
-            }
-            return false;
+                try {
+                    auto session = start_undo_session();
+                    apply_block(block, skip);
+                    session.push();
+                }catch (const fc::exception &e){
+                    elog("Failed to push new block:\n${e}", ("e", e.to_detail_string()));
+                    _fork_database.remove(block.id());
+                    throw ;
+                }
+                return false;
+            }FC_CAPTURE_AND_RETHROW()
+
         }
 
         void database::create_block_summary(const signed_block &b) {
@@ -349,7 +360,7 @@ namespace news{
             }FC_CAPTURE_AND_RETHROW()
         }
 
-        void database::push_transaction(const signed_transaction &trx, validation_steps skip) {
+        void database::push_transaction(const signed_transaction &trx, uint64_t skip) {
             try {
                 try {
 //                    FC_ASSERT(fc::raw::pack(trx) <= NEWS_MAX_BLOCK_SIZE - 256);
@@ -405,6 +416,54 @@ namespace news{
                 }
                 return b->data;
             }FC_CAPTURE_AND_RETHROW()
+        }
+
+        uint32_t database::reindex(const open_db_args &args) {
+            try {
+                ilog("reindex blockchain");
+                wipe(args.shared_mem_dir);
+                open(args);
+                _fork_database.reset();
+
+                auto start = fc::time_point::now();
+
+                uint64_t skip_flas =
+                        skip_producer_signature         |
+                        skip_transaction_signatures     |
+                        skip_tapos_check                |
+                        skip_merkle_check               |
+                        skip_producer_schedule_check    |
+                        skip_authority_check            |
+                        skip_validate                   |
+                        skip_validate_invariants        |
+                        skip_block_log;
+
+
+                with_write_lock([&](){
+                    _block_log.set_locking(false);
+                    auto itr = _block_log.read_block(0);
+                    auto last_block_num = _block_log.read_head().block_num();
+                    //TODO stop at block num?
+                    while(itr.first.block_num() != last_block_num){
+                        auto current_block_num = itr.first.block_num();
+                        if(current_block_num % 10000 == 0){
+                            std::cerr << itr.first.block_num() << std::endl;
+                        }
+                        apply_block(itr.first, skip_flas);
+
+                        itr = _block_log.read_block( itr.second );
+                    }
+                });
+
+
+
+                auto end = fc::time_point::now();
+                elog("Done reindexing blcoks, elapsed time ${t} sec", ("t", (double)(end -start).count() / 1000000.0));
+
+                //TODO return  stop at block num
+                return _block_log.read_head().block_num();
+            }FC_CAPTURE_AND_RETHROW()
+
         }
 
 

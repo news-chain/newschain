@@ -127,7 +127,7 @@ namespace news{
                     //TODO add skip flag
                     auto block = _chain_plugin.generate_block(now, producer, private_key->second, 0);
 //                    ilog("block : ${b}", ("b", block));
-                    cap("n", block.block_num())("t", block.timestamp)("p", block.producer);
+                    cap("n", block.block_num())("t", block.timestamp)("p", block.producer)("b", block.transactions.size());
                     //TODO broadcast block
 
                     return block_production_condition::produced;
@@ -147,17 +147,16 @@ namespace news{
 
 
                     }
-//                    catch (const fc::exception &e){
-////                        elog("generate block ${e}", ("e", e.to_detail_string() ));
-//
-//                    }
+                    catch (const fc::exception &e){
+                        elog("generate block ${e}", ("e", e.to_detail_string() ));
+                    }
                     catch (...){
                         return block_production_condition::exception_producing_block;
                     }
 
                     switch (result){
                         case block_production_condition::produced:
-                            ilog("Genarated block #${n} time ${t} by ${p}", (capture));
+                            ilog("Genarated block #${n} time ${t} by ${p} trx.size=${b}", (capture));
                         case block_production_condition::not_synced:
 //                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
                             break;

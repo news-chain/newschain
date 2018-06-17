@@ -15,8 +15,8 @@ namespace news{
 
         struct signed_block : public signed_block_header{
             checksum_type                       caculate_merkle_root() const;
-//            std::vector<transaction>            transactions;
-            uint32_t            transactions = 0;
+            std::vector<transaction>            transactions;
+//            uint32_t            transactions = 0;
 
         };
 

@@ -9,7 +9,6 @@
 #include <news/chain/object_types.hpp>
 
 
-
 namespace news{
     namespace base{
 
@@ -20,6 +19,7 @@ namespace news{
         id_type             id;
         account_name        name;
         uint64_t            balance = 0;
+       fc::time_point       create_time;
     };
 
 
@@ -27,5 +27,5 @@ namespace news{
 }//news
 
 
-FC_REFLECT(news::base::account_object, (id)(name)(balance))
+FC_REFLECT(news::base::account_object, (id)(name)(balance)(create_time))
 

@@ -9,7 +9,7 @@
 #include <fc/time.hpp>
 #include <fc/reflect/reflect.hpp>
 #include <news/base/types.hpp>
-
+#include <fc/io/raw.hpp>
 
 namespace news{
     namespace chain{
@@ -21,8 +21,15 @@ namespace news{
             uint32_t                ref_block_prefix = 0;
             fc::time_point_sec      expiration;
 
-            transaction_id_type     id();
+            transaction_id_type     id() const;
             digest_type             digest() const;
+            void                    validate() const;
+            digest_type             sig_digest(const chain_id_type &chain_id) const;
+            void                    set_expiration(fc::time_point_sec expiration_time);
+
+
+            //TODO vivit
+            //TODO get authorities
         };
 
 
@@ -30,6 +37,7 @@ namespace news{
         struct signed_transaction : public transaction{
 
             std::vector<signature_type>     signatures;
+//            void verity_authority(const chain_id_type &chain_id, const)
         };
 
 

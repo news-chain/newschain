@@ -5,10 +5,6 @@
 
 
 
-#define NEWS_CHAIN_ID        ("123")
-
-
-
 #define NEWS_SYMBOL
 
 #define NEWS_GENESIS_TIME       (fc::time_point_sec(0))
@@ -21,3 +17,7 @@
 
 #define NEWS_BLOCK_INTERVAL     3
 #define IRREVERSIBLE_BLOCK_NUM  (20)            //about 1min
+
+
+#define NEWS_VERSION            (news::base::version(0, 0, 1))
+#define NEWS_CHAIN_ID           (fc::sha256::hash(std::string("'test")))

@@ -100,8 +100,14 @@ namespace news{
 
             bool                            is_know_transaction(const transaction_id_type &trx_id);
             void                            _push_transaction(const signed_transaction &trx);
+            void                            apply_transaction(const signed_transaction &trx, uint64_t skip);
+            void                            _apply_transaction(const signed_transaction &trx);
+
             void                            pop_block();
             fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
+
+
+
             //
             template<typename Function>
             auto with_skip_flags(uint64_t flags, Function   &&ff){

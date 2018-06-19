@@ -8,7 +8,7 @@
 namespace news{
     namespace chain{
 
-        transaction_id_type transaction::id() {
+        transaction_id_type transaction::id() const{
             auto hh = digest();
             transaction_id_type result;
             memcpy(result._hash, hh._hash, std::min(sizeof(result), sizeof(hh)));
@@ -19,6 +19,20 @@ namespace news{
             digest_type::encoder enc;
             fc::raw::pack(enc, *this);
             return enc.result();
+        }
+
+        void transaction::validate() const {
+
+        }
+
+        digest_type transaction::sig_digest(const chain_id_type &chain_id) const {
+            digest_type::encoder enc;
+            fc::raw::pack(enc, *this);
+            return enc.result();
+        }
+
+        void transaction::set_expiration(fc::time_point_sec expiration_time) {
+            expiration = expiration_time;
         }
 
 

@@ -246,7 +246,7 @@ namespace news{
 
                 update_last_irreversible_block();
                 update_global_property_object(block);
-
+                create_block_summary(block);
 
             }FC_CAPTURE_AND_RETHROW()
         }
@@ -379,9 +379,13 @@ namespace news{
 
         void database::_push_transaction(const signed_transaction &trx) {
            //TODO is valid
-//            _pending_trx = start_undo_session(true);
-
-//            auto temp_session = start_undo_session();
+            if(!_pending_tx_session.valid()){
+                _pending_tx_session = start_undo_session();
+            }
+            auto temp_session = start_undo_session();
+            _apply_transaction(trx);
+            _pending_trx.push_back(trx);
+            temp_session.squash();  //TODO how to work
 
         }
 
@@ -461,6 +465,49 @@ namespace news{
                 //TODO return  stop at block num
                 return _block_log.read_head().block_num();
             }FC_CAPTURE_AND_RETHROW()
+
+        }
+
+        void database::apply_transaction(const signed_transaction &trx, uint64_t skip) {
+
+        }
+
+        void database::_apply_transaction(const signed_transaction &trx) {
+            if(!(_skip_flags & skip_validate)){
+                trx.validate();
+            }
+
+            auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
+            const chain_id_type &chain_id = NEWS_CHAIN_ID;
+            transaction_id_type trx_id = trx.id();
+            FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
+
+            if(!(_skip_flags & (skip_transaction_signatures | skip_authority_check))){
+                auto get_public = [&](const string &name){
+                    //TODO get public_key
+                };
+                try {
+                    //TODO verity_authority
+                }catch (...){
+                    //TOO catch exception
+                }
+
+            }
+
+
+            //TODO TaPos
+            if(BOOST_LIKELY(head_block_num()) > 0){
+
+            }
+
+            if(!(_skip_flags & skip_transaction_dupe_check)){
+                create<transaction_object>([&](transaction_object &obj){
+                    obj.trx_id = trx_id;
+                    obj.expiration = trx.expiration;
+                });
+            }
+
+            //TODO operations apply?
 
         }
 

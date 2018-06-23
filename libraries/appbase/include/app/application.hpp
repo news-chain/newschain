@@ -62,6 +62,11 @@ namespace news{
              * */
             template <typename Plugin>
             auto &register_plugin(){
+
+                auto existing = find_plugin(Plugin::name());
+                if(existing){
+                    return *dynamic_cast<Plugin*>(existing);
+                }
 //                std::cout << "regist plguin " << Plugin::name() << std::endl;
                 ilog("register plugin ${p}", ("p", Plugin::name()));
                 auto plug = std::make_shared<Plugin>();

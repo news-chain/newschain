@@ -147,13 +147,50 @@ namespace news{
                     boost::thread_group         thread_pool;
                     asio::io_service            thread_pool_io;
                     asio::io_service::work      thread_pool_work;
+
+                    plugins::json_rpc::json_rpc_plugin      *api;
+
+
+
                 };
 
                 void webserver_plugin_impl::handle_ws_message(
                         news::plugins::webserver::detail::websocket_server_type *server,
                         websocketpp::connection_hdl hdl,
-                        std::shared_ptr<websocketpp::message_buffer::message<websocketpp::message_buffer::alloc::con_msg_manager>>) {
+                        std::shared_ptr<websocketpp::message_buffer::message<websocketpp::message_buffer::alloc::con_msg_manager>> msg) {
+                    auto con = server->get_con_from_hdl( hdl );
 
+                    thread_pool_io.post( [con, msg, this]() {
+                      try
+                      {
+                          if( msg->get_opcode() == websocketpp::frame::opcode::text )
+                              con->send( api->call( msg->get_payload() ) );
+                          else
+                              con->send( "error: string payload expected" );
+                      }
+                      catch( fc::exception& e )
+                      {
+                          con->send( "error calling API " + e.to_string() );
+                      }
+                      catch( ... )
+                      {
+                          auto eptr = std::current_exception();
+
+                          try
+                          {
+                              if( eptr )
+                                  std::rethrow_exception( eptr );
+
+                              con->send( "unknown error occurred" );
+                          }
+                          catch( const std::exception& e )
+                          {
+                              std::stringstream s;
+                              s << "unknown exception: " << e.what();
+                              con->send( s.str() );
+                          }
+                      }
+                    });
                 }
 
                 void webserver_plugin_impl::handle_http_message(
@@ -165,7 +202,8 @@ namespace news{
                     thread_pool_io.post( [con, this](){
                         try {
                             auto body = con->get_request_body();
-                            con->set_body(body);
+                            auto ret = api->call(body);
+                            con->set_body(ret );
                             con->set_status( websocketpp::http::status_code::ok);
                         }catch (fc::exception &e){
                             edump((e));
@@ -202,7 +240,8 @@ namespace news{
                             try {
                                 ws_server.clear_access_channels(websocketpp::log::alevel::all);
                                 ws_server.clear_error_channels(websocketpp::log::alevel::all);
-
+                                ws_server.init_asio(&ws_ios);
+                                ws_server.set_reuse_addr(true);
                                 ws_server.set_message_handler(boost::bind(&webserver_plugin_impl::handle_ws_message, this, &ws_server, _1, _2));
                                 //TODO: http_endpoint == ws_endpoint?
 
@@ -334,6 +373,12 @@ namespace news{
             }
 
             void webserver_plugin::plugin_startup() {
+
+                my->api = news::app::application::getInstance().find_plugin< news::plugins::json_rpc::json_rpc_plugin>();
+                FC_ASSERT(my->api != nullptr, "Could not find API Register plugin json rpc");
+
+
+
                 my->start_webserver();
 
             }

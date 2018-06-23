@@ -11,7 +11,10 @@
 #include <fc/scoped_exit.hpp>
 
 
+
 #include <news/base/config.hpp>
+#include <news/chain/evaluator.hpp>
+#include <news/chain/evaluator_registry.hpp>
 #include <news/chain/block_log.hpp>
 #include <news/chain/global_property_object.hpp>
 #include <news/chain/block_summary_object.hpp>
@@ -19,11 +22,23 @@
 #include <news/chain/transaction.hpp>
 #include <news/chain/transaction_object.hpp>
 #include <news/chain/block.hpp>
+#include <news/chain/news_eveluator.hpp>
+
+#include <news/base/operation.hpp>
+#include <news/base/account_object.hpp>
+
 
 namespace news{
     namespace chain{
 
         using namespace chainbase;
+        using namespace news::base;
+
+        class database_impl;
+
+
+
+
 
         struct open_db_args{
             fc::path        data_dir;
@@ -79,13 +94,23 @@ namespace news{
             account_name                    get_scheduled_producer(uint32_t num) const;
 
             signed_block                    generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed, uint64_t skip);
-            signed_block                    generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
+
 
             bool                            push_block(const signed_block &block, uint64_t skip);
             void                            push_transaction(const signed_transaction &trx, uint64_t skip = skip_nothing);
 
             void                            create_block_summary(const signed_block &b);
+
+
+
+
+            ///////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////get             ///////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            fc::optional<signed_block>      fetch_block_by_number(uint32_t block_num);
+            const chain_id_type             &get_chain_id();
         private:
+            signed_block                    _generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
             void                            initialize_indexes();
 
             void                            init_genesis(open_db_args args);
@@ -98,15 +123,19 @@ namespace news{
             void                            apply_block(const signed_block &block, uint64_t skip = skip_nothing);
             void                            _apply_block(const signed_block &block, uint64_t skip = skip_nothing);
 
+            /*
+             * @param trx_id
+             * @return true:if exits,
+             * */
             bool                            is_know_transaction(const transaction_id_type &trx_id);
             void                            _push_transaction(const signed_transaction &trx);
             void                            apply_transaction(const signed_transaction &trx, uint64_t skip);
             void                            _apply_transaction(const signed_transaction &trx);
-
+            void                            apply_operation(const operation &op);
             void                            pop_block();
             fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
-
-
+            void                            regists_evaluator();
+            void                            clear_pending();
 
             //
             template<typename Function>
@@ -123,14 +152,33 @@ namespace news{
             auto without_pengding_transactions(Function &&f){
                 std::vector<signed_transaction> old_input;
                 old_input = std::move(_pending_trx);
+                _pending_trx.clear();
+                _pending_block_session.reset();
                 //TODO clear pending
+
                 auto on_exit = fc::make_scoped_exit([&](){
+
+                    for(const auto &tx : _popped_tx){
+                        try{
+                            if(!is_know_transaction(tx.id())){
+                                _push_transaction(tx);
+                            }
+                        }catch(const fc::exception &e){
+                            //TODO throw?
+                        }
+                    }
+
+
                     for(auto &t : old_input){
                         try{
-                            if(!is_know_transaction(t.id())){
+                            bool find = is_know_transaction(t.id());
+                            if(!find){
                                 _push_transaction(std::move(t));
                             }
-                        }catch (...){}
+                        }catch (...){
+                            //TODO
+                            elog("without_pengding_transactions.");
+                        }
                     }
                 });
                 return f();
@@ -143,11 +191,15 @@ namespace news{
 
             block_log                                       _block_log;
             fork_database                                   _fork_database;
+
             std::vector<signed_transaction>                 _pending_trx;
+
             uint64_t                                        _skip_flags = skip_nothing;
             bool                                            _is_producing = false;
-            fc::optional< chainbase::database::session >    _pending_tx_session;
+            fc::optional< chainbase::database::session >    _pending_block_session;
             std::deque<signed_transaction>                  _popped_tx;
+
+            std::unique_ptr< database_impl > _my;
         };
 
     }//namespace chain

@@ -7,8 +7,14 @@
 
 #include <app/application.hpp>
 #include <boost/program_options.hpp>
-
+#include <news/plugins/json_rpc/json_rpc_plugin.hpp>
 #define NEWS_WEBSOCKET_PLUGIN_NAME ("webserver_plugin")
+
+
+
+
+
+
 
 
 using namespace boost::program_options;
@@ -41,8 +47,8 @@ namespace news{
                 webserver_plugin();
                 virtual ~webserver_plugin();
 
-//                APPBASE_PLUGIN_REQUIRES( (plugins::json_rpc::json_rpc_plugin) );
-                NEWSAPP_PLUGIN_REQUIRES();
+                NEWSAPP_PLUGIN_REQUIRES( (news::plugins::json_rpc::json_rpc_plugin) );
+//                NEWSAPP_PLUGIN_REQUIRES();
 
 
                 static const std::string& name() { static std::string name = NEWS_WEBSOCKET_PLUGIN_NAME; return name; }
@@ -57,6 +63,10 @@ namespace news{
             private:
                 std::unique_ptr< detail::webserver_plugin_impl > my;
             };
+
+
+
+
 
 
 

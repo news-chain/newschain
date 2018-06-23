@@ -18,6 +18,8 @@
 #pragma once
 
 #include <news/base/asset_symbol.hpp>
+#include <news/base/types.hpp>
+
 namespace news{
     namespace base{
 

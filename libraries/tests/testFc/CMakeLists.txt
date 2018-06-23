@@ -2,4 +2,4 @@
 
 
 add_executable(testfc testfc.cpp)
-target_link_libraries(testfc fc)
+target_link_libraries(testfc fc news_chain)

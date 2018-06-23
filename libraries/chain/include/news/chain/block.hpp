@@ -14,10 +14,8 @@ namespace news{
 
 
         struct signed_block : public signed_block_header{
-            checksum_type                       caculate_merkle_root() const;
-            std::vector<transaction>            transactions;
-//            uint32_t            transactions = 0;
-
+            checksum_type                               caculate_merkle_root() const;
+            std::vector<signed_transaction>             transactions;
         };
 
 
@@ -27,7 +25,7 @@ namespace news{
 
 
 namespace  fc{
-    void to_variant(const news::chain::signed_block &block, fc::variant &var);
+//    void to_variant(const news::chain::signed_block &block, fc::variant &var);
     //TODO from_variant ?
 }
 

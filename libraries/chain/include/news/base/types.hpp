@@ -10,6 +10,8 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/reflect/reflect.hpp>
+#include <fc/reflect/variant.hpp>
+#include <fc/io/varint.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/io/raw.hpp>
@@ -20,6 +22,7 @@
 
 #include <boost/container/flat_set.hpp>
 
+#include <chainbase/chainbase.hpp>
 
 
 
@@ -27,6 +30,11 @@
 
 namespace news{
     namespace base{
+
+        using                           std::vector;
+
+
+
 
 
         struct void_t{};
@@ -37,7 +45,7 @@ namespace news{
 
 
 
-
+        typedef fc::ecc::private_key        private_key_type;
         typedef fc::sha256                  digest_type;
         typedef fc::sha256                  checksum_type;
         typedef fc::sha256                  chain_id_type;
@@ -49,6 +57,19 @@ namespace news{
 
         typedef fc::safe<int64_t>           share_type;
 
+
+        using boost::container::flat_set;
+
+
+        inline const std::string &to_string(const chainbase::shared_string &s, std::string &to){
+            to.assign(s.begin(), s.end());
+            return to;
+        }
+
+        inline const chainbase::shared_string to_shared_string(const std::string &s, chainbase::shared_string &to){
+            to.assign(s.begin(), s.end());
+            return to;
+        }
 
 
 
@@ -93,3 +114,5 @@ namespace fc{
 FC_REFLECT( news::base::public_key_type::binary_key, (data)(check) )
 FC_REFLECT( news::base::public_key_type, (key_data) )
 FC_REFLECT_TYPENAME(news::base::share_type)
+
+

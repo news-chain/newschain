@@ -18,11 +18,11 @@
 
 
 #define NEWSAPP_PLUGIN_REQUIRES_VISIT( r, visitor, elem ) \
-  visitor( appbase::app().register_plugin<elem>() );
+  visitor( news::app::application::getInstance().register_plugin<elem>() );
 
 #define NEWSAPP_PLUGIN_REQUIRES( PLUGINS )                               \
    virtual void plugin_for_each_dependency( plugin_processor&& l ) override {  \
-      BOOST_PP_SEQ_FOR_EACH( APPBASE_PLUGIN_REQUIRES_VISIT, l, PLUGINS ) \
+      BOOST_PP_SEQ_FOR_EACH( NEWSAPP_PLUGIN_REQUIRES_VISIT, l, PLUGINS ) \
    }
 
 

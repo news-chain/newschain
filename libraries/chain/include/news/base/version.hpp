@@ -6,6 +6,12 @@
 
 #include <string>
 #include <fc/reflect/reflect.hpp>
+#include <fc/variant.hpp>
+
+
+
+
+
 namespace news{
     namespace base{
 
@@ -22,7 +28,7 @@ namespace news{
                 v_num = ( v_num | h) << 16;
                 v_num = ( v_num | r) << 24;
             }
-            virtual ~version();
+            virtual ~version(){};
             bool operator == (const version &v)const{return v.v_num == v_num;}
             bool operator != (const version &v)const{return v.v_num != v_num;}
             bool operator < (const version &v)const {return v.v_num < v_num;}
@@ -53,9 +59,7 @@ namespace news{
 }//news
 
 namespace fc{
-    void to_variant(const news::base::version &v, variant &var){
-        var = std::string(v);
-    }
+    void to_variant(const news::base::version &v, fc::variant &var);
 }
 
 

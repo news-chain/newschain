@@ -11,8 +11,14 @@
 #include <fc/exception/exception.hpp>
 #include <news/chain/database.hpp>
 #include <news/base/types.hpp>
+#include <news/base/types.hpp>
 
 #define NEWS_CHAIN_PLUGIN_NAME ("chain_plugin")
+
+
+
+
+
 
 
 using namespace boost::program_options;
@@ -37,6 +43,10 @@ namespace news{
 
                 static const std::string& name() { static std::string name = NEWS_CHAIN_PLUGIN_NAME; return name; }
                 virtual void set_program_options(options_description&, options_description& cfg) override;
+
+
+
+                void accept_transaction(const news::chain::signed_transaction &trx);
 
 
 

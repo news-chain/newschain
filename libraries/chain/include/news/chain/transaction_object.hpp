@@ -20,6 +20,7 @@ namespace news{
     namespace chain{
 
         using namespace boost::multi_index;
+        using namespace news::base;
 
         class transaction_object : public chainbase::object<transaction_object_type, transaction_object>{
             transaction_object() = delete;
@@ -28,7 +29,8 @@ namespace news{
 
             id_type                                 id;
             fc::time_point_sec                      expiration;
-            news::base::transaction_id_type     trx_id;
+            transaction_id_type                     trx_id;
+            //TODO add buffer trx?
         };
 
 
@@ -40,7 +42,7 @@ namespace news{
                 transaction_object,
                 indexed_by<
                         ordered_unique< tag<by_id>, member<transaction_object, transaction_object::id_type, &transaction_object::id>>,
-                        hashed_unique< tag<by_trx_id>, member<transaction_object, news::base::transaction_id_type, &transaction_object::trx_id>, std::hash<news::base::transaction_id_type> >,
+                        hashed_unique< tag<by_trx_id>, BOOST_MULTI_INDEX_MEMBER(transaction_object, transaction_id_type, trx_id), std::hash<transaction_id_type> >,
                         ordered_non_unique< tag< by_expiration>, member<transaction_object, fc::time_point_sec, &transaction_object::expiration> >
                         >,
                         chainbase::allocator <transaction_object>

@@ -30,10 +30,17 @@ namespace news{
         }//news::chain::detail
 
 
+        class database_impl{
+        public:
+            database_impl(database &self):_self(self),_eveluator_registry(self){}
+
+            database &                                      _self;
+            evaluator_registry<news::base::operation>       _eveluator_registry;
+        };
 
 
 
-        database::database() {
+        database::database():_my(new database_impl(*this)) {
 
         }
 
@@ -48,6 +55,9 @@ namespace news{
 
             initialize_indexes();
             init_genesis(args);
+            regists_evaluator();
+
+
 
             auto log_header = _block_log.head();
             with_write_lock([&](){
@@ -74,6 +84,7 @@ namespace news{
             add_index<dynamic_global_property_object_index>();
             add_index<block_summary_index>();
             add_index<transaction_obj_index>();
+            add_index<news::base::account_object_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -127,32 +138,84 @@ namespace news{
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
                                               const fc::ecc::private_key private_key_by_signed, uint64_t skip) {
+            signed_block result;
+            with_skip_flags(skip, [&](){
+                try {
+                    result = _generate_block(when, producer, private_key_by_signed);
+                }FC_CAPTURE_AND_RETHROW((result))
+            });
 
+
+            return result;
+        }
+
+        signed_block database::_generate_block(const fc::time_point_sec when, const account_name &producer,
+                                              const fc::ecc::private_key private_key_by_signed) {
             //
+
+
+            _pending_block_session.reset();
+            _pending_block_session = start_undo_session();
+
             signed_block pengding_block;
+
+            //TODO block_header_size
+            size_t total_block_size = 0;
+            uint64_t postponed_tx_count = 0;
+            for(const signed_transaction &tx : _pending_trx){
+                if(tx.expiration < when){
+                    continue;
+                }
+                uint64_t trx_size = fc::raw::pack_size(tx);
+                uint64_t new_total_size = total_block_size + trx_size;
+                if(new_total_size > NEWS_MAX_BLOCK_SIZE){
+                    //TODO count
+                    postponed_tx_count++;
+//                    continue;
+                    break;
+                }
+
+                try {
+                    auto temp_seesion = start_undo_session();
+                    _apply_transaction(tx);
+                    temp_seesion.squash();
+
+
+                    total_block_size += trx_size;
+                    pengding_block.transactions.push_back(tx);
+
+                }catch (const fc::exception &e){
+                    elog("${e}  trx:${t}", ("e", e.to_detail_string())("t", tx));
+                }
+            }
+            if(postponed_tx_count > 0){
+                elog("Postponed ${n} transactions due to block size limit", ("n", postponed_tx_count));
+            }
+
+            //TODO_pending_tx_session->reset(); ?
+//            _pending_block_session->push();
+            _pending_block_session.reset();
+
 
             pengding_block.timestamp = when;
             pengding_block.previous = head_block_id();
             pengding_block.transaction_merkle_root = pengding_block.caculate_merkle_root();
             pengding_block.producer = producer;
-            if(!(skip & skip_producer_signature)){
+
+
+            if(!(_skip_flags & skip_producer_signature)){
                 pengding_block.sign(private_key_by_signed);
             }
 
-            if(!(skip & skip_block_size_check)){
+            if(!(_skip_flags & skip_block_size_check)){
                 FC_ASSERT(fc::raw::pack_size(pengding_block) <= NEWS_MAX_BLOCK_SIZE);
             }
 
 
             //TODO push block
-            push_block(pengding_block, skip);
+            push_block(pengding_block, _skip_flags);
 
             return pengding_block;
-        }
-
-        signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
-                                              const fc::ecc::private_key private_key_by_signed) {
-            return signed_block();
         }
 
         void database::init_genesis(open_db_args args) {
@@ -162,7 +225,24 @@ namespace news{
                     create<dynamic_global_property_object>([](dynamic_global_property_object &obj){
                         obj.time = NEWS_GENESIS_TIME;
                     });
+
+                    create<account_object>([](account_object &obj){
+                        obj.name = 1;
+                        to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
+                    });
+
+
+                    //
+                    for(uint32_t i = 0; i < 0x10000; i++){
+                        create<block_summary_object>([](block_summary_object &){
+                        });
+                    }
                 });
+
+
+
+
+
             }
 
         }
@@ -185,7 +265,16 @@ namespace news{
 
 
             const auto &gpo = get_global_property_object();
-            commit(gpo.last_irreversible_block_num);
+
+
+
+            if(gpo.last_irreversible_block_num > 0){
+                commit(gpo.last_irreversible_block_num);
+            }
+
+
+
+
             if(!(_skip_flags & skip_block_log)){
                 uint32_t log_head_num = 0;
                 const  auto &temp_head = _block_log.head();
@@ -203,9 +292,9 @@ namespace news{
                 }
             }
 
-            if(gpo.head_block_num > IRREVERSIBLE_BLOCK_NUM){
+            if(gpo.head_block_num >= IRREVERSIBLE_BLOCK_NUM){
                 modify(gpo, [&](dynamic_global_property_object &obj){
-                    obj.last_irreversible_block_num = head_block_num() - IRREVERSIBLE_BLOCK_NUM;
+                    obj.last_irreversible_block_num = obj.head_block_num - IRREVERSIBLE_BLOCK_NUM;
                 });
             }
 
@@ -229,19 +318,28 @@ namespace news{
 
         void database::_apply_block(const signed_block &block, uint64_t skip) {
             try {
-                auto merkle_root = block.caculate_merkle_root();
-                try {
-                    FC_ASSERT(merkle_root == block.transaction_merkle_root, "merkle check failed",("new_block merkle root", block.producer_signature)("caculate merkle root ", merkle_root));
-                }catch (fc::assert_exception &e){
-                    //TODO catch exception
-                    elog("_apply_block ", ("e", e.what()));
+                if(!(skip & skip_merkle_check)){
+                    auto merkle_root = block.caculate_merkle_root();
+                    try {
+                        FC_ASSERT(merkle_root == block.transaction_merkle_root, "merkle check failed",("new_block merkle root", block.producer_signature)("caculate merkle root ", merkle_root));
+                    }catch (fc::assert_exception &e){
+                        //TODO catch exception
+                        elog("_apply_block ", ("e", e.what()));
+                    }
                 }
+
+
 
                 auto block_size = fc::raw::pack_size(block);
                 if(block_size < NEWS_MIN_BLOCK_SIZE){
                    elog("block size si too small ", ("block_num", block.block_num())("block_size", block_size));
 //                   elog("block : ${b}", ("b", block.timestamp));
                 }
+
+                for(const auto &trx : block.transactions){
+                    apply_transaction(trx, skip);
+                }
+
 
 
                 update_last_irreversible_block();
@@ -258,10 +356,13 @@ namespace news{
                     without_pengding_transactions([&](){
                         try{
                             result = _push_block(block, skip);
-                        }FC_CAPTURE_AND_RETHROW()
+                            if(block.transactions.size() > 0){
+                                ilog("push_block= ${t}", ("t", is_know_transaction(block.transactions[0].id() ) ) );
+                            }
+                        }FC_CAPTURE_AND_RETHROW((block))
                     });
             });
-            return false;
+            return result;
         }
 
         bool database::_push_block(const signed_block &block, uint64_t skip) {
@@ -332,15 +433,16 @@ namespace news{
                     auto session = start_undo_session();
                     apply_block(block, skip);
                     session.push();
+                    return true;
                 }catch (const fc::exception &e){
                     elog("Failed to push new block:\n${e}", ("e", e.to_detail_string()));
                     _fork_database.remove(block.id());
                     throw ;
                 }
-                return false;
             }FC_CAPTURE_AND_RETHROW()
 
         }
+
 
         void database::create_block_summary(const signed_block &b) {
             try {
@@ -348,14 +450,15 @@ namespace news{
                 modify(get< block_summary_object >(sid), [&](block_summary_object &obj){
                     obj.block_id = b.id();
                 });
-            }FC_CAPTURE_AND_RETHROW()
+            }FC_CAPTURE_AND_RETHROW((b))
         }
 
         bool database::is_know_transaction(const transaction_id_type &trx_id) {
             try {
                 const auto &trx_itr = get_index<transaction_obj_index>().indices().get<by_trx_id>();
-                return trx_itr.find(trx_id) != trx_itr.end();
-            }FC_CAPTURE_AND_RETHROW()
+                return  trx_itr.find(trx_id) != trx_itr.end();
+            }FC_CAPTURE_AND_RETHROW((trx_id))
+
         }
 
         void database::push_transaction(const signed_transaction &trx, uint64_t skip) {
@@ -370,8 +473,13 @@ namespace news{
 
                     set_producing(false);
                 }
+                catch (const fc::exception &e){
+                    set_producing(false);
+                    throw e;
+                }
                 catch (...){
                     set_producing(false);
+                    throw ;
                 }
 
             }FC_CAPTURE_AND_RETHROW()
@@ -379,8 +487,8 @@ namespace news{
 
         void database::_push_transaction(const signed_transaction &trx) {
            //TODO is valid
-            if(!_pending_tx_session.valid()){
-                _pending_tx_session = start_undo_session();
+            if(!_pending_block_session.valid()){
+                _pending_block_session = start_undo_session();
             }
             auto temp_session = start_undo_session();
             _apply_transaction(trx);
@@ -391,7 +499,7 @@ namespace news{
 
         void database::pop_block() {
             try {
-                _pending_tx_session.reset();
+                _pending_block_session.reset();
                 auto head_id = head_block_id();
                 fc::optional<signed_block> head_block = fetch_block_by_id(head_id);
                 FC_ASSERT(head_block.valid(), "there is no block to pop");
@@ -469,6 +577,9 @@ namespace news{
         }
 
         void database::apply_transaction(const signed_transaction &trx, uint64_t skip) {
+            with_skip_flags(skip, [&](){
+                _apply_transaction(trx);
+            });
 
         }
 
@@ -482,12 +593,21 @@ namespace news{
             transaction_id_type trx_id = trx.id();
             FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
 
+
             if(!(_skip_flags & (skip_transaction_signatures | skip_authority_check))){
-                auto get_public = [&](const string &name){
-                    //TODO get public_key
+                get_key_by_name get_public = [&](const account_name &name) -> public_key_type{
+                    const auto &u_itr = get_index<account_object_index>().indices().get<by_name>();
+                    auto account_itr = u_itr.find(name);
+                    FC_ASSERT(account_itr != u_itr.end(), "cant find accout ${a}", ("a", name));
+                    std::string pk;
+                    to_string(account_itr->public_key, pk);
+                    public_key_type pub_key(pk);
+                    return pub_key;
+
                 };
                 try {
                     //TODO verity_authority
+                    trx.verify_authority(get_public, get_chain_id());
                 }catch (...){
                     //TOO catch exception
                 }
@@ -498,17 +618,66 @@ namespace news{
             //TODO TaPos
             if(BOOST_LIKELY(head_block_num()) > 0){
 
+                if(!(_skip_flags & skip_tapos_check)){
+                    const auto &tapos_block_summary = get<block_summary_object>(trx.ref_block_num);
+                    FC_ASSERT(trx.ref_block_prefix == tapos_block_summary.block_id._hash[1], "transaction tapos exception trx.ref_block_prefix${t}, tapos_block_summary${a}", ("t", trx.ref_block_prefix)("a", tapos_block_summary.block_id._hash[1]));
+                }
+
+
+
+                fc::time_point_sec now = head_block_time();
+                FC_ASSERT(trx.expiration <= now + fc::seconds(NEWS_MAX_TIME_EXPIRATION), "transacion expiration ${trx}", ("trx", trx));
             }
 
             if(!(_skip_flags & skip_transaction_dupe_check)){
+//                ilog("create transaction_object ${t}", ("t", trx_id));
+
                 create<transaction_object>([&](transaction_object &obj){
                     obj.trx_id = trx_id;
                     obj.expiration = trx.expiration;
                 });
+
             }
 
             //TODO operations apply?
+            for(auto op : trx.operations){
+                apply_operation(op);
+            }
+        }
 
+        void database::apply_operation(const operation &op) {
+            //TODO notification
+
+            _my->_eveluator_registry.get_evaluator(op).apply(op);
+        }
+
+        void database::regists_evaluator() {
+            _my->_eveluator_registry.register_evaluator<create_account_evaluator>();
+            _my->_eveluator_registry.register_evaluator<transfer_evaluator>();
+            _my->_eveluator_registry.register_evaluator<transfers_evaluator>();
+        }
+
+        fc::optional<signed_block> database::fetch_block_by_number(uint32_t block_num) {
+            try {
+                fc::optional<signed_block> b;
+                auto result = _fork_database.fetch_block_by_number(block_num);
+                if(result.size() == 1){
+                    b = result[0]->data;
+                }
+                else{
+                    b = _block_log.read_block_by_num(block_num);
+                }
+                return b;
+            }FC_CAPTURE_AND_RETHROW()
+        }
+
+        const chain_id_type &database::get_chain_id() {
+            static chain_id_type chain_id= NEWS_CHAIN_ID;
+            return chain_id;
+        }
+
+        void database::clear_pending() {
+            _pending_trx.clear();
         }
 
 

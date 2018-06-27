@@ -25,21 +25,78 @@ namespace news{
 
 
         struct asset {
-            asset(const asset &_asset, const asset_symbol &_symbol):amount(_asset.amount), symbol(_symbol){}
+            asset(){}
+            asset(const asset_symbol &_symbol, const int64_t amount = 0):amount(amount), symbol(_symbol){}
 
-            asset(share_type a, asset_symbol _symbol):amount(a), symbol(_symbol){}
-            share_type amount;
-            asset_symbol symbol;
-
-            asset& operator +(const asset &a, const asset &b){
-                FC_ASSERT(a.symbol == b.symbol);
-                return asset(a.amount + b.amount, a.symbol);
+            uint8_t decimals()const{
+                return symbol.decimals();
             }
 
-        };
+            uint64_t precision()const{
+                return symbol.precision();
+            }
 
+
+            friend asset operator + (const asset &a, const asset &b){
+                FC_ASSERT(a.symbol == b.symbol, "symbol invalid.");
+                return asset(a.symbol, a.amount + b.amount);
+            }
+
+            friend asset operator - (const asset &a, const asset &b){
+                FC_ASSERT(a.symbol == b.symbol, "symbol invalid.");
+                return asset(a.symbol, a.amount - b.amount);
+            }
+
+            friend bool operator > (const asset &a, const asset &b){
+                FC_ASSERT(a.symbol == b.symbol);
+                return a.amount > b.amount;
+            }
+
+            friend bool operator >= (const asset &a, const asset &b){
+                FC_ASSERT(a.symbol == b.symbol);
+                return a.amount >= b.amount;
+            }
+
+            friend bool operator < (const asset &a, const asset &b){
+                FC_ASSERT(a.symbol == b.symbol);
+                return a.amount < b.amount;
+            }
+
+            friend bool operator <= (const asset &a, const asset &b){
+                FC_ASSERT(a.symbol == b.symbol);
+                return a.amount <= b.amount;
+            }
+
+            asset& operator +=(const asset &a){
+                FC_ASSERT(symbol == a.symbol);
+                amount += a.amount;
+                return *this;
+            }
+
+            asset&operator -=(const asset &a){
+                FC_ASSERT(symbol == a.symbol);
+                amount -= a.amount;
+                return *this;
+            }
+
+            std::string to_string()const;
+            static asset from_string(const std::string &str);
+
+            int64_t amount = 0;
+            asset_symbol symbol;
+        };
 
 
     }//namespace base
 }//namespace news
+
+namespace fc{
+    void to_variant(const news::base::asset &a, fc::variant &v);
+    void from_vaiant(const fc::variant &v, news::base::asset &a);
+
+
+}
+
+
+FC_REFLECT(news::base::asset, (amount)(symbol))
 

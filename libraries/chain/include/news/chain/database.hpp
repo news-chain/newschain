@@ -223,3 +223,6 @@ FC_REFLECT_ENUM(news::chain::validation_steps,
                         (skip_validate_invariants)
                         (skip_undo_block)
                         (skip_block_log))
+
+
+

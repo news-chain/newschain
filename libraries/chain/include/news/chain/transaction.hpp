@@ -20,6 +20,32 @@ namespace news{
         typedef std::function<public_key_type(const account_name &)> get_key_by_name;
 
 
+        struct operation_validate_visitor{
+            typedef void result_type;
+            template <typename  T>
+            void operator()(const T &v)const{
+                v.validate();
+            }
+        };
+
+        struct operation_get_sign_name_visitor{
+            typedef void result_type;
+            operation_get_sign_name_visitor(account_name &name):_name(name){}
+            template <typename T>
+            void operator()(const T&v)const{
+                v.get_sign_name(_name);
+            }
+
+            template <typename ...T>
+            void operator()(const fc::static_variant<T...> v){
+                v.visit(*this);
+            }
+            account_name &_name;
+        };
+
+
+
+
         struct transaction{
             uint16_t                ref_block_num = 0;
             uint32_t                ref_block_prefix = 0;

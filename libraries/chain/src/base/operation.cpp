@@ -33,7 +33,7 @@ namespace news{
         void transfers_operation::validate() const{
             for(const auto &b : this->to_names){
                 validate_account_name(b.first);
-                FC_ASSERT(b.second > 0, "transfer balance must > 0.");
+                FC_ASSERT(b.second.amount > 0, "transfer balance must > 0.");
             }
         }
     }//news::base

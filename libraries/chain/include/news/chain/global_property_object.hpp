@@ -3,23 +3,37 @@
 //
 
 #pragma once
-
+#include <news/base/types.hpp>
 #include <chainbase/chainbase.hpp>
 #include <news/chain/object_types.hpp>
-#include <news/base/types.hpp>
+
+
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+
+
 namespace news{
     namespace chain{
 
         using namespace news::base;
         using namespace chainbase;
-//        using namespace boost::mu
         using namespace boost::multi_index;
+
+
+
         class dynamic_global_property_object : public chainbase::object<object_type::global_property_dynamic_obj, dynamic_global_property_object>{
         public:
-            CHAINBASE_DEFAULT_CONSTRUCTOR(dynamic_global_property_object);
+//            CHAINBASE_DEFAULT_CONSTRUCTOR(dynamic_global_property_object);
+
+            template< typename Constructor, typename Allocator >
+            dynamic_global_property_object( Constructor&& c, allocator< Allocator > a )
+            {
+                c( *this );
+            }
+
+            dynamic_global_property_object(){};
+
 
             id_type             id;
             uint32_t            head_block_num = 0;
@@ -46,6 +60,6 @@ namespace news{
 }//namespace news
 
 
-FC_REFLECT(news::chain::dynamic_global_property_object, (id)(head_block_num)(head_block_id)(time)(current_producer))
+FC_REFLECT(news::chain::dynamic_global_property_object, (id)(head_block_num)(head_block_id)(time)(current_producer)(last_irreversible_block_num))
 
 CHAINBASE_SET_INDEX_TYPE( news::chain::dynamic_global_property_object, news::chain::dynamic_global_property_object_index )

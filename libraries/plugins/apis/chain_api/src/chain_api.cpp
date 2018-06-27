@@ -39,18 +39,19 @@ namespace news{
 
 
                     try {
-                        news::base::private_key_type private_key_type = news::base::private_key_type::generate();
+//                        news::base::private_key_type private_key_type = news::base::private_key_type::generate();
+//
+//                        news::chain::signed_transaction trx;
+//                        news::base::create_account_operation op;
+//                        op.name = fc::time_point::now().sec_since_epoch() % 100000;
+//                        op.creator = 1;
+//                        op.public_key = private_key_type.get_public_key();
+//
+//                        trx.expiration = fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 10);
+//                        trx.operations.push_back(op);
+//                        trx.sign(private_key_type, NEWS_CHAIN_ID);
+                        _chain_plugin.accept_transaction(args);
 
-                        news::chain::signed_transaction trx;
-                        news::base::create_account_operation op;
-                        op.name = fc::time_point::now().sec_since_epoch() % 100000;
-                        op.creator = 1;
-                        op.public_key = private_key_type.get_public_key();
-
-                        trx.expiration = fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 10);
-                        trx.operations.push_back(op);
-                        trx.sign(private_key_type, NEWS_CHAIN_ID);
-                        _chain_plugin.accept_transaction(trx);
                     }catch (const fc::exception &e){
                         result.error = e.to_detail_string();
                         result.success = false;

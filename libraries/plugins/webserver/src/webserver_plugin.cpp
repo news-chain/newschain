@@ -276,7 +276,7 @@ namespace news{
 
                                 http_ios.run();
 
-//                                wlog("complete http_server listening");
+                                wlog("complete http_server listening");
 
                             }catch (fc::exception &e){
                                 elog("error throw exception for http_endpoint start:   ${e}", ("e", e.what()));

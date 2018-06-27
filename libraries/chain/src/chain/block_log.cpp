@@ -333,7 +333,7 @@ namespace news{
 
                     my->check_block_read();
 
-                    uint64_t pos;
+                    uint64_t pos = 0;
                     my->block_stream.seekg( -sizeof(pos), std::ios::end );
                     my->block_stream.read( (char*)&pos, sizeof(pos) );
                     return read_block_helper( pos ).first;

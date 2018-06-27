@@ -8,6 +8,8 @@
 
 #include <app/application.hpp>
 #include <news/plugins/chain_api/chain_api.hpp>
+
+
 using namespace boost::program_options;
 
 namespace news{

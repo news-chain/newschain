@@ -12,5 +12,6 @@ target_link_libraries(NEWS ${Boost_LIBRARIES}
         fc
         news_protocol
         block_api_plugin
-        chain_api_plugin)
+        chain_api_plugin
+        database_api)
 #target_include_directories(chainMain ${CMAKE_CURRENT_SOURCE_DIR})

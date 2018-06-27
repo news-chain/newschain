@@ -74,6 +74,8 @@ namespace news{
 
 
 
+
+
         struct public_key_type
         {
             struct binary_key
@@ -104,9 +106,25 @@ namespace news{
 }//namespace news
 
 
+
+
+
+
+
 namespace fc{
     void to_variant(const news::base::public_key_type &var, fc::variant &vo);
     void from_variant(const fc::variant &var, news::base::public_key_type &vo);
+
+
+    template<typename T>
+    void to_variant(const chainbase::oid<T> &var, variant &to){
+        to = var._id;
+    }
+
+    template <typename T>
+    void from_variant(const variant &var, chainbase::oid<T> &to){
+        to._id = var.as_int64();
+    }
 }
 
 
@@ -114,5 +132,7 @@ namespace fc{
 FC_REFLECT( news::base::public_key_type::binary_key, (data)(check) )
 FC_REFLECT( news::base::public_key_type, (key_data) )
 FC_REFLECT_TYPENAME(news::base::share_type)
+
+
 
 

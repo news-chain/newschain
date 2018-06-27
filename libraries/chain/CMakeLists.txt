@@ -3,6 +3,7 @@ add_library(news_protocol
         src/base/types.cpp
         src/base/operation.cpp
         src/base/version.cpp
+        src/base/asset.cpp
         ${BASE_HEADDERS}
         )
 target_link_libraries(news_protocol fc chainbase)

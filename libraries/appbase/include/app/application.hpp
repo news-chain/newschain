@@ -17,15 +17,15 @@
 #include <fc/log/logger_config.hpp>
 #include <news/base/types.hpp>
 
-
-
 namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
+
 
 
 namespace news{
     namespace app{
 
+
+        namespace bfs = boost::filesystem;
 
         class application{
         public:

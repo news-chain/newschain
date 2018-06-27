@@ -162,6 +162,7 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
+            elog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
                     continue;
@@ -356,9 +357,6 @@ namespace news{
                     without_pengding_transactions([&](){
                         try{
                             result = _push_block(block, skip);
-                            if(block.transactions.size() > 0){
-                                ilog("push_block= ${t}", ("t", is_know_transaction(block.transactions[0].id() ) ) );
-                            }
                         }FC_CAPTURE_AND_RETHROW((block))
                     });
             });
@@ -594,6 +592,21 @@ namespace news{
             FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
 
 
+
+            //TODO TaPos
+            if(BOOST_LIKELY(head_block_num()) > 0){
+
+                if(!(_skip_flags & skip_tapos_check)){
+                    const auto &tapos_block_summary = get<block_summary_object>(trx.ref_block_num);
+                    FC_ASSERT(trx.ref_block_prefix == tapos_block_summary.block_id._hash[1], "transaction tapos exception trx.ref_block_prefix${t}, tapos_block_summary${a}", ("t", trx.ref_block_prefix)("a", tapos_block_summary.block_id._hash[1]));
+                }
+                fc::time_point_sec now = head_block_time();
+                FC_ASSERT(trx.expiration >= now , "transacion expiration ${trx}", ("trx", trx));
+
+            }
+
+
+
             if(!(_skip_flags & (skip_transaction_signatures | skip_authority_check))){
                 get_key_by_name get_public = [&](const account_name &name) -> public_key_type{
                     const auto &u_itr = get_index<account_object_index>().indices().get<by_name>();
@@ -607,27 +620,16 @@ namespace news{
                 };
                 try {
                     //TODO verity_authority
-                    trx.verify_authority(get_public, get_chain_id());
-                }catch (...){
+//                    trx.verify_authority(get_public, get_chain_id());
+                }catch (const fc::exception &e){
                     //TOO catch exception
+                    throw e;
                 }
 
             }
 
 
-            //TODO TaPos
-            if(BOOST_LIKELY(head_block_num()) > 0){
 
-                if(!(_skip_flags & skip_tapos_check)){
-                    const auto &tapos_block_summary = get<block_summary_object>(trx.ref_block_num);
-                    FC_ASSERT(trx.ref_block_prefix == tapos_block_summary.block_id._hash[1], "transaction tapos exception trx.ref_block_prefix${t}, tapos_block_summary${a}", ("t", trx.ref_block_prefix)("a", tapos_block_summary.block_id._hash[1]));
-                }
-
-
-
-                fc::time_point_sec now = head_block_time();
-                FC_ASSERT(trx.expiration <= now + fc::seconds(NEWS_MAX_TIME_EXPIRATION), "transacion expiration ${trx}", ("trx", trx));
-            }
 
             if(!(_skip_flags & skip_transaction_dupe_check)){
 //                ilog("create transaction_object ${t}", ("t", trx_id));

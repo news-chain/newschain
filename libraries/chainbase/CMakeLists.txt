@@ -41,7 +41,7 @@ else( APPLE )
 endif( APPLE )
 
 if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin-memcmp " )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin-memcmp" )
 endif()
 
 if( "${CMAKE_GENERATOR}" STREQUAL "Ninja" )
@@ -65,6 +65,13 @@ file(GLOB HEADERS "include/*.hpp")
 add_library( chainbase src/chainbase.cpp ${HEADERS} )
 target_link_libraries( chainbase  ${Boost_LIBRARIES} )
 target_include_directories( chainbase PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"  ${Boost_INCLUDE_DIR} )
+
+if( CLANG_TIDY_EXE )
+   set_target_properties(
+      chainbase PROPERTIES
+      CXX_CLANG_TIDY "${DO_CLANG_TIDY}"
+   )
+endif( CLANG_TIDY_EXE )
 
 add_subdirectory( test )
 

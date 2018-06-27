@@ -116,7 +116,8 @@ namespace news{
                     ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("node_data"), "database and config --directory")
 //                    ("config-dir,c", bpo::value<bfs::path>()->default_value("config.ini"), "config.ini path")
 //                    ("config-log", bpo::value<bfs::path>()->default_value("config_log.ini"), "config logs level")
-                    ("version,v", "print version information");
+                    ("version,v", "print version information")
+                    ("log-level", bpo::value<std::string>()->default_value("info"), "log level");
 
             my->_app_options.add(options_desc);
 
@@ -175,8 +176,16 @@ namespace news{
                 my->_data_path = data_dir;
 
 
+                if(my->_map_args.count("log-level")){
+                    std::string level = my->_map_args["log-level"].as<std::string>();
+                    fc::logging_config config = fc::logging_config::default_config();
+                    config.loggers[0].level =  fc::log_level::info;
 
-                fc::logging_config config = fc::logging_config::default_config();
+                    fc::configure_logging(config);
+                }else{
+                    fc::logging_config config = fc::logging_config::default_config();
+                }
+
 
 
             }catch (boost::program_options::error &e){

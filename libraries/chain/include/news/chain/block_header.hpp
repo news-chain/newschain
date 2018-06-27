@@ -20,7 +20,7 @@ namespace news{
 
         struct block_header{
             fc::time_point_sec              timestamp;
-            account_name                    producer;
+            account_name                    producer = NEWS_SYSTEM_ACCOUNT_NAME;
             checksum_type                   transaction_merkle_root;
             block_id_type                   previous;
             news::base::version             version;

@@ -133,7 +133,7 @@ namespace news{
 
 
         account_name database::get_scheduled_producer(uint32_t num) const {
-            return 0;
+            return NEWS_SYSTEM_ACCOUNT_NAME;
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
@@ -153,16 +153,16 @@ namespace news{
                                               const fc::ecc::private_key private_key_by_signed) {
             //
 
-
-            _pending_block_session.reset();
-            _pending_block_session = start_undo_session();
-
             signed_block pengding_block;
+
+            _pending_trx_session.reset();
+            _pending_trx_session = start_undo_session();
+
 
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            elog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
+            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
                     continue;
@@ -172,8 +172,7 @@ namespace news{
                 if(new_total_size > NEWS_MAX_BLOCK_SIZE){
                     //TODO count
                     postponed_tx_count++;
-//                    continue;
-                    break;
+                    continue;
                 }
 
                 try {
@@ -186,7 +185,9 @@ namespace news{
                     pengding_block.transactions.push_back(tx);
 
                 }catch (const fc::exception &e){
-                    elog("${e}  trx:${t}", ("e", e.to_detail_string())("t", tx));
+                    elog("generate_block : ${e}  trx:${t}", ("e", e.to_detail_string())("t", tx));
+                }catch (...){
+                    elog("generate_block : ${e}  trx:${t}", ("t", tx));
                 }
             }
             if(postponed_tx_count > 0){
@@ -194,8 +195,8 @@ namespace news{
             }
 
             //TODO_pending_tx_session->reset(); ?
-//            _pending_block_session->push();
-            _pending_block_session.reset();
+//            _pending_trx_session->push();
+            _pending_trx_session.reset();
 
 
             pengding_block.timestamp = when;
@@ -228,7 +229,7 @@ namespace news{
                     });
 
                     create<account_object>([](account_object &obj){
-                        obj.name = 1;
+                        obj.name = NEWS_SYSTEM_ACCOUNT_NAME;
                         to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
                     });
 
@@ -333,7 +334,7 @@ namespace news{
 
                 auto block_size = fc::raw::pack_size(block);
                 if(block_size < NEWS_MIN_BLOCK_SIZE){
-                   elog("block size si too small ", ("block_num", block.block_num())("block_size", block_size));
+                   elog("block size si too small ${block_num} ${block_size}", ("block_num", block.block_num())("block_size", block_size));
 //                   elog("block : ${b}", ("b", block.timestamp));
                 }
 
@@ -346,6 +347,7 @@ namespace news{
                 update_last_irreversible_block();
                 update_global_property_object(block);
                 create_block_summary(block);
+                clear_expired_transactions();
 
             }FC_CAPTURE_AND_RETHROW()
         }
@@ -466,7 +468,7 @@ namespace news{
                     set_producing(true);
 
                     with_skip_flags(skip, [&](){
-                        _push_transaction(trx);
+                            _push_transaction(trx);
                     });
 
                     set_producing(false);
@@ -485,8 +487,8 @@ namespace news{
 
         void database::_push_transaction(const signed_transaction &trx) {
            //TODO is valid
-            if(!_pending_block_session.valid()){
-                _pending_block_session = start_undo_session();
+            if(!_pending_trx_session.valid()){
+                _pending_trx_session = start_undo_session();
             }
             auto temp_session = start_undo_session();
             _apply_transaction(trx);
@@ -497,7 +499,7 @@ namespace news{
 
         void database::pop_block() {
             try {
-                _pending_block_session.reset();
+                _pending_trx_session.reset();
                 auto head_id = head_block_id();
                 fc::optional<signed_block> head_block = fetch_block_by_id(head_id);
                 FC_ASSERT(head_block.valid(), "there is no block to pop");
@@ -641,9 +643,12 @@ namespace news{
 
             }
 
+
             //TODO operations apply?
-            for(auto op : trx.operations){
-                apply_operation(op);
+            for(const auto &op : trx.operations){
+                try {
+                    apply_operation(op);
+                }FC_CAPTURE_AND_RETHROW((op));
             }
         }
 
@@ -680,6 +685,12 @@ namespace news{
 
         void database::clear_pending() {
             _pending_trx.clear();
+
+        }
+
+        void database::clear_expired_transactions() {
+//            const auto &trx_itr = get_index<transaction_obj_index>().indices().get<by_expiration>;
+//            while(!trx_itr.empty() && (head_block_time()))
         }
 
 

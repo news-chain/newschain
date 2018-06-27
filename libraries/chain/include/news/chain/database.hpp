@@ -136,6 +136,7 @@ namespace news{
             fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
             void                            regists_evaluator();
             void                            clear_pending();
+            void                            clear_expired_transactions();
 
             //
             template<typename Function>
@@ -152,8 +153,10 @@ namespace news{
             auto without_pengding_transactions(Function &&f){
                 std::vector<signed_transaction> old_input;
                 old_input = std::move(_pending_trx);
+
+                assert((_pending_trx.size() == 0) || _pending_trx_session.valid());
                 _pending_trx.clear();
-                _pending_block_session.reset();
+                _pending_trx_session.reset();
                 //TODO clear pending
 
                 auto on_exit = fc::make_scoped_exit([&](){
@@ -177,7 +180,7 @@ namespace news{
                             }
                         }catch (...){
                             //TODO
-                            elog("without_pengding_transactions.");
+                            elog("without_pengding_transactions. ${trx}", ("trx", t));
                         }
                     }
                 });
@@ -196,7 +199,7 @@ namespace news{
 
             uint64_t                                        _skip_flags = skip_nothing;
             bool                                            _is_producing = false;
-            fc::optional< chainbase::database::session >    _pending_block_session;
+            fc::optional< chainbase::database::session >    _pending_trx_session;
             std::deque<signed_transaction>                  _popped_tx;
 
             std::unique_ptr< database_impl > _my;

@@ -17,7 +17,7 @@ int main(int argc, char **argv){
 
     try {
 
-        http::client client("ws://192.168.2.180:7001");
+        http::client client("ws://192.168.2.180:8001");
         client.init();
 
         sleep(1);

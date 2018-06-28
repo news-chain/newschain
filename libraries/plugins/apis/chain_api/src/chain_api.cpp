@@ -50,6 +50,7 @@ namespace news{
 //                        trx.expiration = fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 10);
 //                        trx.operations.push_back(op);
 //                        trx.sign(private_key_type, NEWS_CHAIN_ID);
+
                         _chain_plugin.accept_transaction(args);
 
                     }catch (const fc::exception &e){

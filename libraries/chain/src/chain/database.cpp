@@ -95,7 +95,7 @@ namespace news{
             return (when - first_slot_time).to_seconds() / NEWS_BLOCK_INTERVAL + 1;
         }
 
-        fc::time_point database::get_slot_time(uint32_t slot_num) const {
+        fc::time_point_sec database::get_slot_time(uint32_t slot_num) const {
             if(slot_num == 0){
                 return fc::time_point_sec();
             }
@@ -123,9 +123,11 @@ namespace news{
             return get_global_property_object().head_block_num;
         }
 
-        fc::time_point database::head_block_time() const {
+
+        fc::time_point_sec database::head_block_time() const {
             return get_global_property_object().time;
         }
+
 
         block_id_type database::head_block_id() const {
             return get_global_property_object().head_block_id;
@@ -162,7 +164,7 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
+//            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
                     continue;
@@ -260,22 +262,16 @@ namespace news{
 
         void database::update_last_irreversible_block() {
             static_assert(IRREVERSIBLE_BLOCK_NUM > 0, "irreversible_block_num must be nonzero.");
-
-
             //update
-
-
-
             const auto &gpo = get_global_property_object();
-
-
-
-            if(gpo.last_irreversible_block_num > 0){
-                commit(gpo.last_irreversible_block_num);
+            if(gpo.head_block_num >= IRREVERSIBLE_BLOCK_NUM){
+                modify(gpo, [&](dynamic_global_property_object &obj){
+                    obj.last_irreversible_block_num = head_block_num() - IRREVERSIBLE_BLOCK_NUM;
+                });
             }
 
 
-
+            commit(gpo.last_irreversible_block_num);
 
             if(!(_skip_flags & skip_block_log)){
                 uint32_t log_head_num = 0;
@@ -290,15 +286,12 @@ namespace news{
                         _block_log.append(fitem->data);
 //                        elog("block log append block ${b}", ("b", fitem->data.block_num()));
                         log_head_num++;
+                        _block_log.flush();
                     }
                 }
             }
 
-            if(gpo.head_block_num >= IRREVERSIBLE_BLOCK_NUM){
-                modify(gpo, [&](dynamic_global_property_object &obj){
-                    obj.last_irreversible_block_num = obj.head_block_num - IRREVERSIBLE_BLOCK_NUM;
-                });
-            }
+
 
 
 
@@ -344,8 +337,8 @@ namespace news{
 
 
 
-                update_last_irreversible_block();
                 update_global_property_object(block);
+                update_last_irreversible_block();
                 create_block_summary(block);
                 clear_expired_transactions();
 
@@ -537,7 +530,7 @@ namespace news{
 
                 auto start = fc::time_point::now();
 
-                uint64_t skip_flas =
+                uint64_t skip_flags = //skip_nothing;
                         skip_producer_signature         |
                         skip_transaction_signatures     |
                         skip_tapos_check                |
@@ -559,12 +552,21 @@ namespace news{
                         if(current_block_num % 10000 == 0){
                             std::cerr << itr.first.block_num() << std::endl;
                         }
-                        apply_block(itr.first, skip_flas);
+                        apply_block(itr.first, skip_flags);
 
                         itr = _block_log.read_block( itr.second );
                     }
+
+                    apply_block(itr.first, skip_flags);
+                    set_revision(head_block_num());
+
+                    _block_log.set_locking(true);
+
                 });
 
+                if(_block_log.head()->block_num()){
+                    _fork_database.start_block(*_block_log.head());
+                }
 
 
                 auto end = fc::time_point::now();
@@ -593,8 +595,6 @@ namespace news{
             transaction_id_type trx_id = trx.id();
             FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
 
-
-
             //TODO TaPos
             if(BOOST_LIKELY(head_block_num()) > 0){
 
@@ -606,8 +606,6 @@ namespace news{
                 FC_ASSERT(trx.expiration >= now , "transacion expiration ${trx}", ("trx", trx));
 
             }
-
-
 
             if(!(_skip_flags & (skip_transaction_signatures | skip_authority_check))){
                 get_key_by_name get_public = [&](const account_name &name) -> public_key_type{
@@ -622,7 +620,7 @@ namespace news{
                 };
                 try {
                     //TODO verity_authority
-//                    trx.verify_authority(get_public, get_chain_id());
+                    trx.verify_authority(get_public, get_chain_id());
                 }catch (const fc::exception &e){
                     //TOO catch exception
                     throw e;
@@ -630,12 +628,7 @@ namespace news{
 
             }
 
-
-
-
             if(!(_skip_flags & skip_transaction_dupe_check)){
-//                ilog("create transaction_object ${t}", ("t", trx_id));
-
                 create<transaction_object>([&](transaction_object &obj){
                     obj.trx_id = trx_id;
                     obj.expiration = trx.expiration;
@@ -643,8 +636,6 @@ namespace news{
 
             }
 
-
-            //TODO operations apply?
             for(const auto &op : trx.operations){
                 try {
                     apply_operation(op);
@@ -689,8 +680,11 @@ namespace news{
         }
 
         void database::clear_expired_transactions() {
-//            const auto &trx_itr = get_index<transaction_obj_index>().indices().get<by_expiration>;
-//            while(!trx_itr.empty() && (head_block_time()))
+           auto &trx_idx = get_index<transaction_obj_index>();
+           const auto &deque_index = trx_idx.indices().get<by_expiration>();
+           while((!deque_index.empty()) && (head_block_time() > deque_index.begin()->expiration)){
+               remove(*deque_index.begin());
+           }
         }
 
 

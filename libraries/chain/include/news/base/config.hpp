@@ -16,7 +16,7 @@
 #define NEWS_MAX_BLOCK_SIZE             (NEWS_TRANSACTIONS_MAN_SIZE * NEWS_BLOCK_INTERVAL * 2000L)
 
 
-#define IRREVERSIBLE_BLOCK_NUM  (20)            //about 1min        18446744073709551616
+#define IRREVERSIBLE_BLOCK_NUM  (21)            //about 1min        18446744073709551616
 
 
 #define NEWS_VERSION            (news::base::version(0, 0, 1))

@@ -38,7 +38,7 @@ namespace news{
             id_type             id;
             uint32_t            head_block_num = 0;
             block_id_type       head_block_id;
-            fc::time_point      time;
+            fc::time_point_sec  time;
             account_name        current_producer;
             uint32_t            last_irreversible_block_num = 0;
         };

@@ -83,12 +83,12 @@ namespace news{
             bool                            is_producing()const{return _is_producing;}
             void                            set_producing(bool p){_is_producing = p;}
 
-            uint32_t    get_slot_at_time(fc::time_point_sec when);
-            fc::time_point  get_slot_time(uint32_t slot_num ) const;
+            uint32_t                        get_slot_at_time(fc::time_point_sec when);
+            fc::time_point_sec              get_slot_time(uint32_t slot_num ) const;
 
             const dynamic_global_property_object &get_global_property_object() const;
             uint32_t                        head_block_num() const;
-            fc::time_point                  head_block_time() const;
+            fc::time_point_sec              head_block_time() const;
             block_id_type                   head_block_id() const;
 
             account_name                    get_scheduled_producer(uint32_t num) const;
@@ -178,9 +178,12 @@ namespace news{
                             if(!find){
                                 _push_transaction(std::move(t));
                             }
-                        }catch (...){
+                        }catch (const fc::exception &e){
                             //TODO
-                            elog("without_pengding_transactions. ${trx}", ("trx", t));
+                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
+                        }
+                        catch (...){
+                            elog("unhandle without_pengding_transactions");
                         }
                     }
                 });

@@ -12,7 +12,7 @@ namespace factory{
                                               news::base::account_name name) {
         signed_transaction trx;
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 30));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
 
         create_account_operation cao;
         cao.name = name;

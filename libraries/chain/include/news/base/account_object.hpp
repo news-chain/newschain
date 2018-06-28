@@ -40,6 +40,23 @@ namespace news{
     };
 
 
+
+    class account_authority_object : public chainbase::object<news::chain::account_authority_type, account_authority_object>{
+    public:
+        CHAINBASE_DEFAULT_CONSTRUCTOR(account_authority_object)
+
+
+        id_type                         id;
+        account_name                    name;
+
+
+    };
+
+
+
+
+
+
     struct by_id;
     struct by_name;
     typedef multi_index_container<

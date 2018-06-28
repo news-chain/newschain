@@ -380,6 +380,10 @@ namespace news {
 
             }
 
+            void chain_plugin::accept_block(const news::chain::signed_block &block) {
+
+            }
+
 
         }//namespace chain_plugin
     }//namespace plugins

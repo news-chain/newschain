@@ -7,6 +7,7 @@
 
 
 #include <fc/crypto/sha256.hpp>
+#include <fc/uint128.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/reflect/reflect.hpp>
@@ -15,16 +16,12 @@
 #include <fc/exception/exception.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/io/raw.hpp>
-
+#include <news/base/fixed_string.hpp>
 #include <news/base/config.hpp>
-
 #include <news/base/version.hpp>
-
+#include <news/base/types_fwd.hpp>
 #include <boost/container/flat_set.hpp>
-
 #include <chainbase/chainbase.hpp>
-
-
 
 
 
@@ -52,7 +49,7 @@ namespace news{
         typedef fc::ripemd160               transaction_id_type;
         typedef fc::ripemd160               block_id_type;
         typedef fc::sha256                  digest_type;
-        typedef uint64_t                    account_name;
+        typedef uint64_t           account_name;
         typedef fc::ecc::compact_signature  signature_type;
 
         typedef fc::safe<int64_t>           share_type;

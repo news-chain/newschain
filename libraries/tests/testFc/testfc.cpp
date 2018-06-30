@@ -5,27 +5,27 @@
 #include <news/base/asset_symbol.hpp>
 #include <fc/io/json.hpp>
 #include <news/chain/transaction.hpp>
+#include <news/base/types_fwd.hpp>
+#include <news/base/fixed_string.hpp>
 
-
+#include <news/chain/block_header.hpp>
 using namespace news::base;
 using namespace news::chain;
+
+
+
+struct stu{
+    fixed_string<16> name;
+    int _id;
+};
+
+FC_REFLECT(stu, (name)(_id));
+
+
+
 int main(){
-    signed_transaction trx;
-
-    transfer_operation to;
-    to.from = 1;
-    to.to = 1;
-    to.amount = asset(NEWS_SYMBOL, 120);
-
-    trx.operations.push_back(to);
-    trx.set_expiration(fc::time_point::now());
-
-    private_key_type pk = fc::ecc::private_key::generate();
-    trx.sign(pk, NEWS_CHAIN_ID);
-
-    asset a(NEWS_SYMBOL, 1);
-    ilog("${a}", ("a",a));
-    idump((trx));
+    block_header hh;
+    ilog("${t}", hh);
 
     return 0;
 }

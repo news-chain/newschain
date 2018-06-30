@@ -380,7 +380,7 @@ namespace news {
 
             }
 
-            void chain_plugin::accept_block(const news::chain::signed_block &block) {
+            void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
             }
 

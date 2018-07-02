@@ -6,16 +6,13 @@
 #include <fc/io/json.hpp>
 #include <news/chain/transaction.hpp>
 #include <news/base/types_fwd.hpp>
-#include <news/base/fixed_string.hpp>
 
 #include <news/chain/block_header.hpp>
-using namespace news::base;
-using namespace news::chain;
 
 
 
 struct stu{
-    fixed_string<16> name;
+    news::base::fixed_string<16> name;
     int _id;
 };
 
@@ -24,8 +21,8 @@ FC_REFLECT(stu, (name)(_id));
 
 
 int main(){
-    block_header hh;
-    ilog("${t}", hh);
+    stu tt;
+    ilog("${t}", ("t", tt));
 
     return 0;
 }

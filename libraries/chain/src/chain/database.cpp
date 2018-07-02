@@ -446,7 +446,7 @@ namespace news{
             }FC_CAPTURE_AND_RETHROW((b))
         }
 
-        bool database::is_know_transaction(const transaction_id_type &trx_id) {
+        bool database::is_know_transaction(const transaction_id_type &trx_id) const {
             try {
                 const auto &trx_itr = get_index<transaction_obj_index>().indices().get<by_trx_id>();
                 return  trx_itr.find(trx_id) != trx_itr.end();
@@ -685,6 +685,21 @@ namespace news{
            while((!deque_index.empty()) && (head_block_time() > deque_index.begin()->expiration)){
                remove(*deque_index.begin());
            }
+        }
+
+
+        bool database::is_know_block(const news::base::block_id_type &id) const{
+            try{
+                return fetch_block_by_id(id).valid();
+            }FC_CAPTURE_AND_RETHROW((id))
+        }
+
+        uint32_t database::last_non_undoable_block_num() const {
+            return get_global_property_object().last_irreversible_block_num;
+        }
+
+        const signed_transaction database::get_recent_transaction(const transaction_id_type &trx_id) const {
+            return signed_transaction();
         }
 
 

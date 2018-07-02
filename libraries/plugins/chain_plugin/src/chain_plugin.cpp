@@ -382,6 +382,21 @@ namespace news {
 
             void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
+                if(syncing){
+
+                }
+                boost::promise< void > prom;
+                write_context cxt;
+                cxt.req_ptr = &block;
+                cxt.skip = skip;
+
+                cxt.prom_ptr = &prom;
+                _my->write_queue.push(&cxt);
+
+                prom.get_future().get();
+                if(cxt.except){
+                    throw  *(cxt.except);
+                }
             }
 
 

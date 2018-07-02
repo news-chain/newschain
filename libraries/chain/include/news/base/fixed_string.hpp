@@ -169,12 +169,6 @@ namespace news{
 
     }}//news::base
 
-
-
-
-
-
-
 namespace fc { namespace raw {
 
         template< typename Stream, typename Storage >

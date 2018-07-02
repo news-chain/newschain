@@ -49,7 +49,7 @@ namespace news{
         typedef fc::ripemd160               transaction_id_type;
         typedef fc::ripemd160               block_id_type;
         typedef fc::sha256                  digest_type;
-        typedef uint64_t           account_name;
+        typedef uint64_t                    account_name;
         typedef fc::ecc::compact_signature  signature_type;
 
         typedef fc::safe<int64_t>           share_type;

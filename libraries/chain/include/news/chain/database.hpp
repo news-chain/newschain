@@ -108,7 +108,17 @@ namespace news{
             ////////////////////////////get             ///////////////////////////////////
             ///////////////////////////////////////////////////////////////////////////////
             fc::optional<signed_block>      fetch_block_by_number(uint32_t block_num);
-            const chain_id_type             &get_chain_id();
+            const chain_id_type             &get_chain_id() ;
+
+            /*
+           * @param trx_id
+           * @return true:if exits,
+           * */
+            bool                            is_know_transaction(const transaction_id_type &trx_id) const;
+            bool                            is_know_block(const block_id_type &id) const;
+            fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
+            uint32_t                        last_non_undoable_block_num() const;
+            const signed_transaction        get_recent_transaction(const transaction_id_type &trx_id) const;
         private:
             signed_block                    _generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
             void                            initialize_indexes();
@@ -123,17 +133,13 @@ namespace news{
             void                            apply_block(const signed_block &block, uint64_t skip = skip_nothing);
             void                            _apply_block(const signed_block &block, uint64_t skip = skip_nothing);
 
-            /*
-             * @param trx_id
-             * @return true:if exits,
-             * */
-            bool                            is_know_transaction(const transaction_id_type &trx_id);
+
             void                            _push_transaction(const signed_transaction &trx);
             void                            apply_transaction(const signed_transaction &trx, uint64_t skip);
             void                            _apply_transaction(const signed_transaction &trx);
             void                            apply_operation(const operation &op);
             void                            pop_block();
-            fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
+
             void                            regists_evaluator();
             void                            clear_pending();
             void                            clear_expired_transactions();

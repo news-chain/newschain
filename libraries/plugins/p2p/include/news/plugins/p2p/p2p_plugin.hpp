@@ -7,6 +7,9 @@
 
 
 #include <app/application.hpp>
+#include "news/plugins/chain_plugin/chain_plugin.hpp"
+
+
 
 #define  NEWS_P2P_PLUGIN_NAME ("p2p_plugin")
 
@@ -27,18 +30,24 @@ namespace news{
                 p2p_plugin();
                 virtual  ~p2p_plugin();
 
-                NEWSAPP_PLUGIN_REQUIRES();
+              //  NEWSAPP_PLUGIN_REQUIRES();
+                NEWSAPP_PLUGIN_REQUIRES( (news::plugins::chain_plugin::chain_plugin) );
 
                 static const std::string& name() { static std::string name = NEWS_P2P_PLUGIN_NAME; return name; }
 
                 virtual void set_program_options(options_description&, options_description& cfg) override;
 
-            protected:
                 virtual void plugin_initialize(const variables_map& options) override;
                 virtual void plugin_startup() override;
                 virtual void plugin_shutdown() override;
+
+                void broadcast_block( const news::chain::signed_block& block );
+                void broadcast_transaction( const news::chain::signed_transaction& tx );
+                void set_block_production( bool producing_blocks );
+
+
             private:
-                std::unique_ptr< detail::p2p_plugin_impl > _my;
+                std::unique_ptr< detail::p2p_plugin_impl > my;
 
             };
         }//namespace p2p

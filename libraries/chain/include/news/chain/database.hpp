@@ -44,8 +44,8 @@ namespace news{
             fc::path        data_dir;
             fc::path        shared_mem_dir;
             uint64_t        shared_mem_size = 0;
-            uint64_t        shared_file_full_threshold = 0;
-            uint64_t        shared_file_scale_rate = 0;
+            uint16_t        shared_file_full_threshold = 0;
+            uint16_t        shared_file_scale_rate = 0;
             uint32_t        chainbase_flag = 0;
             uint32_t        stop_replay_at = 0;
 
@@ -55,7 +55,7 @@ namespace news{
         enum validation_steps
         {
             skip_nothing                    = 0,
-            skip_producer_signature          = 1 << 0,  ///< used while reindexing
+            skip_producer_signature         = 1 << 0,  ///< used while reindexing
             skip_transaction_signatures     = 1 << 1,  ///< used by non-witness nodes
             skip_transaction_dupe_check     = 1 << 2,  ///< used while reindexing
             skip_fork_db                    = 1 << 3,  ///< used while reindexing
@@ -122,7 +122,13 @@ namespace news{
             block_id_type                   get_block_id_for_num(uint32_t block_num) const;
             std::vector<block_id_type>      get_block_ids_on_fork(block_id_type head_of_fork)const;
 
+            const account_object &          get_account(const account_name &name)const;
+            const account_object*           find_account(const account_name &name)const;
+
+
         private:
+
+
             signed_block                    _generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
             void                            initialize_indexes();
 
@@ -147,6 +153,11 @@ namespace news{
             void                            clear_pending();
             void                            clear_expired_transactions();
             block_id_type                   find_block_id_for_num(uint32_t block_num) const;
+
+            void                            check_free_memory(bool fore_print, uint32_t cuurent_block_num);
+
+
+
             //
             template<typename Function>
             auto with_skip_flags(uint64_t flags, Function   &&ff){
@@ -188,7 +199,6 @@ namespace news{
                                 _push_transaction(std::move(t));
                             }
                         }catch (const fc::exception &e){
-                            //TODO
                             elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
                         }
                         catch (...){
@@ -215,6 +225,9 @@ namespace news{
             std::deque<signed_transaction>                  _popped_tx;
 
             std::unique_ptr< database_impl > _my;
+
+            uint16_t                                        _shared_file_full_threshold;
+            uint16_t                                        _shared_file_scale_rate;
         };
 
     }//namespace chain

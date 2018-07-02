@@ -62,7 +62,7 @@ namespace news {
                     void stop_write_processing();
 
                     uint64_t                    shared_memory_size = 0;
-                    uint64_t                    shared_file_full_threshold = 0;
+                    uint16_t                    shared_file_full_threshold = 0;
                     uint16_t                    shared_file_scale_rate = 0;
                     bool                        replay = false;
                     bool                        resync = false;
@@ -324,7 +324,6 @@ namespace news {
 
                     } catch (const fc::exception &e) {
                         elog("open database error ${e}, try to replay blockchain", ("e", e.to_detail_string()));
-                        //TODO replay blcokchain
                         _my->db.reindex(db_open_args);
                     }
 

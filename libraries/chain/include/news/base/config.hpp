@@ -33,3 +33,4 @@
 #define NEWS_MAX_TIME_EXPIRATION    (60*30)  //30min
 
 #define NEWS_SYSTEM_ACCOUNT_NAME    (1)
+#define NEWS_100_PERCENT            (1000)

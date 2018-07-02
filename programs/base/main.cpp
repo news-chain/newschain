@@ -11,6 +11,7 @@
 #include <news/plugins/block_api_plugin/block_api_plugin.hpp>
 #include <news/plugins/chain_api/chain_api_plugin.hpp>
 #include <news/plugins/database_api/database_api_plugin.hpp>
+#include "news/plugins/p2p/p2p_plugin.hpp"
 
 int main(int argc, char *argv[]){
 
@@ -29,16 +30,17 @@ int main(int argc, char *argv[]){
 //        app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
         app.register_plugin< news::plugins::webserver::webserver_plugin >();
         app.register_plugin< news::plugins::block_api_plugin::block_api_plugin >();
-        app.register_plugin< news::plugins::block_api_plugin::block_api_plugin >();
         app.register_plugin< news::plugins::chain_api_plugin::chain_api_plugin >();
         app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
         app.register_plugin< news::plugins::database_api::database_api_plugin >();
+        app.register_plugin< news::plugins::p2p::p2p_plugin >();
 
 
         bool init = app.initizlize<news::plugins::producer_plugin::producer_plugin,
                 news::plugins::block_api_plugin::block_api_plugin,
                 news::plugins::chain_api_plugin::chain_api_plugin,
                 news::plugins::database_api::database_api_plugin,
+                news::plugins::p2p::p2p_plugin,
                 news::plugins::webserver::webserver_plugin>(argc, argv);
         if(!init){
             std::cout << "application init error " << std::endl;

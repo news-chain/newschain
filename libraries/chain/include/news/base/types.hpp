@@ -52,11 +52,12 @@ namespace news{
         typedef fc::ripemd160               transaction_id_type;
         typedef fc::ripemd160               block_id_type;
         typedef fc::sha256                  digest_type;
-        typedef uint64_t                    account_name;
+//        typedef fixed_string <16>                   account_name;
+        typedef uint64_t                   account_name;
         typedef fc::ecc::compact_signature  signature_type;
 
         typedef fc::safe<int64_t>           share_type;
-
+        typedef chainbase::t_vector <char>      buffer_type;
 
         using boost::container::flat_set;
 
@@ -100,8 +101,6 @@ namespace news{
 
 
 
-
-
     }//namespace base
 }//namespace news
 
@@ -125,6 +124,33 @@ namespace fc{
     void from_variant(const variant &var, chainbase::oid<T> &to){
         to._id = var.as_int64();
     }
+
+
+    namespace raw{
+        template< typename T, typename B > inline void pack_to_buffer( B& raw, const T& v )
+        {
+            auto size = pack_size( v );
+            raw.resize( size );
+            datastream< char* > ds( raw.data(), size );
+            pack( ds, v );
+        }
+
+        template< typename T, typename B > inline void unpack_from_buffer( const B& raw, T& v )
+        {
+            datastream< const char* > ds( raw.data(), raw.size() );
+            unpack( ds, v );
+        }
+
+        template< typename T, typename B > inline T unpack_from_buffer( const B& raw )
+        {
+            T v;
+            datastream< const char* > ds( raw.data(), raw.size() );
+            unpack( ds, v );
+            return v;
+        }
+    }
+
+
 }
 
 

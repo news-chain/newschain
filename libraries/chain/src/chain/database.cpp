@@ -632,6 +632,7 @@ namespace news{
                 create<transaction_object>([&](transaction_object &obj){
                     obj.trx_id = trx_id;
                     obj.expiration = trx.expiration;
+                    fc::raw::pack_to_buffer(obj.packed_trx, trx);
                 });
 
             }
@@ -699,7 +700,70 @@ namespace news{
         }
 
         const signed_transaction database::get_recent_transaction(const transaction_id_type &trx_id) const {
-            return signed_transaction();
+            try {
+                auto &index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
+                auto itr = index.find(trx_id);
+                FC_ASSERT(itr != index.end());
+                signed_transaction trx;
+                fc::raw::unpack_from_buffer(itr->packed_trx, trx);
+                return trx;
+            }FC_CAPTURE_AND_RETHROW()
+
+        }
+
+        block_id_type database::get_block_id_for_num(uint32_t block_num) const {
+            block_id_type bid = find_block_id_for_num(block_num);
+            FC_ASSERT(bid != block_id_type());
+            return bid;
+        }
+
+        std::vector<block_id_type> database::get_block_ids_on_fork(block_id_type head_of_fork) const {
+            try{
+                std::pair<fork_database::branch_type, fork_database::branch_type> branches = _fork_database.fetch_branch_from(head_block_id(), head_of_fork);
+                if(!(branches.first.back()->previous_id() == branches.second.back()->previous_id())){
+                    edump((head_of_fork)
+                                  (head_block_id())
+                                  (branches.first.size())
+                                  (branches.second.size()));
+                    assert(branches.first.back()->previous_id() == branches.second.back()->previous_id());
+                }
+                std::vector<block_id_type> result;
+                for(const item_ptr &fork_block : branches.second){
+                    result.emplace_back(fork_block->id);
+                }
+                result.emplace_back(branches.first.back()->previous_id());
+                return  result;
+            }FC_CAPTURE_AND_RETHROW()
+        }
+
+        block_id_type database::find_block_id_for_num(uint32_t block_num) const {
+            try{
+                if(block_num == 0){
+                    return block_id_type();
+                }
+
+                oid<block_summary_object> bsid = block_num & 0xFFFF;
+                const block_summary_object *bs = find<block_summary_object, by_id>(bsid);
+                if(bs != nullptr){
+                    if(block_header::num_from_id(bs->block_id) == block_num){
+                        return bs->block_id;
+                    }
+                }
+
+                //next we query the block log, Irreversible blocks are here.
+                auto b = _block_log.read_block_by_num(block_num);
+                if(b.valid()){
+                    return b->id();
+                }
+
+                // Finally we query the fork DB.
+                std::shared_ptr<fork_item> fitem = _fork_database.fetch_block_on_main_branch_by_number(block_num);
+                if(fitem){
+                    return fitem->id;
+                }
+
+                return block_id_type();
+            }FC_CAPTURE_AND_RETHROW((block_num))
         }
 
 

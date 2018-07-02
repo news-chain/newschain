@@ -168,9 +168,9 @@ namespace news {
                                                           try
                                                           {
                                                               if( id.item_type == graphene::net::block_message_type )
-                                                                  return chain->get_database().is_known_block(id.item_hash);
+                                                                  return chain->get_database().is_know_block(id.item_hash);
                                                               else
-                                                                  return chain->get_database().is_known_transaction(id.item_hash);
+                                                                  return chain->get_database().is_know_transaction(id.item_hash);
                                                           }
                                                           FC_CAPTURE_LOG_AND_RETHROW( (id) )
                                                       });
@@ -302,7 +302,7 @@ namespace news {
                                                                   for( const item_hash_t& block_id_in_synopsis : boost::adaptors::reverse(blockchain_synopsis) )
                                                                   {
                                                                       if (block_id_in_synopsis == block_id_type() ||
-                                                                          (chain->get_database().is_known_block(block_id_in_synopsis) && is_included_block(block_id_in_synopsis)))
+                                                                          (chain->get_database().is_know_block(block_id_in_synopsis) && is_included_block(block_id_in_synopsis)))
                                                                       {
                                                                           last_known_block_id = block_id_in_synopsis;
                                                                           found_a_block_in_synopsis = true;
@@ -319,7 +319,7 @@ namespace news {
                                                                    ++num )
                                                               {
                                                                   if( num > 0 )
-                                                                      result.push_back(chain->get_database()().get_block_id_for_num(num));
+                                                                      result.push_back(chain->get_database().get_block_id_for_num(num));
                                                               }
 
                                                               if( !result.empty() && block_header::num_from_id(result.back()) < chain->get_database().head_block_num() )
@@ -337,12 +337,12 @@ namespace news {
                                                               {
                                                                   auto opt_block = chain->get_database().fetch_block_by_id(id.item_hash);
                                                                   if( !opt_block )
-                                                                      elog("Couldn't find block ${id} -- corresponding ID in our chain is ${id2}",
-<<<<<<< HEAD
-                                                                           ("id", id.item_hash)("id2", chain->get_database().get_block_id_for_num(block_header::num_from_id(id.item_hash))));
-=======
-                                                                           ("id", id.item_hash)("id2", chain.db().get_block_id_for_num(block_header::num_from_id(id.item_hash))));
->>>>>>> 13925bf2ea28eb07546289390f4fed101773e9c1
+                                                                      ;
+                                                                  //    elog("Couldn't find block ${id} -- corresponding ID in our chain is ${id2}",
+                                                                    //        ("id", id.item_hash)("id2", chain->get_database().get_block_id_for_num(block_header::num_from_id(id.item_hash))));
+
+
+
                                                                   FC_ASSERT( opt_block.valid() );
                                                                   // ilog("Serving up block #${num}", ("num", opt_block->block_num()));
                                                                   return block_message(std::move(*opt_block));
@@ -354,11 +354,7 @@ namespace news {
                                                           });
                     } FC_CAPTURE_AND_RETHROW( (id) ) }
 
-<<<<<<< HEAD
                 news::chain::chain_id_type p2p_plugin_impl::get_chain_id() const
-=======
-                steem::protocol::chain_id_type p2p_plugin_impl::get_chain_id() const
->>>>>>> 13925bf2ea28eb07546289390f4fed101773e9c1
                 {
                     return chain->get_database().get_chain_id();
                 }
@@ -408,7 +404,7 @@ namespace news {
                                                                // block is a block we know about, but it is on a fork
                                                                try
                                                                {
-                                                                   fork_history = chain->get_database().get_block_ids_on_fork(reference_point);
+                                                                  // fork_history = chain->get_database().get_block_ids_on_fork(reference_point);
                                                                    // returns a vector where the last element is the common ancestor with the preferred chain,
                                                                    // and the first element is the reference point you passed in
                                                                    assert(fork_history.size() >= 2);
@@ -473,7 +469,7 @@ namespace news {
                                                            // if it's <= non_fork_high_block_num, we grab it from the main blockchain;
                                                            // if it's not, we pull it from the fork history
                                                            if( low_block_num <= non_fork_high_block_num )
-                                                               synopsis.push_back(chain->get_database().get_block_id_for_num(low_block_num));
+                                                             ;//  synopsis.push_back(chain->get_database().get_block_id_for_num(low_block_num));
                                                            else
                                                                synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
                                                            low_block_num += (true_high_block_num - low_block_num + 2) / 2;

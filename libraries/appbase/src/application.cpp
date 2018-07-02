@@ -170,8 +170,15 @@ namespace news{
                     data_dir = bfs::current_path() / "node_data";
                 }
 
+
+
+
+
                 if(!bfs::exists(data_dir)){
                     write_default_config(data_dir / "config.ini");
+                } else{
+                    auto config_name = data_dir / "config.ini";
+                    bpo::store(bpo::parse_config_file<char>(config_name.make_preferred().string().c_str(), my->_cfg_options, true), my->_map_args);
                 }
                 my->_data_path = data_dir;
 

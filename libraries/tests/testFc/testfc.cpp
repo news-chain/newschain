@@ -8,21 +8,15 @@
 #include <news/base/types_fwd.hpp>
 
 #include <news/chain/block_header.hpp>
+#include <fc/crypto/sha256.hpp>
 
-
-
-struct stu{
-    news::base::fixed_string<16> name;
-    int _id;
-};
-
-FC_REFLECT(stu, (name)(_id));
 
 
 
 int main(){
-    stu tt;
-    ilog("${t}", ("t", tt));
+    fc::uint128_t name;
+    name = 1 << 2;
+    std::cout << name. << std::endl;
 
     return 0;
 }

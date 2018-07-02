@@ -119,6 +119,9 @@ namespace news{
             fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
             uint32_t                        last_non_undoable_block_num() const;
             const signed_transaction        get_recent_transaction(const transaction_id_type &trx_id) const;
+            block_id_type                   get_block_id_for_num(uint32_t block_num) const;
+            std::vector<block_id_type>      get_block_ids_on_fork(block_id_type head_of_fork)const;
+
         private:
             signed_block                    _generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
             void                            initialize_indexes();
@@ -143,7 +146,7 @@ namespace news{
             void                            regists_evaluator();
             void                            clear_pending();
             void                            clear_expired_transactions();
-
+            block_id_type                   find_block_id_for_num(uint32_t block_num) const;
             //
             template<typename Function>
             auto with_skip_flags(uint64_t flags, Function   &&ff){

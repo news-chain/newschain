@@ -11,6 +11,7 @@
 
 #include <news/base/types_fwd.hpp>
 #include <boost/endian/conversion.hpp>
+#include <fstream>
 
 
 
@@ -71,6 +72,12 @@ namespace news{
     namespace base{
 
 
+
+/**
+ * This class is an in-place memory allocation of a fixed length character string.
+ *
+ * The string will serialize the same way as std::string for variant and raw formats.
+ */
 
         template< typename _Storage >
         class fixed_string_impl
@@ -140,6 +147,7 @@ namespace news{
             Storage data;
         };
 
+
 // These storage types work with memory layout and should be used instead of a custom template.
         template< size_t N >
         struct fixed_string_impl_for_size;
@@ -184,7 +192,6 @@ namespace fc { namespace raw {
             unpack( s, str );
             u = str;
         }
-
     } // raw
     template< typename Storage >
     void to_variant(const news::base::fixed_string_impl< Storage >& s, variant& v ) { v = std::string( s ); }
@@ -192,3 +199,5 @@ namespace fc { namespace raw {
     template< typename Storage >
     void from_variant(const variant& v, news::base::fixed_string_impl< Storage >& s ) { s = v.as_string(); }
 } // fc
+
+

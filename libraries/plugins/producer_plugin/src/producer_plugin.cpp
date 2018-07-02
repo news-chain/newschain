@@ -127,7 +127,7 @@ namespace news{
                     //TODO add skip flag
                     auto block = _chain_plugin.generate_block(now, producer, private_key->second, 0);
 //                    ilog("block : ${b}", ("b", block));
-                    cap("n", block.block_num())("t", block.timestamp)("p", block.producer)("b", block.transactions.size());
+                    cap("n", block.block_num())("t", block.timestamp)("p", block.producer)("b", block.transactions.size())("size", fc::raw::pack_size(block));
                     //TODO broadcast block
 
                     return block_production_condition::produced;
@@ -156,7 +156,7 @@ namespace news{
 
                     switch (result){
                         case block_production_condition::produced:
-                            ilog("Genarated block #${n} time ${t} by ${p} trx.size=${b}", (capture));
+                            elog("Genarated block #${n} time ${t} by ${p} trx.size=${b}, pack_size:${size}", (capture));
                         case block_production_condition::not_synced:
 //                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
                             break;
@@ -228,7 +228,7 @@ namespace news{
 
             void producer_plugin::plugin_startup() {
                 //for test add , remove later
-                _my->_producers.insert(news::base::account_name(0));
+                _my->_producers.insert(NEWS_SYSTEM_ACCOUNT_NAME);
                 auto test_pk = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("pk")));
                 auto test_public_key = public_key_type(test_pk.get_public_key());
                 _my->_private_keys[test_public_key] = test_pk;

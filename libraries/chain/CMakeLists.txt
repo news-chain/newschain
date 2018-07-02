@@ -23,6 +23,7 @@ add_library(news_chain
             src/chain/transaction.cpp
             src/chain/fork_database.cpp
             src/chain/news_eveluator.cpp
+            src/chain/transaction_object.cpp
             ${CHAIN_HEADERS}
         )
 

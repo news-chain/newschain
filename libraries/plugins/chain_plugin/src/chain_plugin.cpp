@@ -52,7 +52,7 @@ namespace news {
 
                 class chain_plugin_impl {
                 public:
-                    chain_plugin_impl():write_queue(64) {}
+                    chain_plugin_impl():write_queue(128) {}
 
                     ~chain_plugin_impl() {}
 
@@ -249,6 +249,7 @@ namespace news {
             }//namespace detail
 
             using detail::write_context;
+            using detail::generate_block_request;
 
             chain_plugin::chain_plugin() : _my(new detail::chain_plugin_impl()) {
 
@@ -324,6 +325,7 @@ namespace news {
                     } catch (const fc::exception &e) {
                         elog("open database error ${e}, try to replay blockchain", ("e", e.to_detail_string()));
                         //TODO replay blcokchain
+                        _my->db.reindex(db_open_args);
                     }
 
                 }
@@ -339,7 +341,21 @@ namespace news {
             news::chain::signed_block
             chain_plugin::generate_block(const fc::time_point_sec when, const news::base::account_name &producer,
                                          const fc::ecc::private_key &sign_pk, uint32_t skip) {
-                return _my->db.generate_block(when, producer, sign_pk, (validation_steps) skip);
+                generate_block_request req(when, producer, sign_pk, skip);
+                boost::promise<void> prom;
+                write_context cxt;
+                cxt.req_ptr = &req;
+                cxt.prom_ptr = &prom;
+
+                _my->write_queue.push(&cxt);
+
+                prom.get_future().get();
+                if(cxt.except){
+                    throw *(cxt.except);
+                }
+                FC_ASSERT(cxt.success, "block generate error.");
+
+                return req.block;
             }
 
             const database &chain_plugin::get_database() const {

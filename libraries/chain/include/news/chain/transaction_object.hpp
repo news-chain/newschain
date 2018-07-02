@@ -21,8 +21,9 @@ namespace news{
 
         using namespace boost::multi_index;
         using namespace news::base;
+        using namespace chainbase;
 
-        class transaction_object : public chainbase::object<transaction_object_type, transaction_object>{
+        class transaction_object : public object<transaction_object_type, transaction_object>{
             transaction_object() = delete;
         public:
             CHAINBASE_DEFAULT_CONSTRUCTOR(transaction_object)
@@ -42,7 +43,8 @@ namespace news{
                 transaction_object,
                 indexed_by<
                         ordered_unique< tag<by_id>, member<transaction_object, transaction_object::id_type, &transaction_object::id>>,
-                        hashed_unique< tag<by_trx_id>, BOOST_MULTI_INDEX_MEMBER(transaction_object, transaction_id_type, trx_id), std::hash<transaction_id_type> >,
+//                        hashed_unique< tag<by_trx_id>, BOOST_MULTI_INDEX_MEMBER(transaction_object, transaction_id_type, trx_id), std::hash<transaction_id_type> >,
+                        ordered_unique< tag<by_trx_id>, member<transaction_object, transaction_id_type, &transaction_object::trx_id>>,
                         ordered_non_unique< tag< by_expiration>, member<transaction_object, fc::time_point_sec, &transaction_object::expiration> >
                         >,
                         chainbase::allocator <transaction_object>

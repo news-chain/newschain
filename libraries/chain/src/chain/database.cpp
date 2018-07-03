@@ -88,6 +88,8 @@ namespace news{
             add_index<block_summary_index>();
             add_index<transaction_obj_index>();
             add_index<news::base::account_object_index>();
+            add_index<operation_obj_index>();
+            add_index<account_hsitory_obj_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {

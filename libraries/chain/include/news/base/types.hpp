@@ -107,6 +107,10 @@ namespace news{
 
 
 
+
+
+
+
 namespace fc{
     void to_variant(const news::base::public_key_type &var, fc::variant &vo);
     void from_variant(const fc::variant &var, news::base::public_key_type &vo);

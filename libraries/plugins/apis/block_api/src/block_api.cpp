@@ -20,6 +20,7 @@ namespace news{
                 DECLARE_API_IMPL(
                         (get_block_header)
                                 (get_block)
+                                (fetch_chunk)
                 )
 
                 news::chain::database& _db;
@@ -63,11 +64,22 @@ namespace news{
                 return result;
             }
 
+            //practice for interface implementation - by Oijen
+            DEFINE_API_IMPL(block_api_impl, fetch_chunk)
+            {
+                fetch_chunk_return result;
+                auto chunk = _db.fetch_block_by_number(args.chunk_num);
+                if(chunk){
+                    result.chunk = *chunk;
+                }
+                return result;
+            }
 
 
             DEFINE_READ_APIS( block_api,
                               (get_block_header)
                                       (get_block)
+                                      (fetch_chunk)
             )
 
 

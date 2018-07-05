@@ -164,7 +164,7 @@ namespace news{
                     write_default_config(data_dir / "config.ini");
                 }
                 auto config_name = data_dir / "config.ini";
-                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
+//                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
 
                 my->_data_path = data_dir;
 

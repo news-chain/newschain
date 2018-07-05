@@ -4,7 +4,7 @@
 
 #include <news/chain/database.hpp>
 #include <fc/scoped_exit.hpp>
-#include "../../../appbase/include/app/plugin.hpp"
+#include <app/application.hpp>
 
 namespace news{
     namespace chain{

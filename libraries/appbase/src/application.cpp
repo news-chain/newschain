@@ -89,6 +89,8 @@ namespace news{
 
 
         void application::add_program_options( const bpo::options_description& cli, const bpo::options_description& cfg ) {
+            my->_app_options.add(cli);
+            my->_app_options.add(cfg);
             my->_cfg_options.add(cfg);
         }
 
@@ -158,13 +160,11 @@ namespace news{
                     data_dir = bfs::current_path() / "node_data";
                 }
 
-                if(!bfs::exists(data_dir)){
+                if(!bfs::exists(data_dir / "config.ini")){
                     write_default_config(data_dir / "config.ini");
-                } else{
-                    auto config_name = data_dir / "config.ini";
-
                 }
-                bpo::store(bpo::parse_config_file<char>((data_dir / "config.ini").string().c_str(), my->_cfg_options, true), my->_map_args);
+                auto config_name = data_dir / "config.ini";
+                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
 
                 my->_data_path = data_dir;
 
@@ -183,11 +183,6 @@ namespace news{
             }catch(std::exception &e) {
                 elog("plugins init error ${e}", ("e", e.what()));
             }
-
-
-
-
-
 
             return true;
         }

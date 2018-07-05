@@ -18,13 +18,11 @@
 #include <vector>
 #include <string>
 
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/filesystem/path.hpp>
-
-#include <boost/algorithm/string.hpp>
 
 namespace news {
     namespace app {

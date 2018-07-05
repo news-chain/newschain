@@ -18,27 +18,27 @@
 
 
 void regist_plugin(news::app::application &app){
-//    app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
-//    app.register_plugin< news::plugins::webserver::webserver_plugin >();
-//    app.register_plugin< news::plugins::block_api_plugin::block_api_plugin >();
-//    app.register_plugin< news::plugins::chain_api_plugin::chain_api_plugin >();
-//    app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
-//    app.register_plugin< news::plugins::database_api::database_api_plugin >();
-//    app.register_plugin< news::plugins::p2p::p2p_plugin >();
+    app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
+    app.register_plugin< news::plugins::webserver::webserver_plugin >();
+    app.register_plugin< news::plugins::block_api_plugin::block_api_plugin >();
+    app.register_plugin< news::plugins::chain_api_plugin::chain_api_plugin >();
+    app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
+    app.register_plugin< news::plugins::database_api::database_api_plugin >();
+    app.register_plugin< news::plugins::p2p::p2p_plugin >();
 }
 
 
 
 
-int main(int argc, char *argv[]){
+int main(int argc, char **argv){
 
-//    std::cerr << "------------------------------------------" << std::endl;
-//
-//    std::cerr << "NEWS CHAIN" << std::endl;
-//    std::cerr << "chain_id: " << std::string(NEWS_CHAIN_ID) << std::endl;
-//    std::cerr << "public_key: " << NEWS_INIT_PUBLIC_KEY<< std::endl;
-////    std::cerr << "private_key: " << NEWS_INIT_PRIVATE_KEY << std::endl;
-//    std::cerr << "------------------------------------------" << std::endl;
+    std::cerr << "------------------------------------------" << std::endl;
+
+    std::cerr << "NEWS CHAIN" << std::endl;
+    std::cerr << "chain_id: " << std::string(NEWS_CHAIN_ID) << std::endl;
+    std::cerr << "public_key: " << NEWS_INIT_PUBLIC_KEY<< std::endl;
+//    std::cerr << "private_key: " << NEWS_INIT_PRIVATE_KEY << std::endl;
+    std::cerr << "------------------------------------------" << std::endl;
 
 
 
@@ -55,12 +55,12 @@ int main(int argc, char *argv[]){
 //        regist_plugin(app);
 
         bool init = app.initizlize<
-//                news::plugins::producer_plugin::producer_plugin,
-//                news::plugins::block_api_plugin::block_api_plugin,
-//                news::plugins::chain_api_plugin::chain_api_plugin,
-//                news::plugins::database_api::database_api_plugin,
-//                news::plugins::p2p::p2p_plugin,
-//                news::plugins::webserver::webserver_plugin
+                news::plugins::producer_plugin::producer_plugin,
+                news::plugins::block_api_plugin::block_api_plugin,
+                news::plugins::chain_api_plugin::chain_api_plugin,
+                news::plugins::database_api::database_api_plugin,
+                news::plugins::p2p::p2p_plugin,
+                news::plugins::webserver::webserver_plugin
         >(argc, argv);
         if(!init){
             std::cout << "application init error " << std::endl;
@@ -75,20 +75,13 @@ int main(int argc, char *argv[]){
             std::cerr << "load config error " << std::endl;
         }
 
-
-#ifdef DEFAULT_LOGGER
-# undef DEFAULT_LOGGER
-#endif
-#define DEFAULT_LOGGER "p2p"
-        elog("xxxxxxxxxx");
-
         app.start_up();
-
 
         app.exec();
     }catch (const std::exception &e){
         std::cout << e.what() << std::endl;
         return -1;
     }
+
     return 0;
 }

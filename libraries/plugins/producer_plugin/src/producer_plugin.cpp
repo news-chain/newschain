@@ -156,7 +156,7 @@ namespace news{
 
                     switch (result){
                         case block_production_condition::produced:
-//                            elog("Genarated block #${n} time ${t} by ${p} trx.size=${b}, pack_size:${size}", (capture));
+                            elog("Genarated block #${n} time ${t} by ${p} trx.size=${b}, pack_size:${size}", (capture));
                         case block_production_condition::not_synced:
 //                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
                             break;

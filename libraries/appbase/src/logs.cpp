@@ -15,7 +15,7 @@ namespace news {
             std::string str_default_file_appender = boost::algorithm::join(default_file_appender, " ");
 
             std::vector<std::string> default_logger(
-                    {"{\"name\":\"default\",\"level\":\"all\",\"appender\":\"stderr\"} ",
+                    {"{\"name\":\"default\",\"level\":\"all\",\"appender\":\"stderr\"}\n",
                      "{\"name\":\"p2p\",\"level\":\"all\",\"appender\":\"p2p\"}"}
                      );
             std::string str_default_logger = boost::algorithm::join(default_logger, "");
@@ -96,11 +96,11 @@ namespace news {
                 }
 
                 if (args.count("log-logger")) {
-//                    std::vector <std::string> loggers = args["log-logger"].as < std::vector < std::string > > ();
-                    std::vector <std::string> loggers(
-                            {"{\"name\":\"default\",\"level\":\"all\",\"appender\":\"stderr\"} \n ",
-                                        "{\"name\":\"p2p\",\"level\":\"all\",\"appender\":\"p2p\"}"}
-                    );
+                    std::vector <std::string> loggers = args["log-logger"].as < std::vector < std::string > > ();
+//                    std::vector <std::string> loggers(
+//                            {"{\"name\":\"default\",\"level\":\"all\",\"appender\":\"stderr\"} \n ",
+//                                        "{\"name\":\"p2p\",\"level\":\"all\",\"appender\":\"p2p\"}"}
+//                    );
 
                     for (std::string &s : loggers) {
                         auto logger = fc::json::from_string(s).as<logger_args>();

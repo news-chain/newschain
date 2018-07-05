@@ -24,10 +24,8 @@ namespace news{
 
         class dynamic_global_property_object : public chainbase::object<object_type::global_property_dynamic_obj, dynamic_global_property_object>{
         public:
-//            CHAINBASE_DEFAULT_CONSTRUCTOR(dynamic_global_property_object);
-
             template< typename Constructor, typename Allocator >
-            dynamic_global_property_object( Constructor&& c, allocator< Allocator > a )
+            dynamic_global_property_object( Constructor&& c, Allocator &&a )
             {
                 c( *this );
             }

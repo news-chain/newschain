@@ -4,6 +4,8 @@
 
 #include <news/chain/database.hpp>
 #include <fc/scoped_exit.hpp>
+#include <app/application.hpp>
+
 namespace news{
     namespace chain{
 
@@ -74,17 +76,20 @@ namespace news{
                 _fork_database.start_block(*head_block);
             }
 
+            _shared_file_full_threshold = args.shared_file_full_threshold;
+            _shared_file_scale_rate = args.shared_file_scale_rate;
+
             //TODO init hardforks
 
         }
 
         void database::initialize_indexes() {
-//            add_index<>();
-            //TODO add index
             add_index<dynamic_global_property_object_index>();
             add_index<block_summary_index>();
             add_index<transaction_obj_index>();
             add_index<news::base::account_object_index>();
+            add_index<operation_obj_index>();
+            add_index<account_hsitory_obj_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -172,7 +177,6 @@ namespace news{
                 uint64_t trx_size = fc::raw::pack_size(tx);
                 uint64_t new_total_size = total_block_size + trx_size;
                 if(new_total_size > NEWS_MAX_BLOCK_SIZE){
-                    //TODO count
                     postponed_tx_count++;
                     continue;
                 }
@@ -353,7 +357,11 @@ namespace news{
                         try{
                             result = _push_block(block, skip);
                         }FC_CAPTURE_AND_RETHROW((block))
+
+                        check_free_memory(false, block.block_num());
                     });
+
+
             });
             return result;
         }
@@ -479,7 +487,6 @@ namespace news{
         }
 
         void database::_push_transaction(const signed_transaction &trx) {
-           //TODO is valid
             if(!_pending_trx_session.valid()){
                 _pending_trx_session = start_undo_session();
             }
@@ -595,7 +602,6 @@ namespace news{
             transaction_id_type trx_id = trx.id();
             FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
 
-            //TODO TaPos
             if(BOOST_LIKELY(head_block_num()) > 0){
 
                 if(!(_skip_flags & skip_tapos_check)){
@@ -603,7 +609,7 @@ namespace news{
                     FC_ASSERT(trx.ref_block_prefix == tapos_block_summary.block_id._hash[1], "transaction tapos exception trx.ref_block_prefix${t}, tapos_block_summary${a}", ("t", trx.ref_block_prefix)("a", tapos_block_summary.block_id._hash[1]));
                 }
                 fc::time_point_sec now = head_block_time();
-                FC_ASSERT(trx.expiration >= now , "transacion expiration ${trx}", ("trx", trx));
+                FC_ASSERT(trx.expiration >= now , "transacion expiration ${trx} now:${now}", ("trx", trx)("now", now));
 
             }
 
@@ -646,7 +652,7 @@ namespace news{
 
         void database::apply_operation(const operation &op) {
             //TODO notification
-
+            operation_notification note(op);
             _my->_eveluator_registry.get_evaluator(op).apply(op);
         }
 
@@ -764,6 +770,57 @@ namespace news{
 
                 return block_id_type();
             }FC_CAPTURE_AND_RETHROW((block_num))
+        }
+
+        void database::check_free_memory(bool fore_print, uint32_t cuurent_block_num) {
+            uint64_t free_mem = get_free_memory();
+            uint64_t max_mem = get_max_memory();
+            if(_shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ((fc::uint128_t(NEWS_100_PERCENT - _shared_file_full_threshold) * max_mem) / NEWS_100_PERCENT).to_uint64()){
+                uint64_t    new_max = (fc::uint128_t(max_mem * _shared_file_scale_rate) / NEWS_100_PERCENT).to_uint64() + max_mem;
+                wlog( "Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024*1024)) );
+
+                resize(new_max);
+                uint32_t free_mb = uint32_t(get_free_memory() / (1024 * 1024));
+                wlog( "Free memory is now ${free}M", ("free", free_mb) );
+            }
+
+
+        }
+
+        const account_object  &database::get_account(const account_name &name) const {
+            try {
+                return get<account_object, by_name>(name);
+            }FC_CAPTURE_AND_RETHROW((name))
+        }
+
+        const account_object* database::find_account(const account_name &name) const {
+            return find<account_object, by_name>(name);
+        }
+
+        boost::signals2::connection database::add_pre_apply_operation_handler(const apply_operation_handler_t &func,
+                                                                              const news::app::abstract_plugin &plugin,
+                                                                              int32_t group) {
+
+            return any_apply_operation_handler_impl<true>(func, plugin, group);
+        }
+
+        template<bool IS_PRE_OPERATION>
+        boost::signals2::connection database::any_apply_operation_handler_impl(const apply_operation_handler_t &fun,
+                                                                               const news::app::abstract_plugin &plugin,
+                                                                               int32_t group) {
+            auto complex_func = [](const operation_notification &op){};
+            if(IS_PRE_OPERATION){
+                return _pre_apply_operation_signal.connect(group, complex_func);
+            }
+            else{
+                return _post_apply_operation_signal.connect(group, complex_func);
+            }
+        }
+
+        boost::signals2::connection database::add_post_apply_operation_handler(const apply_operation_handler_t &func,
+                                                                               const news::app::abstract_plugin &plugin,
+                                                                               int32_t group) {
+            return any_apply_operation_handler_impl<false>(func, plugin, group);
         }
 
 

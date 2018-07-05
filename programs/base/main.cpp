@@ -3,6 +3,8 @@
 //
 
 
+
+
 #include <app/application.hpp>
 #include <news/plugins/webserver/webserver_plugin.hpp>
 #include <news/plugins/producer_plugin/producer_plugin.hpp>
@@ -11,9 +13,24 @@
 #include <news/plugins/block_api_plugin/block_api_plugin.hpp>
 #include <news/plugins/chain_api/chain_api_plugin.hpp>
 #include <news/plugins/database_api/database_api_plugin.hpp>
+#include <app/logs.hpp>
 #include "news/plugins/p2p/p2p_plugin.hpp"
 
-int main(int argc, char *argv[]){
+
+void regist_plugin(news::app::application &app){
+    app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
+    app.register_plugin< news::plugins::webserver::webserver_plugin >();
+    app.register_plugin< news::plugins::block_api_plugin::block_api_plugin >();
+    app.register_plugin< news::plugins::chain_api_plugin::chain_api_plugin >();
+    app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
+    app.register_plugin< news::plugins::database_api::database_api_plugin >();
+    app.register_plugin< news::plugins::p2p::p2p_plugin >();
+}
+
+
+
+
+int main(int argc, char **argv){
 
     std::cerr << "------------------------------------------" << std::endl;
 
@@ -24,35 +41,47 @@ int main(int argc, char *argv[]){
     std::cerr << "------------------------------------------" << std::endl;
 
 
+
     try {
+        boost::program_options::options_description options;
+        boost::program_options::options_description desc;
 
-        auto& app = news::app::application::getInstance();
-//        app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
-        app.register_plugin< news::plugins::webserver::webserver_plugin >();
-        app.register_plugin< news::plugins::block_api_plugin::block_api_plugin >();
-        app.register_plugin< news::plugins::chain_api_plugin::chain_api_plugin >();
-        app.register_plugin< news::plugins::producer_plugin::producer_plugin >();
-        app.register_plugin< news::plugins::database_api::database_api_plugin >();
-        app.register_plugin< news::plugins::p2p::p2p_plugin >();
+        news::app::set_logging_program_options(options);
 
 
-        bool init = app.initizlize<news::plugins::producer_plugin::producer_plugin,
+        auto &app = news::app::application::getInstance();
+        app.add_program_options(desc, options);
+
+//        regist_plugin(app);
+
+        bool init = app.initizlize<
+                news::plugins::producer_plugin::producer_plugin,
                 news::plugins::block_api_plugin::block_api_plugin,
                 news::plugins::chain_api_plugin::chain_api_plugin,
                 news::plugins::database_api::database_api_plugin,
                 news::plugins::p2p::p2p_plugin,
-                news::plugins::webserver::webserver_plugin>(argc, argv);
+                news::plugins::webserver::webserver_plugin
+        >(argc, argv);
         if(!init){
             std::cout << "application init error " << std::endl;
             return -1;
         }
 
-
+        auto config = news::app::load_logging_config(app.get_args(), app.get_data_path());
+        if(config){
+            fc::configure_logging(*config);
+        }
+        else{
+            std::cerr << "load config error " << std::endl;
+        }
 
         app.start_up();
+
         app.exec();
-    }catch (...){
+    }catch (const std::exception &e){
+        std::cout << e.what() << std::endl;
         return -1;
     }
+
     return 0;
 }

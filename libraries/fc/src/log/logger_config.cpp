@@ -9,6 +9,7 @@
 #include <fc/reflect/variant.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/io/stdio.hpp>
+#include <iostream>
 
 namespace fc {
    extern std::unordered_map<std::string,logger>& get_logger_map();
@@ -27,7 +28,7 @@ namespace fc {
       get_logger_map().clear();
       get_appender_map().clear();
 
-      //slog( "\n%s", fc::json::to_pretty_string(cfg).c_str() );
+//      std::cout << fc::json::to_pretty_string(cfg).c_str() << std::endl;
       for( size_t i = 0; i < cfg.appenders.size(); ++i ) {
          appender::create( cfg.appenders[i].name, cfg.appenders[i].type, cfg.appenders[i].args );
         // TODO... process enabled

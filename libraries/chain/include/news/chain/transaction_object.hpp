@@ -34,8 +34,6 @@ namespace news{
             id_type                                 id;
             fc::time_point_sec                      expiration;
             transaction_id_type                     trx_id;
-            //TODO add buffer trx?
-
             packed_trx_buffer                       packed_trx;
 
         };

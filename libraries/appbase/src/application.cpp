@@ -4,7 +4,7 @@
 
 #include <app/application.hpp>
 
-
+#include <app/logs.hpp>
 
 namespace news{
     namespace app{
@@ -55,19 +55,6 @@ namespace news{
 
         }
 
-//        template <typename Plugin>
-//        auto& application::register_plugin() {
-//            auto plug = std::make_shared<Plugin>();
-//            _plugins[Plugin::name()] = plug;
-//            plug->register_dependencies();
-//            return *plug;
-//        }
-
-
-
-        /////////////////////////////////
-        /////////////plugin//////////////
-        /////////////////////////////////
 
         void application::plugin_init(news::app::abstract_plugin &plugin) {
             _initialized_plugins.push_back(&plugin);
@@ -101,8 +88,10 @@ namespace news{
         }
 
 
-        void application::add_program_options(const bpo::option_description &cli, const bpo::option_description cfg) {
-
+        void application::add_program_options( const bpo::options_description& cli, const bpo::options_description& cfg ) {
+            my->_app_options.add(cli);
+            my->_app_options.add(cfg);
+            my->_cfg_options.add(cfg);
         }
 
 
@@ -111,17 +100,15 @@ namespace news{
 
             bpo::options_description options_desc("Application config");
 
+
+
             options_desc.add_options()
                     ("help,h", "print help message")
                     ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("node_data"), "database and config --directory")
 //                    ("config-dir,c", bpo::value<bfs::path>()->default_value("config.ini"), "config.ini path")
 //                    ("config-log", bpo::value<bfs::path>()->default_value("config_log.ini"), "config logs level")
-                    ("version,v", "print version information")
-                    ("log-level", bpo::value<std::string>()->default_value("info"), "log level");
-
+                    ("version,v", "print version information");
             my->_app_options.add(options_desc);
-
-
             for(auto p : _plugins){
                 bpo::options_description plugin_cli_option("Command line option for " + p.second->get_name());
                 bpo::options_description plugin_cfg_option("Config options for " + p.second->get_name());
@@ -136,6 +123,8 @@ namespace news{
                 }
             }
 
+
+
         }
 
 
@@ -146,6 +135,7 @@ namespace news{
 
             try {
                 set_program_options();
+
 
                 bpo::store(bpo::parse_command_line(argc, argv, my->_app_options), my->_map_args);
 
@@ -170,29 +160,13 @@ namespace news{
                     data_dir = bfs::current_path() / "node_data";
                 }
 
-
-
-
-
-                if(!bfs::exists(data_dir)){
+                if(!bfs::exists(data_dir / "config.ini")){
                     write_default_config(data_dir / "config.ini");
-                } else{
-                    auto config_name = data_dir / "config.ini";
-                    bpo::store(bpo::parse_config_file<char>(config_name.make_preferred().string().c_str(), my->_cfg_options, true), my->_map_args);
                 }
+                auto config_name = data_dir / "config.ini";
+                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
+
                 my->_data_path = data_dir;
-
-
-                if(my->_map_args.count("log-level")){
-                    std::string level = my->_map_args["log-level"].as<std::string>();
-                    fc::logging_config config = fc::logging_config::default_config();
-                    config.loggers[0].level =  fc::log_level::info;
-
-                    fc::configure_logging(config);
-                }else{
-                    fc::logging_config config = fc::logging_config::default_config();
-                }
-
 
 
             }catch (boost::program_options::error &e){
@@ -209,11 +183,6 @@ namespace news{
             }catch(std::exception &e) {
                 elog("plugins init error ${e}", ("e", e.what()));
             }
-
-
-
-
-
 
             return true;
         }

@@ -59,10 +59,6 @@ namespace news{
             void                    set_expiration(fc::time_point_sec expiration_time);
             void                    set_reference_block(const block_id_type &reference_block);
 
-
-            //TODO vivit
-            //TODO get authorities
-//            void                    verify_authority(const chain_id_type &chain_id, )
         };
 
 

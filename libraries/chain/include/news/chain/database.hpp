@@ -9,7 +9,7 @@
 #include <fc/filesystem.hpp>
 #include <fc/reflect/reflect.hpp>
 #include <fc/scoped_exit.hpp>
-
+#include <fc/uint128.hpp>
 
 
 #include <news/base/config.hpp>
@@ -23,10 +23,14 @@
 #include <news/chain/transaction_object.hpp>
 #include <news/chain/block.hpp>
 #include <news/chain/news_eveluator.hpp>
+#include <news/chain/operation_object.hpp>
 
 #include <news/base/operation.hpp>
 #include <news/base/account_object.hpp>
+#include <news/base/operation_notification.hpp>
 
+#include <boost/signals2.hpp>
+#include <app/plugin.hpp>
 
 namespace news{
     namespace chain{
@@ -70,6 +74,10 @@ namespace news{
             skip_undo_block                 = 1 << 12, ///< used to skip undo db on reindex
             skip_block_log                  = 1 << 13  ///< used to skip block logging on reindex
         };
+
+
+        using apply_operation_handler_t = std::function<void(const operation_notification&)>;
+
 
 
         class database : public chainbase::database{
@@ -126,7 +134,28 @@ namespace news{
             const account_object*           find_account(const account_name &name)const;
 
 
+
+            ///////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////signals         ///////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            boost::signals2::connection add_pre_apply_operation_handler(const apply_operation_handler_t &func, const news::app::abstract_plugin &plugin, int32_t group = -1);
+
+            boost::signals2::connection add_post_apply_operation_handler(const apply_operation_handler_t &func, const news::app::abstract_plugin &plugin, int32_t group = -1);
+
         private:
+
+
+            template<bool IS_PRE_OPERATION>
+            boost::signals2::connection any_apply_operation_handler_impl(const apply_operation_handler_t &fun, const news::app::abstract_plugin &plugin, int32_t group);
+
+
+            /*  pre apply opertion
+             * */
+            boost::signals2::signal<void (const operation_notification &)>       _pre_apply_operation_signal;
+            /*post operation
+             */
+            boost::signals2::signal<void (const operation_notification &)>       _post_apply_operation_signal;
+            /////////////////////////////////////////////////////////////////////////////////
 
 
             signed_block                    _generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);

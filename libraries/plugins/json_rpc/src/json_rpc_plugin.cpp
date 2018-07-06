@@ -2,6 +2,8 @@
 // Created by boy on 18-6-19.
 //
 
+
+
 #include <news/plugins/json_rpc/json_rpc_plugin.hpp>
 #include <news/plugins/json_rpc/utility.hpp>
 
@@ -9,6 +11,18 @@
 #include <fc/macros.hpp>
 #include <fc/macros.hpp>
 #include <boost/algorithm/string.hpp>
+
+
+
+
+#ifdef DEFAULT_LOGGER
+# undef DEFAULT_LOGGER
+#endif
+#define DEFAULT_LOGGER "p2p"
+
+
+
+
 
 namespace news{
     namespace plugins{
@@ -308,7 +322,7 @@ namespace news{
                     json_rpc_response response;
 
                     ddump( (message) );
-
+                    elog("msg:${e}", ("e", message));
                     try
                     {
                         const auto& request = message.get_object();

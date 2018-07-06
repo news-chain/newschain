@@ -262,11 +262,11 @@ namespace news {
             void chain_plugin::set_program_options(options_description &cli, options_description &cfg) {
 
                 cfg.add_options()
-                        ("shared-file-size", bpo::value<std::string>()->default_value("20G"),
-                         "size of shared memory size.")
+                        ("shared-file-size", bpo::value<std::string>()->default_value("20M"), "size of shared memory size.")
                         // ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"), "the location of the chain shared memory files (absolute path or relative to application data dir)")
-                        ("flush-state-interval", bpo::value<uint32_t>()->default_value(1000),
-                         "flush shared memory changes to disk every N blocks");
+                        ("flush-state-interval", bpo::value<uint32_t>()->default_value(1000), "flush shared memory changes to disk every N blocks")
+                        ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(9000), "A 2 precision percentage (0-10000) that defines the threshold for when to autoscale the shared memory file. Setting this to 0 disables autoscaling. Recommended value for consensus node is 9500 (95%). Full node is 9900 (99%)" )
+                        ("shared-file-scale-rate", bpo::value<uint16_t>()->default_value(2000), "A 2 precision percentage (0-10000) that defines how quickly to scale the shared memory file. When autoscaling occurs the file's size will be increased by this percent. Setting this to 0 disables autoscaling. Recommended value is between 1000-2000 (10-20%)" );
 
 
                 cli.add_options()
@@ -280,13 +280,15 @@ namespace news {
 
             void chain_plugin::plugin_initialize(const variables_map &options) {
                 try {
-
                     _my->shared_memory_path = news::app::application::getInstance().get_data_path() / "blockchain";
-
                     _my->flush_state_interval = options.at("flush-state-interval").as<uint32_t>();
                     _my->shared_memory_size = fc::parse_size(options.at("shared-file-size").as<string>());
 //                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
                     _my->stop_replay_at = 0;
+                    _my->shared_file_scale_rate = options.at("shared-file-scale-rate").as<uint16_t>();
+                    _my->shared_file_full_threshold = options.at("shared-file-full-threshold").as<uint16_t>();
+
+
 
                     _my->replay = options.at("replay-blockchain").as<bool>();
                 } catch (const fc::exception &e) {
@@ -381,6 +383,7 @@ namespace news {
 
             void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
+                elog("accept_block ${b}, size:${s}", ("b", block.block_num())("s", block.id()) );
                 if(syncing){
 
                 }

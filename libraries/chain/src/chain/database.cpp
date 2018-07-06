@@ -4,6 +4,8 @@
 
 #include <news/chain/database.hpp>
 #include <fc/scoped_exit.hpp>
+#include <app/application.hpp>
+
 namespace news{
     namespace chain{
 
@@ -86,6 +88,8 @@ namespace news{
             add_index<block_summary_index>();
             add_index<transaction_obj_index>();
             add_index<news::base::account_object_index>();
+            add_index<operation_obj_index>();
+            add_index<account_hsitory_obj_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -648,7 +652,7 @@ namespace news{
 
         void database::apply_operation(const operation &op) {
             //TODO notification
-
+            operation_notification note(op);
             _my->_eveluator_registry.get_evaluator(op).apply(op);
         }
 
@@ -783,7 +787,7 @@ namespace news{
 
         }
 
-        const account_object &database::get_account(const account_name &name) const {
+        const account_object  &database::get_account(const account_name &name) const {
             try {
                 return get<account_object, by_name>(name);
             }FC_CAPTURE_AND_RETHROW((name))
@@ -791,6 +795,32 @@ namespace news{
 
         const account_object* database::find_account(const account_name &name) const {
             return find<account_object, by_name>(name);
+        }
+
+        boost::signals2::connection database::add_pre_apply_operation_handler(const apply_operation_handler_t &func,
+                                                                              const news::app::abstract_plugin &plugin,
+                                                                              int32_t group) {
+
+            return any_apply_operation_handler_impl<true>(func, plugin, group);
+        }
+
+        template<bool IS_PRE_OPERATION>
+        boost::signals2::connection database::any_apply_operation_handler_impl(const apply_operation_handler_t &fun,
+                                                                               const news::app::abstract_plugin &plugin,
+                                                                               int32_t group) {
+            auto complex_func = [](const operation_notification &op){};
+            if(IS_PRE_OPERATION){
+                return _pre_apply_operation_signal.connect(group, complex_func);
+            }
+            else{
+                return _post_apply_operation_signal.connect(group, complex_func);
+            }
+        }
+
+        boost::signals2::connection database::add_post_apply_operation_handler(const apply_operation_handler_t &func,
+                                                                               const news::app::abstract_plugin &plugin,
+                                                                               int32_t group) {
+            return any_apply_operation_handler_impl<false>(func, plugin, group);
         }
 
 

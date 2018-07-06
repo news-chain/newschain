@@ -87,7 +87,8 @@ namespace fc {
     logger logger::get( const fc::string& s ) {
        static fc::spin_lock logger_spinlock;
        scoped_lock<spin_lock> lock(logger_spinlock);
-       return get_logger_map()[s];
+       auto ll = get_logger_map()[s];
+       return ll;
     }
 
     logger  logger::get_parent()const { return my->_parent; }

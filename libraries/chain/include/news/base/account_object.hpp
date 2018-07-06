@@ -53,10 +53,6 @@ namespace news{
     };
 
 
-
-
-
-
     struct by_id;
     struct by_name;
     typedef multi_index_container<

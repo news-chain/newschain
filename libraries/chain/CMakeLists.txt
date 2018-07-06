@@ -27,7 +27,7 @@ add_library(news_chain
             ${CHAIN_HEADERS}
         )
 
-target_link_libraries(news_chain fc news_protocol chainbase)
+target_link_libraries(news_chain fc news_protocol chainbase appbase)
 target_include_directories(news_chain PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 

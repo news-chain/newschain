@@ -9,6 +9,7 @@ target_link_libraries(NEWS ${Boost_LIBRARIES}
         webserver_plugin
         producer_plugin
         chain_plugin
+        p2p_plugin
         fc
         news_protocol
         block_api_plugin

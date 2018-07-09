@@ -42,7 +42,7 @@ namespace news{
             /*
              * add options desc
              * */
-            void add_program_options(const bpo::option_description &cli, const bpo::option_description cfg);
+            void add_program_options( const bpo::options_description& cli, const bpo::options_description& cfg );
 
             /*
              *   init args

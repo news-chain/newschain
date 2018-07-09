@@ -676,14 +676,14 @@ namespace news {
                     my->node->listen_to_p2p_network();
                     my->node->connect_to_p2p_network();
                     block_id_type block_id;
-                    /*
-                    my->chain.db().with_read_lock( [&]()
+
+                    my->chain->get_database().with_read_lock( [&]()
                                                    {
-                                                       block_id = my->chain.db().head_block_id();
+                                                       block_id = my->chain->get_database().head_block_id();
                                                    });
                     my->node->sync_from(graphene::net::item_id(graphene::net::block_message_type, block_id), std::vector<uint32_t>());
                     ilog("P2P node listening at ${ep}", ("ep", my->node->get_actual_listening_endpoint()));
-                     */
+
                 }).wait();
                 ilog("P2P Plugin started");
             }

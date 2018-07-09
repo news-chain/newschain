@@ -9,7 +9,7 @@
 #include <fc/filesystem.hpp>
 #include <fc/reflect/reflect.hpp>
 #include <fc/scoped_exit.hpp>
-
+#include <fc/uint128.hpp>
 
 
 #include <news/base/config.hpp>
@@ -23,6 +23,7 @@
 #include <news/chain/transaction_object.hpp>
 #include <news/chain/block.hpp>
 #include <news/chain/news_eveluator.hpp>
+#include <news/chain/operation_object.hpp>
 
 #include <news/base/operation.hpp>
 #include <news/base/account_object.hpp>

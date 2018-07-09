@@ -52,7 +52,7 @@ int main(int argc, char **argv){
         auto &app = news::app::application::getInstance();
         app.add_program_options(desc, options);
 
-//        regist_plugin(app);
+       regist_plugin(app);
 
         bool init = app.initizlize<
                 news::plugins::producer_plugin::producer_plugin,

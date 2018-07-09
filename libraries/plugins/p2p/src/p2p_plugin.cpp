@@ -205,7 +205,7 @@ namespace news {
                                 // you can help the network code out by throwing a block_older_than_undo_history exception.
                                 // when the net code sees that, it will stop trying to push blocks from that chain, but
                                 // leave that peer connected so that they can get sync blocks from us
-                                __int32_t  value=( block_producer | force_validate ) ? news::chain::skip_nothing :  news::chain::skip_transaction_signatures ;
+								uint32_t  value=( block_producer | force_validate ) ? news::chain::skip_nothing :  news::chain::skip_transaction_signatures ;
                                 chain->accept_block( blk_msg.block, sync_mode,value);
                                 /*
                                 if( !sync_mode )

@@ -28,7 +28,7 @@ namespace fc {
       get_logger_map().clear();
       get_appender_map().clear();
 
-      std::cout << fc::json::to_pretty_string(cfg).c_str() << std::endl;
+//      std::cout << fc::json::to_pretty_string(cfg).c_str() << std::endl;
       for( size_t i = 0; i < cfg.appenders.size(); ++i ) {
          appender::create( cfg.appenders[i].name, cfg.appenders[i].type, cfg.appenders[i].args );
         // TODO... process enabled

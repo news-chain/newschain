@@ -34,7 +34,7 @@ namespace news{
         id_type                         id;
         account_name                    name;
         account_name                    creator;
-        uint64_t                        balance = 0;
+        asset                           balance;
         fc::time_point                  create_time;
         chainbase::shared_string        public_key;
     };

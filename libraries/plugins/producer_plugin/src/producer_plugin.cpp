@@ -6,7 +6,9 @@
 
 #include <news/plugins/producer_plugin/producer_plugin.hpp>
 #include <news/base/key_conversion.hpp>
-
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 
 
 namespace news{
@@ -204,22 +206,45 @@ namespace news{
             }
 
             void producer_plugin::set_program_options(options_description &, options_description &cfg) {
+
+
+                std::vector<std::string> default_producer = {std::to_string(NEWS_SYSTEM_ACCOUNT_NAME)};
+                std::string pdef = boost::algorithm::join(default_producer, "-");
+
+                std::vector<std::string> d_key = {(news::base::key_to_wif(NEWS_INIT_PRIVATE_KEY.get_secret()))};
+                std::string d_pkey = boost::algorithm::join(d_key, "-");
+
+
                 cfg.add_options()
                         ("enable-stale-production", bpo::bool_switch()->default_value(false), "Enable block production, even if the chain is stale.")
-                        ("producer-name", bpo::value<std::vector<std::string>>()->composing(), "producer name vector")
-                        ("private-key", bpo::value<std::vector<std::string>>()->composing(), "private keys for producer name");
+                        ("producer-name", bpo::value<std::string>()->composing()->default_value(pdef), "producer name vector")
+                        ("private-key", bpo::value<std::string>()->composing()->default_value(d_pkey), "private keys for producer name");
 
 
             }
 
             void producer_plugin::plugin_initialize(const variables_map &options) {
-                if(options.count("private-key")){
-                    const std::vector<std::string> keys = options["private-key"].as<std::vector<std::string>>();
+                if(options.count("private-key") && options.count("producer-name")){
+                    std::string keys_string = options["private-key"].as<std::string>();
+                    std::vector<std::string> keys;
+                    boost::split(keys, keys_string, boost::is_any_of("-"));
+
+                    std::string names_string = options["producer-name"].as<std::string>();
+                    std::vector<std::string> names;
+                    boost::split(names, names_string, boost::is_any_of("-"));
+
+                    int i = 0;
                     for(const std::string &wif_key : keys){
                         fc::optional<fc::ecc::private_key> pk = news::base::wif_to_key(wif_key);
                         FC_ASSERT(pk.valid(), "unable to parse private key");
                         _my->_private_keys[pk->get_public_key()] = *pk;
-                    }
+                        account_name  nn;
+                        std::stoul(names[i], &nn);
+                        _my->_producers.insert(nn);
+                        i++;
+                    };
+
+
                 }
 
 //                _my->_production_enabled = options.at("enable-stale-production").as<bool>();

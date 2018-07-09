@@ -99,6 +99,12 @@ namespace news{
 
 
             bpo::options_description options_desc("Application config");
+            bpo::options_description app_cli_opts( "Application Command Line Options" );
+
+            std::stringstream  plugins_ss;
+            for(auto &p : _default_plugins){
+                plugins_ss << p << ' ';
+            }
 
 
 
@@ -108,6 +114,11 @@ namespace news{
 //                    ("config-dir,c", bpo::value<bfs::path>()->default_value("config.ini"), "config.ini path")
 //                    ("config-log", bpo::value<bfs::path>()->default_value("config_log.ini"), "config logs level")
                     ("version,v", "print version information");
+
+            app_cli_opts.add_options()
+                    ("plugin", bpo::value<std::vector<string>>()->composing()->default_value(_default_plugins, plugins_ss.str()), "default plugin");
+
+
             my->_app_options.add(options_desc);
             for(auto p : _plugins){
                 bpo::options_description plugin_cli_option("Command line option for " + p.second->get_name());
@@ -164,9 +175,20 @@ namespace news{
                     write_default_config(data_dir / "config.ini");
                 }
                 auto config_name = data_dir / "config.ini";
-//                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
+                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
 
                 my->_data_path = data_dir;
+
+//                if(my->_map_args.count("plugin") > 0){
+//                    auto plugins = my->_map_args.at("plugin").as<std::string>();
+//                    for(auto &p : plugins){
+//                        std::vector<std::string> names;
+//                        boost::split(names, p, boost::is_any_of(" \t,"));
+//                        for(const std::string &name : names){
+//                            get_plugin(name)->initialize(my->_map_args);
+//                        }
+//                    }
+//                }
 
 
             }catch (boost::program_options::error &e){

@@ -179,36 +179,36 @@ namespace bpo = boost::program_options;
 int main(int argc, char **argv) {
 
     try {
-        bpo::options_description options;
-
-        news::app::set_logging_program_options(options);
-
-        boost::program_options::variables_map args;
-
-        bpo::store(bpo::parse_command_line(argc, argv, options), args);
-
-        std::cout << "xxxx " << args["log-logger"].as<std::vector<std::string>>()[0] << std::endl;
-
-        boost::filesystem::path path = boost::filesystem::current_path();
-
-        fc::optional<fc::logging_config> cfg = news::app::load_logging_config(args, path);
-        fc::configure_logging(*cfg);
-
-
-        while (1) {
-
-            ilog("${a}", ("a", "bbbbbbbb"));
-            elog("${a}", ("a", "bbbbbbbb"));
-
-            sleep(1);
-        }
-//        fc::log_context cxt(fc::log_level::all, "123", 123, "123");
-//        auto loggg = fc::logger::get("p2p");
-//        loggg.log(fc::log_message(cxt, "${s}", fc::variant_object("s", "kkkkk")));
-
-    } catch (const fc::exception e) {
-//        std::cout << e.to_detail_string() << std::endl;
-    }
+//        bpo::options_description options;
+//
+//        news::app::set_logging_program_options(options);
+//
+//        boost::program_options::variables_map args;
+//
+//        bpo::store(bpo::parse_command_line(argc, argv, options), args);
+//
+//        std::cout << "xxxx " << args["log-logger"].as<std::vector<std::string>>()[0] << std::endl;
+//
+//        boost::filesystem::path path = boost::filesystem::current_path();
+//
+//        fc::optional<fc::logging_config> cfg = news::app::load_logging_config(args, path);
+//        fc::configure_logging(*cfg);
+//
+//
+//        while (1) {
+//
+//            ilog("${a}", ("a", "bbbbbbbb"));
+//            elog("${a}", ("a", "bbbbbbbb"));
+//
+//            sleep(1);
+//        }
+////        fc::log_context cxt(fc::log_level::all, "123", 123, "123");
+////        auto loggg = fc::logger::get("p2p");
+////        loggg.log(fc::log_message(cxt, "${s}", fc::variant_object("s", "kkkkk")));
+//
+//    } catch (const fc::exception e) {
+////        std::cout << e.to_detail_string() << std::endl;
+//    }
 
 
     return 0;

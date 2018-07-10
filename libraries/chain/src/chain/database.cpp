@@ -144,7 +144,7 @@ namespace news{
 
             auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
 
-            return name;
+            return NEWS_SYSTEM_ACCOUNT_NAME;
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,

@@ -85,7 +85,11 @@ struct storage_ops<N, T, Ts...> {
 
     template<typename visitor>
     static typename visitor::result_type apply(int64_t n, void *data, visitor& v) {
-        if(n == N) return v(*reinterpret_cast<T*>(data));
+		if (n == N)
+		{
+			auto tmp = *reinterpret_cast<T*>(data);
+			return v(tmp);
+		}
         else return storage_ops<N + 1, Ts...>::apply(n, data, v);
     }
 

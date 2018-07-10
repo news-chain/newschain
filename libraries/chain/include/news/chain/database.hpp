@@ -148,6 +148,7 @@ namespace news{
             template<bool IS_PRE_OPERATION>
             boost::signals2::connection any_apply_operation_handler_impl(const apply_operation_handler_t &fun, const news::app::abstract_plugin &plugin, int32_t group);
 
+            void                        notify_post_apply_operation(const operation_notification &note);
 
             /*  pre apply opertion
              * */

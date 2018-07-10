@@ -28,7 +28,6 @@ namespace news{
 
         void transfer_evaluator::do_apply(const transfer_operation &op){
 
-
         }
 
         void transfers_evaluator::do_apply(const news::base::transfers_operation &o) {

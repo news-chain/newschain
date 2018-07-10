@@ -229,10 +229,10 @@ namespace news{
                                 _push_transaction(std::move(t));
                             }
                         }catch (const fc::exception &e){
-                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
+//                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
                         }
                         catch (...){
-                            elog("unhandle without_pengding_transactions");
+//                            elog("unhandle without_pengding_transactions");
                         }
                     }
                 });

@@ -35,7 +35,7 @@ namespace news{
                 ////////////////////////////////////////////////////////////////////////
                 void account_history_impl::on_pre_apply_operation(const news::base::operation_notification &note) {
 
-                    auto new_obj = _db.create<operation_object>([note, this](operation_object &obj){
+                    const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
                         obj.trx_id = note.trx_id;
                         obj.block = note.block;
                         obj.trx_in_block = note.trx_in_block;

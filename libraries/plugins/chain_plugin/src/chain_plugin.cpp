@@ -368,7 +368,7 @@ namespace news {
             }
 
             void chain_plugin::accept_transaction(const news::chain::signed_transaction &trx) {
-                ilog("accept_transaction ${trx}", ("trx", trx));
+//                ilog("accept_transaction ${trx}", ("trx", trx));
                 boost::promise< void > prom;
                 write_context cxt;
                 cxt.req_ptr = &trx;

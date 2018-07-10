@@ -90,7 +90,6 @@ namespace news{
             add_index<news::base::account_object_index>();
             add_index<operation_obj_index>();
             add_index<account_hsitory_obj_index>();
-            add_index<operation_obj_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -141,7 +140,11 @@ namespace news{
 
 
         account_name database::get_scheduled_producer(uint32_t num) const {
-            return NEWS_SYSTEM_ACCOUNT_NAME;
+            const auto &gpo = get_global_property_object();
+
+            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
+
+            return name;
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
@@ -235,10 +238,12 @@ namespace news{
                         obj.time = NEWS_GENESIS_TIME;
                     });
 
-                    create<account_object>([](account_object &obj){
-                        obj.name = NEWS_SYSTEM_ACCOUNT_NAME;
-                        to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
-                    });
+                    for(int i = 0; i < 3; i++){
+                        create<account_object>([&](account_object &obj){
+                            obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
+                            to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
+                        });
+                    }
 
 
                     //

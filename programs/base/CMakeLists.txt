@@ -16,5 +16,6 @@ target_link_libraries(NEWS ${Boost_LIBRARIES}
         chain_api_plugin
         database_api
         account_his_plugin
+        network_broadcast
         )
 #target_include_directories(chainMain ${CMAKE_CURRENT_SOURCE_DIR})

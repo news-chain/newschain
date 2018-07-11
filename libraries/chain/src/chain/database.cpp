@@ -144,7 +144,7 @@ namespace news{
 
             auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
 
-            return NEWS_SYSTEM_ACCOUNT_NAME;
+            return name;
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
@@ -173,7 +173,7 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-//            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
+            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
                     continue;

@@ -87,7 +87,7 @@ namespace news{
 
             void                            open(const open_db_args &args);
             uint32_t                            reindex(const open_db_args &args);
-
+            void                            wipe(const fc::path &dir, const fc::path &shared_mem_dir, bool block_log = false);
             bool                            is_producing()const{return _is_producing;}
             void                            set_producing(bool p){_is_producing = p;}
 

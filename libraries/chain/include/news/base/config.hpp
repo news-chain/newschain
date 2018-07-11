@@ -11,7 +11,7 @@
 #define NEWS_SYMBOL             ((uint64_t(8) | uint64_t('N') << 8 | uint64_t('E') << 16 | uint64_t('W') << 24 | uint64_t('T') << 32))
 
 #define NEWS_BLOCK_INTERVAL     3
-#define NEWS_TRANSACTIONS_MAN_SIZE      (1024 * 64)
+#define NEWS_TRANSACTIONS_MAN_SIZE      (1024 * 32)
 #define NEWS_MIN_BLOCK_SIZE             (128)
 #define NEWS_MAX_BLOCK_SIZE             (NEWS_TRANSACTIONS_MAN_SIZE * NEWS_BLOCK_INTERVAL * 2000L)
 

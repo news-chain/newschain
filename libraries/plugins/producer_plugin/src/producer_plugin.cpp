@@ -76,8 +76,8 @@ namespace news{
                 block_production_condition::block_production_condition_enum producer_plugin_impl::maybe_produce_block(
                         fc::mutable_variant_object &cap) {
 
-                    fc::time_point_sec now = fc::time_point::now();
-//                    fc::time_point now = now_fine + fc::microseconds(500000l);
+                    fc::time_point now_fine = fc::time_point::now();
+                    fc::time_point_sec now = now_fine + fc::microseconds(500000l);
                     if(!_production_enabled){
                         if(_db.get_slot_time(1) >= now){
                             _production_enabled = true;

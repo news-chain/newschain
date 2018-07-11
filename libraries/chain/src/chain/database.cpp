@@ -47,7 +47,7 @@ namespace news{
         }
 
         database::~database() {
-
+            clear_pending();
         }
 
         void database::open(const news::chain::open_db_args &args) {
@@ -148,7 +148,7 @@ namespace news{
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
-                                              const fc::ecc::private_key private_key_by_signed, uint64_t skip) {
+                                               const fc::ecc::private_key private_key_by_signed, uint64_t skip) {
             signed_block result;
             with_skip_flags(skip, [&](){
                 try {
@@ -173,14 +173,18 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
+            uint32_t count = 3000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
                     continue;
                 }
+                if(count == 0){
+                    break;
+                }
                 uint64_t trx_size = fc::raw::pack_size(tx);
                 uint64_t new_total_size = total_block_size + trx_size;
-                if(new_total_size > NEWS_MAX_BLOCK_SIZE){
+                if(new_total_size >= NEWS_MAX_BLOCK_SIZE){
                     postponed_tx_count++;
                     continue;
                 }
@@ -193,7 +197,7 @@ namespace news{
 
                     total_block_size += trx_size;
                     pengding_block.transactions.push_back(tx);
-
+                    count--;
                 }catch (const fc::exception &e){
                     elog("generate_block : ${e}  trx:${t}", ("e", e.to_detail_string())("t", tx));
                 }catch (...){
@@ -537,7 +541,7 @@ namespace news{
         uint32_t database::reindex(const open_db_args &args) {
             try {
                 ilog("reindex blockchain");
-                wipe(args.shared_mem_dir);
+                wipe(args.data_dir, args.shared_mem_dir);
                 open(args);
                 _fork_database.reset();
 
@@ -837,6 +841,15 @@ namespace news{
 
         void database::notify_post_apply_operation(const operation_notification &note) {
             NEWS_TRY_NOTIFY(_post_apply_operation_signal, note);
+        }
+
+        void database::wipe(const fc::path &dir, const fc::path &shared_mem_dir, bool block_log) {
+            close();
+            chainbase::database::wipe(shared_mem_dir);
+            if(block_log){
+                fc::remove_all(dir / "block_log");
+                fc::remove_all(dir / "block_log.index");
+            }
         }
 
 

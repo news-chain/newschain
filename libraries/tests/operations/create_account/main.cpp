@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 
                 auto ff =  factory::helper();
                 srand((unsigned)time(NULL));
-                for(int i = 1; i < 100000; i++){
+                for(int i = 1; i < 10000; i++){
 
                     auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, (account_name)(rand()));
                     std::string ret = string_json_rpc(fc::json::to_string(str));

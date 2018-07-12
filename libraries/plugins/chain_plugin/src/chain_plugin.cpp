@@ -207,6 +207,7 @@ namespace news {
                                 start = fc::time_point::now();
                             }
 
+
                             if(write_queue.pop( cxt) ){
                                 db.with_write_lock([&](){
                                     while(true){
@@ -291,6 +292,7 @@ namespace news {
 
 
                     _my->replay = options.at("replay-blockchain").as<bool>();
+                    _my->resync = options.at("resync-blockchain").as<bool>();
                 } catch (const fc::exception &e) {
                     elog("plugin init error ${e} , ${p}", ("e", e.what())("p", this->get_name()));
                 }
@@ -300,9 +302,6 @@ namespace news {
             void chain_plugin::plugin_startup() {
 
 
-                if (_my->resync) {
-                    //TODO sync
-                }
 
                 chain::open_db_args db_open_args;
                 db_open_args.data_dir = app::application::getInstance().get_data_path() / "blockchain";
@@ -312,9 +311,14 @@ namespace news {
                 db_open_args.shared_file_scale_rate = _my->shared_file_scale_rate;
                 db_open_args.stop_replay_at = _my->stop_replay_at;
 
-
-
                 _my->start_write_processing();
+
+                if (_my->resync) {
+                    //TODO sync
+                    wlog("resync blockchain");
+                    _my->db.wipe(app::application::getInstance().get_data_path(), db_open_args.shared_mem_dir, true);
+                }
+
 
                 if (_my->replay) {
                     //TODO stop at blocks num ?
@@ -330,6 +334,7 @@ namespace news {
                     }
 
                 }
+//                on_sync();
             }
 
             void chain_plugin::plugin_shutdown() {
@@ -368,6 +373,7 @@ namespace news {
             }
 
             void chain_plugin::accept_transaction(const news::chain::signed_transaction &trx) {
+//                ilog("accept_transaction ${trx}", ("trx", trx));
                 boost::promise< void > prom;
                 write_context cxt;
                 cxt.req_ptr = &trx;
@@ -383,7 +389,7 @@ namespace news {
 
             void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
-                elog("accept_block ${b}, size:${s}", ("b", block.block_num())("s", block.id()) );
+                elog("accept_block #${b}, size ${s} time ${t}", ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
                 if(syncing){
 
                 }

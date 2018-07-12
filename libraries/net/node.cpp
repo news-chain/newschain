@@ -85,7 +85,7 @@
 
 #include <fc/git_revision.hpp>
 
-//#define ENABLE_DEBUG_ULOGS
+#define ENABLE_DEBUG_ULOGS
 
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER
@@ -4621,7 +4621,7 @@ namespace graphene { namespace net {
 
       assert(_node_public_key != fc::ecc::public_key_data());
 
-      fc::ip::endpoint listen_endpoint = _node_configuration.listen_endpoint;
+      fc::ip::endpoint listen_endpoint=_node_configuration.listen_endpoint;
       if( listen_endpoint.port() != 0 )
       {
         // if the user specified a port, we only want to bind to it if it's not already

@@ -89,7 +89,7 @@ namespace news{
 
             void                            open(const open_db_args &args);
             uint32_t                            reindex(const open_db_args &args);
-
+            void                            wipe(const fc::path &dir, const fc::path &shared_mem_dir, bool block_log = false);
             bool                            is_producing()const{return _is_producing;}
             void                            set_producing(bool p){_is_producing = p;}
 
@@ -153,6 +153,7 @@ namespace news{
             template<bool IS_PRE_OPERATION>
             boost::signals2::connection any_apply_operation_handler_impl(const apply_operation_handler_t &fun, const news::app::abstract_plugin &plugin, int32_t group);
 
+            void                        notify_post_apply_operation(const operation_notification &note);
 
             /*  pre apply opertion
              * */
@@ -233,10 +234,10 @@ namespace news{
                                 _push_transaction(std::move(t));
                             }
                         }catch (const fc::exception &e){
-                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
+//                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
                         }
                         catch (...){
-                            elog("unhandle without_pengding_transactions");
+//                            elog("unhandle without_pengding_transactions");
                         }
                     }
                 });

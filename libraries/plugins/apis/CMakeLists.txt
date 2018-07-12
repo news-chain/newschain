@@ -1,3 +1,4 @@
 add_subdirectory(chain_api)
 add_subdirectory(block_api)
 add_subdirectory(database_api)
+add_subdirectory(network_broadcast_api)

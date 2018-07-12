@@ -24,9 +24,6 @@ namespace news{
         }
 
         void transaction::validate() const {
-
-
-
             FC_ASSERT( operations.size() > 0, "A transaction must have at least one operation", ("trx",*this) );
             for(const auto &op : operations){
                 op.visit(operation_validate_visitor());

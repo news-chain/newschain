@@ -245,6 +245,7 @@ namespace news{
                     for(int i = 0; i < 3; i++){
                         create<account_object>([&](account_object &obj){
                             obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
+                            obj.balance.amount = 1000000000000L;
                             to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
                         });
                     }
@@ -563,6 +564,7 @@ namespace news{
                     _block_log.set_locking(false);
                     auto itr = _block_log.read_block(0);
                     auto last_block_num = _block_log.read_head().block_num();
+                    ilog("current last_block_num ${b}", ("b", last_block_num));
                     //TODO stop at block num?
                     while(itr.first.block_num() != last_block_num){
                         auto current_block_num = itr.first.block_num();
@@ -860,59 +862,8 @@ namespace news{
         {
             modify( a, [&]( account_object& acnt )
             {
-//                switch( delta.symbol.asset_num )
-//                {
-//                    case STEEM_ASSET_NUM_STEEM:
-                        acnt.balance += delta;
-//                        if( check_balance )
-//                        {
-//                            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient STEEM funds" );
-//                        }
-//                        break;
-//                    case STEEM_ASSET_NUM_SBD:
-//                        if( a.sbd_seconds_last_update != head_block_time() )
-//                        {
-//                            acnt.sbd_seconds += fc::uint128_t(a.sbd_balance.amount.value) * (head_block_time() - a.sbd_seconds_last_update).to_seconds();
-//                            acnt.sbd_seconds_last_update = head_block_time();
-//
-//                            if( acnt.sbd_seconds > 0 &&
-//                                (acnt.sbd_seconds_last_update - acnt.sbd_last_interest_payment).to_seconds() > STEEM_SBD_INTEREST_COMPOUND_INTERVAL_SEC )
-//                            {
-//                                auto interest = acnt.sbd_seconds / STEEM_SECONDS_PER_YEAR;
-//                                interest *= get_dynamic_global_properties().sbd_interest_rate;
-//                                interest /= STEEM_100_PERCENT;
-//                                asset interest_paid(interest.to_uint64(), SBD_SYMBOL);
-//                                acnt.sbd_balance += interest_paid;
-//                                acnt.sbd_seconds = 0;
-//                                acnt.sbd_last_interest_payment = head_block_time();
-//
-//                                if(interest > 0)
-//                                    push_virtual_operation( interest_operation( a.name, interest_paid ) );
-//
-//                                modify( get_dynamic_global_properties(), [&]( dynamic_global_property_object& props)
-//                                {
-//                                    props.current_sbd_supply += interest_paid;
-//                                    props.virtual_supply += interest_paid * get_feed_history().current_median_history;
-//                                } );
-//                            }
-//                        }
-//                        acnt.sbd_balance += delta;
-//                        if( check_balance )
-//                        {
-//                            FC_ASSERT( acnt.sbd_balance.amount.value >= 0, "Insufficient SBD funds" );
-//                        }
-//                        break;
-//                    case STEEM_ASSET_NUM_VESTS:
-//                        acnt.vesting_shares += delta;
-//                        if( check_balance )
-//                        {
-//                            FC_ASSERT( acnt.vesting_shares.amount.value >= 0, "Insufficient VESTS funds" );
-//                        }
-//                        break;
-//                    default:
-//                        FC_ASSERT( false, "invalid symbol" );
-//                }
-            } );
+                acnt.balance += delta;
+            });
         }
 
         asset database::get_balance( const account_object& a, asset_symbol symbol )const
@@ -954,17 +905,6 @@ namespace news{
         void database::adjust_balance( const account_object& a, const asset& delta )
         {
             bool check_balance = false; //has_hardfork( STEEM_HARDFORK_0_20__1811 );
-
-#ifdef STEEM_ENABLE_SMT
-            // No account object modification for SMT balance, hence separate handling here.
-   // Note that SMT related code, being post-20-hf needs no hf-guard to do balance checks.
-   if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
-   {
-      smt_regular_balance_operator balance_operator( delta );
-      adjust_smt_balance< account_regular_balance_object >( a.name, delta, false/*check_account*/, balance_operator );
-      return;
-   }
-#endif
             modify_balance( a, delta, check_balance );
         }
 

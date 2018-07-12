@@ -5,6 +5,7 @@
 
 #include <boost/program_options/options_description.hpp>
 
+#include <news/plugins/network_broadcast_plugin/network_broadcast_api.hpp>
 
 namespace  bpo = boost::program_options;
 int main(int argc, char **argv){
@@ -17,6 +18,11 @@ int main(int argc, char **argv){
             ("thread,t", bpo::value<uint8_t>(), "one client start thread")
             ("client,c", bpo::value<uint8_t>(), "start clients");
 
+
+
+    news::plugins::network_broadcast::broadcast_transaction_args args;
+
+    ddump((args));
 
 
     return  0;

@@ -32,7 +32,7 @@ namespace news{
             FC_ASSERT(it.find(o.from) != it.end(), "not find sender ${from}", ("from", o.from));
             FC_ASSERT(it.find(o.to) != it.end(), "not find receiver ${to}", ("to", o.to));
 
-            FC_ASSERT(o.amount > asset(), "sender's amount must be greater than nought ${a}", ("a", o.amount));
+            FC_ASSERT(o.amount > asset(o.amount.symbol, 0), "sender's amount must be greater than nought ${a}", ("a", o.amount));
 
             const account_object *ac = _db.find_account(o.from);
             FC_ASSERT( _db.get_balance( *ac, o.amount.symbol ) >= o.amount, "Account does not have sufficient funds for transfer." );

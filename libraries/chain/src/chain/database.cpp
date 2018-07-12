@@ -821,7 +821,7 @@ namespace news{
         boost::signals2::connection database::any_apply_operation_handler_impl(const apply_operation_handler_t &fun,
                                                                                const news::app::abstract_plugin &plugin,
                                                                                int32_t group) {
-            auto complex_func = [       fun](const operation_notification &op){
+            auto complex_func = [fun](const operation_notification &op){
                 fun(op);
             };
             if(IS_PRE_OPERATION){

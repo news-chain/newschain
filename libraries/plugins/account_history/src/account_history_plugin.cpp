@@ -97,9 +97,9 @@ namespace news{
             }
 
             void account_history_plugin::plugin_startup() {
-                _my->_db.add_post_apply_operation_handler([this](const news::base::operation_notification &note){
+                _my->_db.add_post_apply_operation_handler([&](const news::base::operation_notification &note){
                     _my->on_pre_apply_operation(note);
-                }, *this);
+                }, *this, 0);
             }
 
             void account_history_plugin::plugin_shutdown() {

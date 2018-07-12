@@ -566,15 +566,17 @@ namespace news{
                     auto last_block_num = _block_log.read_head().block_num();
                     ilog("current last_block_num ${b}", ("b", last_block_num));
                     //TODO stop at block num?
+
                     while(itr.first.block_num() != last_block_num){
                         auto current_block_num = itr.first.block_num();
                         if(current_block_num % 10000 == 0){
                             std::cerr << itr.first.block_num() << std::endl;
                         }
                         apply_block(itr.first, skip_flags);
-
+                        check_free_memory(false, current_block_num);
                         itr = _block_log.read_block( itr.second );
                     }
+
 
                     apply_block(itr.first, skip_flags);
                     set_revision(head_block_num());
@@ -787,12 +789,12 @@ namespace news{
             }FC_CAPTURE_AND_RETHROW((block_num))
         }
 
-        void database::check_free_memory(bool fore_print, uint32_t cuurent_block_num) {
+        void database::check_free_memory(bool fore_print, uint32_t curent_block_num) {
             uint64_t free_mem = get_free_memory();
             uint64_t max_mem = get_max_memory();
             if(_shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ((fc::uint128_t(NEWS_100_PERCENT - _shared_file_full_threshold) * max_mem) / NEWS_100_PERCENT).to_uint64()){
                 uint64_t    new_max = (fc::uint128_t(max_mem * _shared_file_scale_rate) / NEWS_100_PERCENT).to_uint64() + max_mem;
-                wlog( "Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024*1024)) );
+                wlog( "Memory is almost full, increasing to ${mem}M  currnet_block_num${b}", ("mem", new_max / (1024*1024))("b", curent_block_num) );
 
                 resize(new_max);
                 uint32_t free_mb = uint32_t(get_free_memory() / (1024 * 1024));

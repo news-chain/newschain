@@ -35,17 +35,17 @@ namespace news{
                 ////////////////////////////////////////////////////////////////////////
                 void account_history_impl::on_pre_apply_operation(const news::base::operation_notification &note) {
 
-//                    const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
-//                        obj.trx_id = note.trx_id;
-//                        obj.block = note.block;
-//                        obj.trx_in_block = note.trx_in_block;
-//                        obj.timestamp = _db.head_block_time();
-//                        auto size = fc::raw::pack_size(note.op);
-//                        obj.op_packed.resize(size);
-//                        fc::datastream<char*> ds(obj.op_packed.data(), size);
-//
-//                        fc::raw::pack(ds, note.op);
-//                    });
+                    const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
+                        obj.trx_id = note.trx_id;
+                        obj.block = note.block;
+                        obj.trx_in_block = note.trx_in_block;
+                        obj.timestamp = _db.head_block_time();
+                        auto size = fc::raw::pack_size(note.op);
+                        obj.op_packed.resize(size);
+                        fc::datastream<char*> ds(obj.op_packed.data(), size);
+
+                        fc::raw::pack(ds, note.op);
+                    });
 
 
 //                    account_name  nn;

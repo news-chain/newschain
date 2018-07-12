@@ -60,8 +60,8 @@ int main(int argc, char **argv){
         regist_plugin(app);
 
         app.set_default_plugins<
-                news::plugins::p2p::p2p_plugin,
-                news::plugins::chain_plugin::chain_plugin
+                news::plugins::chain_plugin::chain_plugin,
+                news::plugins::p2p::p2p_plugin
         >();
 
         bool init = app.initizlize<

@@ -25,7 +25,6 @@ namespace news{
                 block_api();
                 ~block_api();
 
-
                 DECLARE_API(
 
                 /////////////////////////////
@@ -45,6 +44,10 @@ namespace news{
                 * @return the referenced block, or null if no matching block was found
                 */
                 (get_block)
+
+                /* do a little practice by Oijen*/
+                (fetch_chunk)
+
                 )
 
 

@@ -39,6 +39,19 @@ namespace news{
 
 
 
+
+            /* fetch_chunk */
+            struct fetch_chunk_args
+            {
+                uint32_t chunk_num = 0;
+            };
+            struct fetch_chunk_return
+            {
+                fc::optional< news::chain::signed_block > chunk;
+            };
+
+
+
         }
     }
 }
@@ -47,3 +60,8 @@ FC_REFLECT(news::plugins::block_api_plugin::get_block_header_args, (block_num))
 FC_REFLECT(news::plugins::block_api_plugin::get_block_header_return, (header))
 FC_REFLECT(news::plugins::block_api_plugin::get_block_args, (block_num))
 FC_REFLECT(news::plugins::block_api_plugin::get_block_return, (block))
+
+
+
+FC_REFLECT(news::plugins::block_api_plugin::fetch_chunk_args, (chunk_num))
+FC_REFLECT(news::plugins::block_api_plugin::fetch_chunk_return, (chunk))

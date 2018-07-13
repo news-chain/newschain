@@ -65,13 +65,13 @@ int main(int argc, char **argv){
         >();
 
         bool init = app.initizlize<
-                news::plugins::producer_plugin::producer_plugin,
-                news::plugins::block_api_plugin::block_api_plugin,
                 news::plugins::chain_api_plugin::chain_api_plugin,
-                news::plugins::database_api::database_api_plugin,
+                news::plugins::producer_plugin::producer_plugin,
                 news::plugins::p2p::p2p_plugin,
-                news::plugins::webserver::webserver_plugin,
+                news::plugins::block_api_plugin::block_api_plugin,
+                news::plugins::database_api::database_api_plugin,
                 news::plugins::account_history_plugin::account_history_plugin,
+                news::plugins::webserver::webserver_plugin,
                 news::plugins::network_broadcast::network_broadcast_plugin
         >(argc, argv);
 

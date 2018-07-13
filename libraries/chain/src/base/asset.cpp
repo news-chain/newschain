@@ -88,7 +88,7 @@ namespace fc{
             v = a.to_string();
         }FC_CAPTURE_AND_RETHROW()
     }
-    void from_vaiant(const fc::variant &v, news::base::asset &a){
+    void from_variant(const fc::variant &v, news::base::asset &a){
         try {
             a = news::base::asset::from_string(v.get_string());
         }FC_CAPTURE_AND_RETHROW()

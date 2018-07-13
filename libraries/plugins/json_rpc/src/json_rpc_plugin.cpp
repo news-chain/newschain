@@ -18,7 +18,7 @@
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER
 #endif
-#define DEFAULT_LOGGER "p2p"
+#define DEFAULT_LOGGER "rpc"
 
 
 
@@ -282,7 +282,7 @@ namespace news{
                                     try
                                     {
                                         if( call ){
-//                                            ilog("func_args ${p}",("p", func_args));
+                                            ilog("func_args ${p}",("p", func_args));
                                             response.result = (*call)( func_args );
                                         }
                                     }
@@ -322,7 +322,7 @@ namespace news{
                     json_rpc_response response;
 
                     ddump( (message) );
-                    elog("msg:${e}", ("e", message));
+
                     try
                     {
                         const auto& request = message.get_object();

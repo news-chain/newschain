@@ -11,14 +11,15 @@ namespace news {
             std::vector<std::string> default_console_appender({"{\"appender\":\"stderr\",\"stream\":\"std_error\"}"});
             std::string str_default_console_appender = boost::algorithm::join(default_console_appender, " ");
 
-            std::vector<std::string> default_file_appender({"{\"appender\":\"p2p\",\"file\":\"logs/p2p/p2p.log\"}"});
-            std::string str_default_file_appender = boost::algorithm::join(default_file_appender, " ");
+            std::vector<std::string> default_file_appender({"{\"appender\":\"p2p\",\"file\":\"logs/p2p/p2p.log\"}", "{\"appender\":\"rpc\",\"file\":\"logs/rpc/rpc.log\"}"});
+            std::string str_default_file_appender = boost::algorithm::join(default_file_appender, "-");
 
             std::vector<std::string> default_logger(
-                    {"{\"name\":\"default\",\"level\":\"all\",\"appender\":\"stderr\"}\n",
-                     "{\"name\":\"p2p\",\"level\":\"all\",\"appender\":\"p2p\"}"}
+                    {"{\"name\":\"default\",\"level\":\"info\",\"appender\":\"stderr\"}",
+                     "{\"name\":\"p2p\",\"level\":\"info\",\"appender\":\"p2p\"}",
+                     "{\"name\":\"rpc\",\"level\":\"info\",\"appender\":\"rpc\"}"}
                      );
-            std::string str_default_logger = boost::algorithm::join(default_logger, "");
+            std::string str_default_logger = boost::algorithm::join(default_logger, "-");
 
             options.add_options()
                     ("log-console-appender",
@@ -26,12 +27,10 @@ namespace news {
                              default_console_appender, str_default_console_appender),
                      "Console appender definition json: {\"appender\", \"stream\"}")
                     ("log-file-appender",
-                     boost::program_options::value<std::vector<std::string> >()->composing()->default_value(
-                             default_file_appender, str_default_file_appender),
+                     boost::program_options::value<std::string >()->composing()->default_value(str_default_file_appender),
                      "File appender definition json:  {\"appender\", \"file\"}")
                     ("log-logger",
-                     boost::program_options::value<std::vector<std::string> >()->composing()->default_value(default_logger,
-                                                                                                            str_default_logger),
+                     boost::program_options::value<std::string>()->composing()->default_value(str_default_logger),
                      "Logger definition json: {\"name\", \"level\", \"appender\"}");
         }
 
@@ -72,7 +71,10 @@ namespace news {
                 }
 
                 if (args.count("log-file-appender")) {
-                    std::vector <std::string> file_appenders = args["log-file-appender"].as < std::vector < std::string > > ();
+                    std::string file_string = args["log-file-appender"].as<std::string>();
+                    std::vector<std::string> file_appenders;
+                    boost::split(file_appenders, file_string, boost::is_any_of("-"));
+
 
                     for (std::string &s : file_appenders) {
                         auto file_appender = fc::json::from_string(s).as<file_appender_args>();
@@ -96,11 +98,9 @@ namespace news {
                 }
 
                 if (args.count("log-logger")) {
-                    std::vector <std::string> loggers = args["log-logger"].as < std::vector < std::string > > ();
-//                    std::vector <std::string> loggers(
-//                            {"{\"name\":\"default\",\"level\":\"all\",\"appender\":\"stderr\"} \n ",
-//                                        "{\"name\":\"p2p\",\"level\":\"all\",\"appender\":\"p2p\"}"}
-//                    );
+                    std::string log_string = args["log-logger"].as<std::string>();
+                    std::vector<std::string> loggers;
+                    boost::split(loggers, log_string, boost::is_any_of("-"));
 
                     for (std::string &s : loggers) {
                         auto logger = fc::json::from_string(s).as<logger_args>();

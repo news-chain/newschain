@@ -99,8 +99,12 @@ namespace news{
 
 
             bpo::options_description options_desc("Application config");
+            bpo::options_description app_cfg_opts( "Application Command Line Options" );
 
-
+            std::stringstream  plugins_ss;
+            for(auto &p : _default_plugins){
+                plugins_ss << p << ' ';
+            }
 
             options_desc.add_options()
                     ("help,h", "print help message")
@@ -108,7 +112,13 @@ namespace news{
 //                    ("config-dir,c", bpo::value<bfs::path>()->default_value("config.ini"), "config.ini path")
 //                    ("config-log", bpo::value<bfs::path>()->default_value("config_log.ini"), "config logs level")
                     ("version,v", "print version information");
+
+            app_cfg_opts.add_options()
+                    ("plugin", bpo::value<std::vector<string>>()->composing()->default_value(_default_plugins, plugins_ss.str()), "default plugin");
+
+
             my->_app_options.add(options_desc);
+            my->_cfg_options.add(app_cfg_opts);
             for(auto p : _plugins){
                 bpo::options_description plugin_cli_option("Command line option for " + p.second->get_name());
                 bpo::options_description plugin_cfg_option("Config options for " + p.second->get_name());
@@ -129,9 +139,6 @@ namespace news{
 
 
         bool application::initialize_impl(int argc, char **argv, std::vector< abstract_plugin* > autostart_plugins) {
-//            for(auto itr : autostart_plugins){
-//                std::cout << "initplugins " << itr->get_name() << std::endl;
-//            }
 
             try {
                 set_program_options();
@@ -164,9 +171,20 @@ namespace news{
                     write_default_config(data_dir / "config.ini");
                 }
                 auto config_name = data_dir / "config.ini";
-//                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
+                bpo::store(bpo::parse_config_file<char>(config_name.string().c_str(), my->_cfg_options, true), my->_map_args);
 
                 my->_data_path = data_dir;
+
+                if(my->_map_args.count("plugin")){
+                    auto plugins = my->_map_args.at("plugin").as<std::vector<std::string>>();
+                    for(auto &p : plugins){
+                        std::vector<std::string> names;
+                        boost::split(names, p, boost::is_any_of(" "));
+                        for(const std::string &name : names){
+                            get_plugin(name)->initialize(my->_map_args);
+                        }
+                    }
+                }
 
 
             }catch (boost::program_options::error &e){
@@ -177,6 +195,7 @@ namespace news{
             try {
                 for(const auto &plugin : autostart_plugins){
                     if(plugin != nullptr && plugin->get_state() == abstract_plugin::registered){
+                        elog("resiger : ${r}", ("r", plugin->get_name()));
                         plugin->initialize(my->_map_args);
                     }
                 }
@@ -240,19 +259,16 @@ namespace news{
         }
 
         void application::exec() {
-            signal(SIGPIPE, SIG_IGN);
 
-            std::shared_ptr<boost::asio::signal_set> sigint_set(new boost::asio::signal_set(*io_serv, SIGINT));
-            sigint_set->async_wait([sigint_set,this](const boost::system::error_code& err, int num) {
-                quit();
-                sigint_set->cancel();
-            });
+            boost::asio::signal_set set(*io_serv);
+            set.add(SIGINT);
+            set.add(SIGTERM);
+            set.async_wait(
+                    [this](boost::system::error_code /*ec*/, int /*signo*/)
+                    {
+                        quit();
 
-            std::shared_ptr<boost::asio::signal_set> sigterm_set(new boost::asio::signal_set(*io_serv, SIGTERM));
-            sigterm_set->async_wait([sigterm_set,this](const boost::system::error_code& err, int num) {
-                quit();
-                sigterm_set->cancel();
-            });
+                    });
             io_serv->run();
             shutdown();
 

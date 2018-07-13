@@ -6,8 +6,10 @@
 
 #include <news/plugins/producer_plugin/producer_plugin.hpp>
 #include <news/base/key_conversion.hpp>
-
-
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
+#include <news/plugins/p2p/p2p_plugin.hpp>
 
 namespace news{
     namespace plugins{
@@ -64,6 +66,7 @@ namespace news{
                     int64_t time_to_next_block_time = 1000000 - (now.time_since_epoch().count() % 1000000);
                     if(time_to_next_block_time < 50000) //50ms
                     {
+//                        ilog("less chain 10ms.");
                         time_to_next_block_time += 1000000;
                     }
                     _timer.expires_from_now(boost::posix_time::microseconds(time_to_next_block_time));
@@ -74,8 +77,8 @@ namespace news{
                 block_production_condition::block_production_condition_enum producer_plugin_impl::maybe_produce_block(
                         fc::mutable_variant_object &cap) {
 
-                    fc::time_point_sec now = fc::time_point::now();
-//                    fc::time_point now = now_fine + fc::microseconds(500000l);
+                    fc::time_point now_fine = fc::time_point::now();
+                    fc::time_point_sec now = now_fine + fc::microseconds(500000l);
                     if(!_production_enabled){
                         if(_db.get_slot_time(1) >= now){
                             _production_enabled = true;
@@ -102,6 +105,7 @@ namespace news{
 
                     //TODO account_name_type to string?
                     auto producer = _db.get_scheduled_producer(slot);
+
                     if(_producers.find(producer) == _producers.end()){
                         cap("scheduled_producer ", producer);
                         return block_production_condition::not_my_turn;
@@ -128,7 +132,8 @@ namespace news{
                     auto block = _chain_plugin.generate_block(now, producer, private_key->second, 0);
 //                    ilog("block : ${b}", ("b", block));
                     cap("n", block.block_num())("t", block.timestamp)("p", block.producer)("b", block.transactions.size())("size", fc::raw::pack_size(block));
-                    //TODO broadcast block
+
+                    news::app::application::getInstance().get_plugin<news::plugins::p2p::p2p_plugin>().broadcast_block(block);
 
                     return block_production_condition::produced;
 
@@ -139,13 +144,10 @@ namespace news{
                         wlog("waiting until genesis to produce block : ${t}", ("t", NEWS_GENESIS_TIME));
                         return block_production_condition::wait_for_genesis;
                     }
-                    block_production_condition::block_production_condition_enum  result;
+                    block_production_condition::block_production_condition_enum  result = block_production_condition::exception_producing_block;
                     fc::mutable_variant_object capture;
                     try {
                         result = maybe_produce_block(capture);
-
-
-
                     }
                     catch (const fc::exception &e){
                         elog("generate block ${e}", ("e", e.to_detail_string() ));
@@ -157,11 +159,12 @@ namespace news{
                     switch (result){
                         case block_production_condition::produced:
                             elog("Genarated block #${n} time ${t} by ${p} trx.size=${b}, pack_size:${size}", (capture));
+                            break;
                         case block_production_condition::not_synced:
-//                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
+                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
                             break;
                         case block_production_condition::not_my_turn:
-//                                     ilog("Not producing block because it isn't my turn");
+//                                     ilog("Not producing block because it isn't my turn :${scheduled_producer}");
                             break;
                         case block_production_condition::not_time_yet:
 //                                     ilog("Not producing block because slot has not yet arrived");
@@ -173,7 +176,7 @@ namespace news{
                             elog("Not producing block because node appears to be on a minority fork with only ${pct}% witness participation", (capture) );
                             break;
                         case block_production_condition::lag:
-//                            elog("Not producing block because node didn't wake up within 500ms of the slot time.");
+                            elog("Not producing block because node didn't wake up within 500ms of the slot time.");
                             break;
                         case block_production_condition::consecutive:
                             elog("Not producing block because the last block was generated by the same witness.\nThis node is probably disconnected from the network so block production has been disabled.\nDisable this check with --allow-consecutive option.");
@@ -204,22 +207,44 @@ namespace news{
             }
 
             void producer_plugin::set_program_options(options_description &, options_description &cfg) {
+
+
+                std::vector<std::string> default_producer = {std::to_string(NEWS_SYSTEM_ACCOUNT_NAME)};
+                std::string pdef = boost::algorithm::join(default_producer, "-");
+
+                std::vector<std::string> d_key = {(news::base::key_to_wif(NEWS_INIT_PRIVATE_KEY.get_secret()))};
+                std::string d_pkey = boost::algorithm::join(d_key, "-");
+
+
                 cfg.add_options()
                         ("enable-stale-production", bpo::bool_switch()->default_value(false), "Enable block production, even if the chain is stale.")
-                        ("producer-name", bpo::value<std::vector<std::string>>()->composing(), "producer name vector")
-                        ("private-key", bpo::value<std::vector<std::string>>()->composing(), "private keys for producer name");
+                        ("producer-name", bpo::value<std::string>()->composing(), "producer name vector")
+                        ("private-key", bpo::value<std::string>()->composing(), "private keys for producer name");
 
 
             }
 
             void producer_plugin::plugin_initialize(const variables_map &options) {
-                if(options.count("private-key")){
-                    const std::vector<std::string> keys = options["private-key"].as<std::vector<std::string>>();
+                if(options.count("private-key") && options.count("producer-name")){
+                    std::string keys_string = options["private-key"].as<std::string>();
+                    std::vector<std::string> keys;
+                    boost::split(keys, keys_string, boost::is_any_of("-"));
+
+                    std::string names_string = options["producer-name"].as<std::string>();
+                    std::vector<std::string> names;
+                    boost::split(names, names_string, boost::is_any_of("-"));
+
+                    int i = 0;
                     for(const std::string &wif_key : keys){
                         fc::optional<fc::ecc::private_key> pk = news::base::wif_to_key(wif_key);
                         FC_ASSERT(pk.valid(), "unable to parse private key");
                         _my->_private_keys[pk->get_public_key()] = *pk;
-                    }
+                        fc::variant vv(names[i]);
+                        _my->_producers.insert(vv.as<account_name>());
+                        i++;
+                    };
+
+
                 }
 
 //                _my->_production_enabled = options.at("enable-stale-production").as<bool>();
@@ -228,10 +253,10 @@ namespace news{
 
             void producer_plugin::plugin_startup() {
                 //for test add , remove later
-                _my->_producers.insert(NEWS_SYSTEM_ACCOUNT_NAME);
-                auto test_pk = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("pk")));
-                auto test_public_key = public_key_type(test_pk.get_public_key());
-                _my->_private_keys[test_public_key] = test_pk;
+//                _my->_producers.insert(NEWS_SYSTEM_ACCOUNT_NAME);
+//                auto test_pk = fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("pk")));
+//                auto test_public_key = public_key_type(test_pk.get_public_key());
+//                _my->_private_keys[test_public_key] = test_pk;
 
 
 

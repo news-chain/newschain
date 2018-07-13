@@ -79,6 +79,8 @@ namespace news{
                 return *this;
             }
 
+            asset operator -()const { return asset(symbol, -amount); }
+
             std::string to_string()const;
             static asset from_string(const std::string &str);
 
@@ -92,7 +94,7 @@ namespace news{
 
 namespace fc{
     void to_variant(const news::base::asset &a, fc::variant &v);
-    void from_vaiant(const fc::variant &v, news::base::asset &a);
+    void from_variant(const fc::variant &v, news::base::asset &a);
 
 
 }

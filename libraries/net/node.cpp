@@ -5056,7 +5056,7 @@ namespace graphene { namespace net {
       {
         graphene::net::trx_message transaction_message_to_broadcast = item_to_broadcast.as<graphene::net::trx_message>();
         hash_of_message_contents = transaction_message_to_broadcast.trx.id(); // for debugging
-        dlog( "broadcasting trx: ${trx}", ("trx", transaction_message_to_broadcast) );
+        wlog( "broadcasting trx: ${trx}", ("trx", transaction_message_to_broadcast) );
       }
       message_hash_type hash_of_item_to_broadcast = item_to_broadcast.id();
 

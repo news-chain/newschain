@@ -32,13 +32,11 @@ namespace factory{
             transfer_operation transfer;
             transfer.from = from;
             transfer.to = to;
-            transfer.amount = asset(NEWS_SYMBOL, 100000000L);
+            transfer.amount = amount;
             trx.operations.push_back(transfer);
 
             trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
             trx.sign(sign_pk, NEWS_CHAIN_ID);
-
-
 
             return trx;
     }

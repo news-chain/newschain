@@ -22,8 +22,8 @@
         elog("caught exception in : ${e}", ("e", e.to_detail_string()));            \
     }catch(const boost::exception &e){                                              \
         elog("Caught exception ${e}", ("e", boost::diagnostic_information(e)));     \
-    }cathc(...){                                                                    \
-        elog("unhandle exception in signal!")                                       \
+    }catch(...){                                                                    \
+        elog("unhandle exception in signal!");                                      \
     }                                                                               \
 
 

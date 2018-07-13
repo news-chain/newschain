@@ -257,20 +257,19 @@ namespace news{
             io_serv->stop();
         }
 
-        void application::exec() {
-           // signal(SIGPIPE, SIG_IGN);
+        void application::exec() { 
 
-            std::shared_ptr<boost::asio::signal_set> sigint_set(new boost::asio::signal_set(*io_serv, SIGINT));
-            sigint_set->async_wait([sigint_set,this](const boost::system::error_code& err, int num) {
-                quit();
-                sigint_set->cancel();
-            });
+			boost::asio::signal_set set(*io_serv);
+			set.add(SIGINT);
+			set.add(SIGTERM);
+			set.async_wait(
+				[this](boost::system::error_code /*ec*/, int /*signo*/)
+			{ 
+				quit();
 
-            std::shared_ptr<boost::asio::signal_set> sigterm_set(new boost::asio::signal_set(*io_serv, SIGTERM));
-            sigterm_set->async_wait([sigterm_set,this](const boost::system::error_code& err, int num) {
-                quit();
-                sigterm_set->cancel();
-            });
+			});
+			 
+          
             io_serv->run();
             shutdown();
 

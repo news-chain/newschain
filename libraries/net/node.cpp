@@ -87,10 +87,10 @@
 
 //#define ENABLE_DEBUG_ULOGS
 
-#ifdef DEFAULT_LOGGER
-# undef DEFAULT_LOGGER
-#endif
-#define DEFAULT_LOGGER "p2p"
+//#ifdef DEFAULT_LOGGER
+//# undef DEFAULT_LOGGER
+//#endif
+//#define DEFAULT_LOGGER "p2p"
 
 #define P2P_IN_DEDICATED_THREAD 1
 
@@ -937,6 +937,9 @@ namespace graphene { namespace net {
             {
               fc::microseconds delay_until_retry = fc::seconds((iter->number_of_failed_connection_attempts + 1) * _node_configuration.peer_connection_retry_timeout);
 
+			  auto status = iter->last_connection_disposition;
+			  auto lst = iter->last_connection_attempt_time;
+			  auto during = fc::time_point::now() - lst;
               if (!is_connection_to_endpoint_in_progress(iter->endpoint) &&
                   ((iter->last_connection_disposition != last_connection_failed &&
                     iter->last_connection_disposition != last_connection_rejected &&
@@ -4621,7 +4624,7 @@ namespace graphene { namespace net {
 
       assert(_node_public_key != fc::ecc::public_key_data());
 
-      fc::ip::endpoint listen_endpoint = _node_configuration.listen_endpoint;
+      fc::ip::endpoint listen_endpoint=_node_configuration.listen_endpoint;
       if( listen_endpoint.port() != 0 )
       {
         // if the user specified a port, we only want to bind to it if it's not already

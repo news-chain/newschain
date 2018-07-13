@@ -25,8 +25,10 @@ namespace news{
         {
         public:
             template< typename Constructor, typename Allocator >
+ 
            // block_summary_object( Constructor&& c, allocator< Allocator > a )
 			block_summary_object(Constructor&& c, Allocator && a)
+ 
             {
                 c( *this );
             }

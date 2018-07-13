@@ -140,6 +140,10 @@ namespace news{
 
 
         account_name database::get_scheduled_producer(uint32_t num) const {
+            const auto &gpo = get_global_property_object();
+
+            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
+
             return NEWS_SYSTEM_ACCOUNT_NAME;
         }
 
@@ -234,10 +238,12 @@ namespace news{
                         obj.time = NEWS_GENESIS_TIME;
                     });
 
-                    create<account_object>([](account_object &obj){
-                        obj.name = NEWS_SYSTEM_ACCOUNT_NAME;
-                        to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
-                    });
+                    for(int i = 0; i < 3; i++){
+                        create<account_object>([&](account_object &obj){
+                            obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
+                            to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
+                        });
+                    }
 
 
                     for(uint32_t i = 0; i < 0x10000; i++){                   
@@ -653,7 +659,10 @@ namespace news{
         void database::apply_operation(const operation &op) {
             //TODO notification
             operation_notification note(op);
+
             _my->_eveluator_registry.get_evaluator(op).apply(op);
+
+            notify_post_apply_operation(note);
         }
 
         void database::regists_evaluator() {
@@ -808,8 +817,11 @@ namespace news{
         boost::signals2::connection database::any_apply_operation_handler_impl(const apply_operation_handler_t &fun,
                                                                                const news::app::abstract_plugin &plugin,
                                                                                int32_t group) {
-            auto complex_func = [](const operation_notification &op){};
+            auto complex_func = [       fun](const operation_notification &op){
+                fun(op);
+            };
             if(IS_PRE_OPERATION){
+
                 return _pre_apply_operation_signal.connect(group, complex_func);
             }
             else{
@@ -821,6 +833,10 @@ namespace news{
                                                                                const news::app::abstract_plugin &plugin,
                                                                                int32_t group) {
             return any_apply_operation_handler_impl<false>(func, plugin, group);
+        }
+
+        void database::notify_post_apply_operation(const operation_notification &note) {
+            NEWS_TRY_NOTIFY(_post_apply_operation_signal, note);
         }
 
 

@@ -5,6 +5,8 @@
 
 #pragma once
 
+
+#include <news/base/types.hpp>
 #include <news/base/operation.hpp>
 
 
@@ -21,3 +23,7 @@ namespace news{
         };
     }
 }
+
+
+
+//FC_REFLECT(news::base::operation_notification, (trx_id)(block)(trx_in_block)(op))

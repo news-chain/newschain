@@ -28,7 +28,7 @@ namespace factory{
 
     std::string  string_json_rpc(const std::string &str){
             std::string ret;
-            ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"chain_api\",\"push_transaction\"," + str +"],\"id\":-1,\"method\":\"call\"}";
+            ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +"}],\"id\":-1,\"method\":\"call\"}";
             return ret;
     }
 }

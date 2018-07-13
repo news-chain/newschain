@@ -20,7 +20,7 @@ int main(int argc, char **argv){
         for(int i = 0; i < 1; i++){
             std::thread([](){
 //                http::client client("ws://192.168.2.180:8001");
-                http::client client("ws://192.168.2.180:6002");
+                http::client client("ws://192.168.56.128:8001");
                 client.init();
 
                 auto start = fc::time_point::now();

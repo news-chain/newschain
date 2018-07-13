@@ -33,9 +33,12 @@ int main(int argc, char **argv)
                 auto end = fc::time_point::now();
                 ilog("time:${t}",("t", end - start));
                 client.start();
-            }).detach();
+            }).join();
 
         }
+
+//        while(true);
+
     }catch (const fc::exception &e)
     {
         std::cout << e.to_detail_string() << std::endl;

@@ -89,7 +89,7 @@ namespace news{
             add_index<transaction_obj_index>();
             add_index<news::base::account_object_index>();
             add_index<operation_obj_index>();
-            add_index<account_hsitory_obj_index>();
+            add_index<account_history_obj_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -173,7 +173,7 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            uint32_t count = 3000;
+            uint32_t count = 6000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
@@ -245,6 +245,7 @@ namespace news{
                     for(int i = 0; i < 3; i++){
                         create<account_object>([&](account_object &obj){
                             obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
+                            obj.balance.amount = 1000000000000L;
                             to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
                         });
                     }
@@ -547,7 +548,7 @@ namespace news{
 
                 auto start = fc::time_point::now();
 
-                uint64_t skip_flags = //skip_nothing;
+                uint64_t skip_flags =// skip_nothing;
                         skip_producer_signature         |
                         skip_transaction_signatures     |
                         skip_tapos_check                |
@@ -563,16 +564,19 @@ namespace news{
                     _block_log.set_locking(false);
                     auto itr = _block_log.read_block(0);
                     auto last_block_num = _block_log.read_head().block_num();
+                    ilog("current last_block_num ${b}", ("b", last_block_num));
                     //TODO stop at block num?
+
                     while(itr.first.block_num() != last_block_num){
                         auto current_block_num = itr.first.block_num();
                         if(current_block_num % 10000 == 0){
                             std::cerr << itr.first.block_num() << std::endl;
                         }
                         apply_block(itr.first, skip_flags);
-
+                        check_free_memory(false, current_block_num);
                         itr = _block_log.read_block( itr.second );
                     }
+
 
                     apply_block(itr.first, skip_flags);
                     set_revision(head_block_num());
@@ -785,12 +789,12 @@ namespace news{
             }FC_CAPTURE_AND_RETHROW((block_num))
         }
 
-        void database::check_free_memory(bool fore_print, uint32_t cuurent_block_num) {
+        void database::check_free_memory(bool fore_print, uint32_t curent_block_num) {
             uint64_t free_mem = get_free_memory();
             uint64_t max_mem = get_max_memory();
             if(_shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ((fc::uint128_t(NEWS_100_PERCENT - _shared_file_full_threshold) * max_mem) / NEWS_100_PERCENT).to_uint64()){
                 uint64_t    new_max = (fc::uint128_t(max_mem * _shared_file_scale_rate) / NEWS_100_PERCENT).to_uint64() + max_mem;
-                wlog( "Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024*1024)) );
+                wlog( "Memory is almost full, increasing to ${mem}M  currnet_block_num${b}", ("mem", new_max / (1024*1024))("b", curent_block_num) );
 
                 resize(new_max);
                 uint32_t free_mb = uint32_t(get_free_memory() / (1024 * 1024));
@@ -821,7 +825,7 @@ namespace news{
         boost::signals2::connection database::any_apply_operation_handler_impl(const apply_operation_handler_t &fun,
                                                                                const news::app::abstract_plugin &plugin,
                                                                                int32_t group) {
-            auto complex_func = [       fun](const operation_notification &op){
+            auto complex_func = [fun](const operation_notification &op){
                 fun(op);
             };
             if(IS_PRE_OPERATION){
@@ -860,19 +864,49 @@ namespace news{
         {
             modify( a, [&]( account_object& acnt )
             {
-            	acnt.balance += delta;
-            } );
+                acnt.balance += delta;
+            });
         }
 
         asset database::get_balance( const account_object& a, asset_symbol symbol )const
         {
-        	return a.balance;
+//            switch( symbol._symbol )
+//            {
+//                case STEEM_ASSET_NUM_STEEM:
+                    return a.balance;
+//                case STEEM_ASSET_NUM_SBD:
+//                    return a.sbd_balance;
+//                default:
+//                {
+//#ifdef STEEM_ENABLE_SMT
+//                    FC_ASSERT( symbol.space() == asset_symbol_type::smt_nai_space, "invalid symbol" );
+//         const account_regular_balance_object* arbo =
+//            find< account_regular_balance_object, by_owner_liquid_symbol >(
+//               boost::make_tuple(a.name, symbol.is_vesting() ? symbol.get_paired_symbol() : symbol ) );
+//         if( arbo == nullptr )
+//         {
+//            return asset(0, symbol);
+//         }
+//         else
+//         {
+//            return symbol.is_vesting() ? arbo->vesting : arbo->liquid;
+//         }
+//#else
+//                    FC_ASSERT( false, "invalid symbol" );
+//#endif
+//                }
+//            }
         }
+
+//        bool database::has_hardfork( uint32_t hardfork )const
+//        {
+////            return get_hardfork_property_object().processed_hardforks.size() > hardfork;
+//            return false;
+//        }
 
         void database::adjust_balance( const account_object& a, const asset& delta )
         {
-            bool check_balance = false;
-
+            bool check_balance = false; //has_hardfork( STEEM_HARDFORK_0_20__1811 );
             modify_balance( a, delta, check_balance );
         }
 

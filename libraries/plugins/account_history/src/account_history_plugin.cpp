@@ -35,21 +35,25 @@ namespace news{
                 ////////////////////////////////////////////////////////////////////////
                 void account_history_impl::on_pre_apply_operation(const news::base::operation_notification &note) {
 
-//                    const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
-//                        obj.trx_id = note.trx_id;
-//                        obj.block = note.block;
-//                        obj.trx_in_block = note.trx_in_block;
-//                        obj.timestamp = _db.head_block_time();
-//                        auto size = fc::raw::pack_size(note.op);
-//                        obj.op_packed.resize(size);
-//                        fc::datastream<char*> ds(obj.op_packed.data(), size);
-//
-//                        fc::raw::pack(ds, note.op);
-//                    });
+                    const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
+                        obj.trx_id = note.trx_id;
+                        obj.block = note.block;
+                        obj.trx_in_block = note.trx_in_block;
+                        obj.timestamp = _db.head_block_time();
+                        auto size = fc::raw::pack_size(note.op);
+                        obj.op_packed.resize(size);
+                        fc::datastream<char*> ds(obj.op_packed.data(), size);
+
+                        fc::raw::pack(ds, note.op);
+                    });
 
 
 //                    account_name  nn;
-//                    const auto history_index =  _db.get_index<account_hsitory_obj_index>().indices().get<by_account>();
+//                    const auto &history_index = _db.get_index<account_history_obj_index>().indices().get<by_account>();
+
+
+
+
 //                    auto itr = history_index.lower_bound(boost::make_tunlp());
 //                    if(history_index != )
 //                    _db.create<account_history_object>([](account_history_object &obj){
@@ -97,9 +101,9 @@ namespace news{
             }
 
             void account_history_plugin::plugin_startup() {
-                _my->_db.add_post_apply_operation_handler([this](const news::base::operation_notification &note){
+                _my->_db.add_post_apply_operation_handler([&](const news::base::operation_notification &note){
                     _my->on_pre_apply_operation(note);
-                }, *this);
+                }, *this, 0);
             }
 
             void account_history_plugin::plugin_shutdown() {

@@ -90,7 +90,8 @@
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER
 #endif
-#define DEFAULT_LOGGER "p2p"
+//#define DEFAULT_LOGGER "p2p"
+#define DEFAULT_LOGGER
 
 #define P2P_IN_DEDICATED_THREAD 1
 
@@ -1273,8 +1274,9 @@ namespace graphene { namespace net {
         for (const peer_connection_ptr& peer : _active_connections)
         {
           // only advertise to peers who are in sync with us
-          //wdump((peer->peer_needs_sync_items_from_us));
-          if( !peer->peer_needs_sync_items_from_us )
+//          wdump((peer->peer_needs_sync_items_from_us));
+//          if( !peer->peer_needs_sync_items_from_us )
+            if(1)
           {
             std::map<uint32_t, std::vector<item_hash_t> > items_to_advertise_by_type;
             // don't send the peer anything we've already advertised to it
@@ -1793,6 +1795,12 @@ namespace graphene { namespace net {
            ("endpoint", originating_peer->get_remote_endpoint()));
       switch ( received_message.msg_type )
       {
+          case core_message_type_enum::trx_message_type:
+              elog("handling message ${type} ${hash} size ${size} from peer ${endpoint}",
+                   ("type", graphene::net::core_message_type_enum(received_message.msg_type))("hash", message_hash)
+                           ("size", received_message.size)
+                           ("endpoint", originating_peer->get_remote_endpoint()));
+              break;
       case core_message_type_enum::hello_message_type:
         on_hello_message(originating_peer, received_message.as<hello_message>());
         break;
@@ -1827,6 +1835,10 @@ namespace graphene { namespace net {
         on_closing_connection_message(originating_peer, received_message.as<closing_connection_message>());
         break;
       case core_message_type_enum::block_message_type:
+          elog("handling message ${type} ${hash} size ${size} from peer ${endpoint}",
+               ("type", graphene::net::core_message_type_enum(received_message.msg_type))("hash", message_hash)
+                       ("size", received_message.size)
+                       ("endpoint", originating_peer->get_remote_endpoint()));
         process_block_message(originating_peer, received_message, message_hash);
         break;
       case core_message_type_enum::current_time_request_message_type:
@@ -5062,6 +5074,7 @@ namespace graphene { namespace net {
 
       _message_cache.cache_message( item_to_broadcast, hash_of_item_to_broadcast, propagation_data, hash_of_message_contents );
       _new_inventory.insert( item_id(item_to_broadcast.msg_type, hash_of_item_to_broadcast ) );
+
       trigger_advertise_inventory_loop();
     }
 

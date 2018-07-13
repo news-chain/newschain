@@ -33,7 +33,7 @@
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER
 #endif
-#define DEFAULT_LOGGER "p2p"
+#define DEFAULT_LOGGER
 
 #ifndef NDEBUG
 # define VERIFY_CORRECT_THREAD() assert(_thread->is_current())
@@ -372,8 +372,15 @@ namespace graphene { namespace net
     void peer_connection::send_message(const message& message_to_send, size_t message_send_time_field_offset)
     {
       VERIFY_CORRECT_THREAD();
-      //dlog("peer_connection::send_message() enqueueing message of type ${type} for peer ${endpoint}",
-      //     ("type", message_to_send.msg_type)("endpoint", get_remote_endpoint()));
+      dlog("peer_connection::send_message() enqueueing message of type ${type} for peer ${endpoint}",
+           ("type", message_to_send.msg_type)("endpoint", get_remote_endpoint()));
+      if(message_to_send.msg_type == 1000){
+          elog("peer_connection::send_message() enqueueing message of type ${type} for peer ${endpoint}",
+               ("type", message_to_send.msg_type)("endpoint", get_remote_endpoint()));
+      }
+      else if(message_to_send.msg_type == 1001){
+          elog("send block message .");
+      }
       std::unique_ptr<queued_message> message_to_enqueue(new real_queued_message(message_to_send, message_send_time_field_offset));
       send_queueable_message(std::move(message_to_enqueue));
     }

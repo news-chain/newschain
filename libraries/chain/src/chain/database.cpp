@@ -89,7 +89,7 @@ namespace news{
             add_index<transaction_obj_index>();
             add_index<news::base::account_object_index>();
             add_index<operation_obj_index>();
-            add_index<account_hsitory_obj_index>();
+            add_index<account_history_obj_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -548,7 +548,7 @@ namespace news{
 
                 auto start = fc::time_point::now();
 
-                uint64_t skip_flags = //skip_nothing;
+                uint64_t skip_flags =// skip_nothing;
                         skip_producer_signature         |
                         skip_transaction_signatures     |
                         skip_tapos_check                |

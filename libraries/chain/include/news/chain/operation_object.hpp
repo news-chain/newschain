@@ -78,7 +78,7 @@ namespace news{
                                 composite_key_compare<std::less<account_name>, std::greater<uint32_t>>
                         >
                         >,chainbase::allocator<account_history_object>
-                > account_hsitory_obj_index;
+                > account_history_obj_index;
 
     }}//news::chain
 
@@ -89,4 +89,4 @@ FC_REFLECT(news::chain::account_history_object, (id)(name)(sequence)(op_id))
 
 
 CHAINBASE_SET_INDEX_TYPE(news::chain::operation_object, news::chain::operation_obj_index)
-CHAINBASE_SET_INDEX_TYPE(news::chain::account_history_object, news::chain::account_hsitory_obj_index)
+CHAINBASE_SET_INDEX_TYPE(news::chain::account_history_object, news::chain::account_history_obj_index)

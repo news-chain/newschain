@@ -48,8 +48,12 @@ namespace news{
                     });
 
 
-//                    account_name  nn;
-//                    const auto history_index =  _db.get_index<account_hsitory_obj_index>().indices().get<by_account>();
+                    account_name  nn;
+                    const auto &history_index = _db.get_index<account_history_obj_index>().indices().get<by_account>();
+
+
+
+
 //                    auto itr = history_index.lower_bound(boost::make_tunlp());
 //                    if(history_index != )
 //                    _db.create<account_history_object>([](account_history_object &obj){

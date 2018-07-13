@@ -48,8 +48,8 @@ namespace news{
                     });
 
 
-                    account_name  nn;
-                    const auto &history_index = _db.get_index<account_history_obj_index>().indices().get<by_account>();
+//                    account_name  nn;
+//                    const auto &history_index = _db.get_index<account_history_obj_index>().indices().get<by_account>();
 
 
 

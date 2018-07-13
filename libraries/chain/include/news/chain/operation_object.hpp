@@ -5,7 +5,7 @@
 #pragma once
 
 #include <news/chain/object_types.hpp>
-#include <chainbase/chainbase.hpp>
+//#include <chainbase/chainbase.hpp>
 #include <news/base/types.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
@@ -21,7 +21,7 @@ namespace news{
         class operation_object : public object<operation_object_type, operation_object>{
         public:
             template< typename Constructor, typename Allocator >
-            operation_object( Constructor&& c, Allocator &&a ):op_packed(a)
+            operation_object( Constructor&& c, chainbase::allocator<Allocator> a ):op_packed(a)
             {
                 c( *this );
             }

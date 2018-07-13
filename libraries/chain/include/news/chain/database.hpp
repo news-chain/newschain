@@ -137,7 +137,6 @@ namespace news{
 
             void        modify_balance( const account_object& a, const asset& delta, bool check_balance );
             asset       get_balance( const account_object& a, asset_symbol symbol )const;
-            bool        has_hardfork( uint32_t hardfork )const;
             void        adjust_balance( const account_object& a, const asset& delta );
 
 

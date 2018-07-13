@@ -898,11 +898,11 @@ namespace news{
 //            }
         }
 
-        bool database::has_hardfork( uint32_t hardfork )const
-        {
-//            return get_hardfork_property_object().processed_hardforks.size() > hardfork;
-            return false;
-        }
+//        bool database::has_hardfork( uint32_t hardfork )const
+//        {
+////            return get_hardfork_property_object().processed_hardforks.size() > hardfork;
+//            return false;
+//        }
 
         void database::adjust_balance( const account_object& a, const asset& delta )
         {

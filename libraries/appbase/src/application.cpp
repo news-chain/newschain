@@ -195,6 +195,7 @@ namespace news{
             try {
                 for(const auto &plugin : autostart_plugins){
                     if(plugin != nullptr && plugin->get_state() == abstract_plugin::registered){
+                        elog("resiger : ${r}", ("r", plugin->get_name()));
                         plugin->initialize(my->_map_args);
                     }
                 }

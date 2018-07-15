@@ -257,6 +257,7 @@ namespace news{
             io_serv->stop();
         }
 
+ 
         void application::exec() { 
 
 			boost::asio::signal_set set(*io_serv);
@@ -269,7 +270,7 @@ namespace news{
 
 			});
 			 
-          
+   
             io_serv->run();
             shutdown();
 

@@ -63,17 +63,16 @@ namespace fc
      template<typename T>
      static inline void to_variant( const T& v, fc::variant& vo ) 
      { 
-         mutable_variant_object mvo;
-		 auto tmp = to_variant_visitor<T>(mvo, v);
-		 fc::reflector<T>::visit( tmp );
+         mutable_variant_object mvo; 
+         fc::reflector<T>::visit(to_variant_visitor<T>( mvo, v )); 
          vo = fc::move(mvo);
      }
      template<typename T>
      static inline void from_variant( const fc::variant& v, T& o ) 
      { 
-         const variant_object& vo = v.get_object();
-		 auto tmp = from_variant_visitor<T>(vo, o);
-         fc::reflector<T>::visit( tmp );
+         const variant_object& vo = v.get_object(); 
+         fc::reflector<T>::visit(from_variant_visitor<T>( vo, o ));
+ 
      }
    };
 

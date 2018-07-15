@@ -12,18 +12,36 @@ namespace factory{
                                               news::base::account_name name) {
         signed_transaction trx;
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
 
         create_account_operation cao;
         cao.name = name;
         cao.creator = creator;
         cao.public_key = fc::ecc::private_key::generate().get_public_key();
 
+
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
         trx.operations.push_back(cao);
         trx.sign(sign_pk, NEWS_CHAIN_ID);
         return trx;
     }
 
+    signed_transaction
+    helper::create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount) {
+            signed_transaction trx;
+
+            transfer_operation transfer;
+            transfer.from = from;
+            transfer.to = to;
+            transfer.amount = asset(NEWS_SYMBOL, 100000000L);
+            trx.operations.push_back(transfer);
+
+            trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+            trx.sign(sign_pk, NEWS_CHAIN_ID);
+
+
+
+            return trx;
+    }
 
 
     std::string  string_json_rpc(const std::string &str){

@@ -85,12 +85,12 @@
 
 #include <fc/git_revision.hpp>
 
-//#define ENABLE_DEBUG_ULOGS
+#define ENABLE_DEBUG_ULOGS
 
-//#ifdef DEFAULT_LOGGER
-//# undef DEFAULT_LOGGER
-//#endif
-//#define DEFAULT_LOGGER "p2p"
+#ifdef DEFAULT_LOGGER
+# undef DEFAULT_LOGGER
+#endif
+#define DEFAULT_LOGGER "p2p"
 
 #define P2P_IN_DEDICATED_THREAD 1
 
@@ -4416,6 +4416,7 @@ namespace graphene { namespace net {
                           _node_public_key,
                           signature,
                           generate_hello_user_data());
+	  auto it = message(hello);
 
       peer->send_message(message(hello));
     }

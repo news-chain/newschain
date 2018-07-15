@@ -32,6 +32,8 @@
 #include <boost/signals2.hpp>
 #include <app/plugin.hpp>
 
+#include <news/base/asset_symbol.hpp>
+
 namespace news{
     namespace chain{
 
@@ -87,7 +89,7 @@ namespace news{
 
             void                            open(const open_db_args &args);
             uint32_t                            reindex(const open_db_args &args);
-
+            void                            wipe(const fc::path &dir, const fc::path &shared_mem_dir, bool block_log = false);
             bool                            is_producing()const{return _is_producing;}
             void                            set_producing(bool p){_is_producing = p;}
 
@@ -133,6 +135,10 @@ namespace news{
             const account_object &          get_account(const account_name &name)const;
             const account_object*           find_account(const account_name &name)const;
 
+            void        modify_balance( const account_object& a, const asset& delta, bool check_balance );
+            asset       get_balance( const account_object& a, asset_symbol symbol )const;
+            bool        has_hardfork( uint32_t hardfork )const;
+            void        adjust_balance( const account_object& a, const asset& delta );
 
 
             ///////////////////////////////////////////////////////////////////////////////
@@ -229,10 +235,10 @@ namespace news{
                                 _push_transaction(std::move(t));
                             }
                         }catch (const fc::exception &e){
-                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
+//                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
                         }
                         catch (...){
-                            elog("unhandle without_pengding_transactions");
+//                            elog("unhandle without_pengding_transactions");
                         }
                     }
                 });

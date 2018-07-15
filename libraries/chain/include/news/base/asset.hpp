@@ -79,6 +79,8 @@ namespace news{
                 return *this;
             }
 
+            asset operator -()const { return asset(symbol, -amount); }
+
             std::string to_string()const;
             static asset from_string(const std::string &str);
 

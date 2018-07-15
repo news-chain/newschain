@@ -66,6 +66,7 @@ namespace news{
                     int64_t time_to_next_block_time = 1000000 - (now.time_since_epoch().count() % 1000000);
                     if(time_to_next_block_time < 50000) //50ms
                     {
+//                        ilog("less chain 10ms.");
                         time_to_next_block_time += 1000000;
                     }
                     _timer.expires_from_now(boost::posix_time::microseconds(time_to_next_block_time));
@@ -76,8 +77,8 @@ namespace news{
                 block_production_condition::block_production_condition_enum producer_plugin_impl::maybe_produce_block(
                         fc::mutable_variant_object &cap) {
 
-                    fc::time_point_sec now = fc::time_point::now();
-//                    fc::time_point now = now_fine + fc::microseconds(500000l);
+                    fc::time_point now_fine = fc::time_point::now();
+                    fc::time_point_sec now = now_fine + fc::microseconds(500000l);
                     if(!_production_enabled){
                         if(_db.get_slot_time(1) >= now){
                             _production_enabled = true;
@@ -162,7 +163,7 @@ namespace news{
                             elog("Genarated block #${n} time ${t} by ${p} trx.size=${b}, pack_size:${size}", (capture));
                             break;
                         case block_production_condition::not_synced:
-//                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
+                                     ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
                             break;
                         case block_production_condition::not_my_turn:
 //                                     ilog("Not producing block because it isn't my turn :${scheduled_producer}");

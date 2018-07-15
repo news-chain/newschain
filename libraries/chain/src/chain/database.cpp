@@ -142,7 +142,7 @@ namespace news{
         account_name database::get_scheduled_producer(uint32_t num) const {
             const auto &gpo = get_global_property_object();
 
-            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
+            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 2;
 
             return name;
         }

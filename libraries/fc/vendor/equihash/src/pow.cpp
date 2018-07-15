@@ -7,6 +7,9 @@ Modifications by Steemit, Inc. 2016
 #include <equihash/pow.hpp>
 #include <equihash/blake2.h>
 #include <algorithm>
+#if defined WIN32
+#include <intrin.h>
+#endif
 
 #ifdef EQUIHASH_POW_VERBOSE
 #include <iomanip>
@@ -19,7 +22,7 @@ Modifications by Steemit, Inc. 2016
 #endif
 
 static uint64_t rdtsc(void) {
-#ifdef _MSC_VER
+#ifdef _MSC_VER 
     return __rdtsc();
 #else
 #if defined(__amd64__) || defined(__x86_64__)

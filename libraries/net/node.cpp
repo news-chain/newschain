@@ -938,6 +938,9 @@ namespace graphene { namespace net {
             {
               fc::microseconds delay_until_retry = fc::seconds((iter->number_of_failed_connection_attempts + 1) * _node_configuration.peer_connection_retry_timeout);
 
+			  auto status = iter->last_connection_disposition;
+			  auto lst = iter->last_connection_attempt_time;
+			  auto during = fc::time_point::now() - lst;
               if (!is_connection_to_endpoint_in_progress(iter->endpoint) &&
                   ((iter->last_connection_disposition != last_connection_failed &&
                     iter->last_connection_disposition != last_connection_rejected &&
@@ -4383,7 +4386,7 @@ namespace graphene { namespace net {
 
           // limit the rate at which we accept connections to mitigate DOS attacks
           fc::usleep( fc::milliseconds(10) );
-        } FC_CAPTURE_AND_LOG( () )
+        } FC_CAPTURE_AND_LOG( (new_peer) )
       }
     } // accept_loop()
 
@@ -4425,6 +4428,7 @@ namespace graphene { namespace net {
                           _node_public_key,
                           signature,
                           generate_hello_user_data());
+	  auto it = message(hello);
 
       peer->send_message(message(hello));
     }

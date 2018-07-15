@@ -251,11 +251,11 @@ namespace news{
                     }
 
 
-                    //
-                    for(uint32_t i = 0; i < 0x10000; i++){
-                        create<block_summary_object>([](block_summary_object &){
+                    for(uint32_t i = 0; i < 0x10000; i++){                   
+						create<block_summary_object>([](block_summary_object &) {						
                         });
                     }
+					
                 });
 
 

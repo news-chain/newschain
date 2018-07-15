@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include <fc/reflect/typename.hpp>
+#include <iostream>
 
 namespace fc {
 
@@ -57,6 +58,18 @@ struct reflector{
      *
      *  @note - this method is not defined for non-reflected types.
      */
+
+#ifdef WIN32
+	template<typename Visitor>
+	static inline void visit(const Visitor& v)
+	{
+		std::cout << "error";
+		throw 9;
+	}
+
+#endif // WIN32
+
+	
     #ifdef DOXYGEN
     template<typename Visitor>
     static inline void visit( const Visitor& v );

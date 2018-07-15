@@ -144,7 +144,9 @@ namespace news{
                         wlog("waiting until genesis to produce block : ${t}", ("t", NEWS_GENESIS_TIME));
                         return block_production_condition::wait_for_genesis;
                     }
+
                     block_production_condition::block_production_condition_enum  result = block_production_condition::exception_producing_block;
+
                     fc::mutable_variant_object capture;
                     try {
                         result = maybe_produce_block(capture);

@@ -7,6 +7,7 @@ namespace chainbase {
 
    struct environment_check {
       environment_check() {
+#define __VERSION__ "msvc2017"
          memset( &compiler_version, 0, sizeof( compiler_version ) );
          memcpy( &compiler_version, __VERSION__, std::min<size_t>( strlen(__VERSION__), 256 ) );
 #ifndef NDEBUG

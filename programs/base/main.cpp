@@ -18,6 +18,7 @@
 #include "news/plugins/p2p/p2p_plugin.hpp"
 #include <news/plugins/account_history/account_history_plugin.hpp>
 #include <news/plugins/network_broadcast_plugin/network_broadcast_plugin.hpp>
+#include <news/plugins/account_history_api/account_history_api_plugin.hpp>
 
 void regist_plugin(news::app::application &app){
     app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
@@ -30,6 +31,7 @@ void regist_plugin(news::app::application &app){
 
     app.register_plugin< news::plugins::account_history_plugin::account_history_plugin >();
     app.register_plugin< news::plugins::network_broadcast::network_broadcast_plugin >();
+    app.register_plugin< news::plugins::account_history_api::account_history_api_plugin >();
 }
 
 
@@ -72,7 +74,8 @@ int main(int argc, char **argv){
                 news::plugins::database_api::database_api_plugin,
                 news::plugins::account_history_plugin::account_history_plugin,
                 news::plugins::webserver::webserver_plugin,
-                news::plugins::network_broadcast::network_broadcast_plugin
+                news::plugins::network_broadcast::network_broadcast_plugin,
+                news::plugins::account_history_api::account_history_api_plugin
         >(argc, argv);
 
         if(!init){

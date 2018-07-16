@@ -17,7 +17,7 @@
 using namespace news::chain;
 using namespace news::plugins::json_rpc;
 
-#define API_LIMIT       1000
+
 
 
 namespace news{

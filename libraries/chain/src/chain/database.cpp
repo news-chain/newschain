@@ -328,6 +328,7 @@ namespace news{
 
         void database::_apply_block(const signed_block &block, uint64_t skip) {
             try {
+                _current_block_num = block.block_num();
                 if(!(skip & skip_merkle_check)){
                     auto merkle_root = block.caculate_merkle_root();
                     try {
@@ -610,6 +611,8 @@ namespace news{
             if(!(_skip_flags & skip_validate)){
                 trx.validate();
             }
+            _current_trx_id = trx.id();
+
 
             auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
             const chain_id_type &chain_id = NEWS_CHAIN_ID;
@@ -657,9 +660,12 @@ namespace news{
 
             }
 
+            _current_op_in_trx = 0;
             for(const auto &op : trx.operations){
                 try {
                     apply_operation(op);
+                    _current_op_in_trx++;
+
                 }FC_CAPTURE_AND_RETHROW((op));
             }
         }
@@ -669,6 +675,10 @@ namespace news{
             operation_notification note(op);
 
             _my->_eveluator_registry.get_evaluator(op).apply(op);
+
+            note.block = _current_block_num;
+            note.trx_in_block = _current_op_in_trx;
+            note.trx_id = _current_trx_id;
 
             notify_post_apply_operation(note);
         }

@@ -51,6 +51,7 @@ namespace news{
         account_name                    name;
 
 
+
     };
 
 

@@ -27,8 +27,8 @@ namespace http{
         });
 
         _client.set_message_handler([&](websocketpp::connection_hdl hdl, websocket_client_type::message_ptr msg){
-//                    std::cout << msg->get_payload() << std::endl;
-//            auto rev = msg->get_payload();
+                    std::cout << msg->get_payload() << std::endl;
+					 auto rev = msg->get_payload();
         });
 
         _client.set_close_handler([](websocketpp::connection_hdl hdl){

@@ -13,9 +13,38 @@
 #include <map> 
 #include <random> 
  
+struct result_body {
+	std::string jsonrpc;
+	fc::optional<std::string> result;
+	fc::optional<std::string> error;
+	int64_t     id;
+};
+
+enum option_user
+{
+	create_user = 0x1,
+	transfer_one = create_user + 1,
+	transfer_ones = transfer_one + 1
+};
+enum task_result
+{
+	undeal = 0x1,
+	sendfail = undeal + 0x1,
+	recvfail = sendfail + 0x1,
+	fail = undeal + 1,
+	suces= fail+1
+};
+struct taskresult
+{
+	uint64_t id;
+	task_result result;
+	uint64_t start_time;
+	uint64_t end_time;
+};
+
+typedef std::map<int64_t, taskresult> tasklist;
  
- 
- 
+FC_REFLECT(result_body, (jsonrpc)(result)(error)(id))
  
 using namespace factory;
  
@@ -29,6 +58,7 @@ public:
 	{ 
 		myusers.insert(std::make_pair(1, NEWS_INIT_PRIVATE_KEY));
 		myusers_count = 1;
+		request_ack = 0;
 	}
 	void open_handler(websocketpp::connection_hdl h)
 	{
@@ -50,8 +80,11 @@ public:
 					}, 
 						[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
 					{
-						std::cout << msg->get_payload() << std::endl;
-						auto rev = msg->get_payload();
+						result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
+						if (body.error.valid())
+						{ 
+
+						} 
 					}, 
 						[](websocketpp::connection_hdl hdl) 
 					{
@@ -145,6 +178,14 @@ private:
 	users myusers; 
 	int myusers_count; 
 	std::mutex mutex_;
+
+
+	uint64_t request_ack; 
+
+	tasklist mytask;
+
+
+
 	
 };
 

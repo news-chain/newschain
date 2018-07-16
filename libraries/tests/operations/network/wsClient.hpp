@@ -74,6 +74,7 @@ namespace http{
 
         void start();
 
+        void set_handle_message(std::function<void(std::string msg)> cb);
     private:
 
         std::string _url;
@@ -81,5 +82,7 @@ namespace http{
         websocket_client_type   _client;
 //        websocket_connection_ptr _connection;
         websocket_client_type::connection_ptr _connection;
+
+        std::function<void(std::string msg)> _cb;
     };
 }

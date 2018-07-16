@@ -32,7 +32,7 @@ namespace news{
                 DEFINE_API_IMPL(network_broadcast_impl, broadcast_transaction)
                 {
                     _p2p.broadcast_transaction(args.trx);
-//                    _chain.accept_transaction(args.trx);
+                    _chain.accept_transaction(args.trx);
                     return broadcast_transaction_return();
                 }
 

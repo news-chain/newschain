@@ -64,6 +64,7 @@ namespace news{
 
 
         struct signed_transaction : public transaction{
+            signed_transaction(const transaction &trx = transaction()):transaction(trx){}
 
             std::vector<signature_type>     signatures;
             const signature_type            &sign(const private_key_type &pk, const chain_id_type &chain_id);
@@ -79,6 +80,19 @@ namespace news{
 
         };
 
+        struct deatil_signed_transaction : public signed_transaction
+        {
+            deatil_signed_transaction(){}
+            deatil_signed_transaction(const signed_transaction &trx)
+            :signed_transaction(trx),trx_id(trx.id()){}
+
+            transaction_id_type          trx_id;
+            uint32_t                     block_num = 0;
+            uint32_t                     transaction_num = 0;
+        };
+
+
+
 
     }//namespace chain
 }//namespace news
@@ -92,8 +106,8 @@ namespace fc{
 //    void to_variant(const news::chain::transaction &trx, fc::variant &vo);
 //    void from_variant(const fc::variant &var, news::chain::transaction &trx);
 
-
 }
 
 FC_REFLECT(news::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration)(operations))
 FC_REFLECT_DERIVED(news::chain::signed_transaction, (news::chain::transaction), (signatures))
+FC_REFLECT_DERIVED(news::chain::deatil_signed_transaction, (news::chain::signed_transaction), (trx_id)(block_num)(transaction_num))

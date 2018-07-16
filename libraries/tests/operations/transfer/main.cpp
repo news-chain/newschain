@@ -12,19 +12,20 @@ int main(int argc, char **argv)
 {
     try
     {
+        //ut for transfer
         for(int i = 0; i < 1; i++)
         {
             std::thread([](){
-//                http::client client("ws://192.168.2.180:8001");
-                http::client client("ws://192.168.56.128:8001");
+                //http::client client("ws://192.168.2.180:8001");
+                http::client client("ws://192.168.56.128:8002");
                 client.init();
 
                 auto start = fc::time_point::now();
 
                 auto ff =  factory::helper();
                 srand((unsigned)time(NULL));
-                for(int j = 1; j < 2; j++){
-
+                for(int j = 1; j < 2; j++)
+                {
                     auto str = ff.transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, NEWS_SYSTEM_ACCOUNT_NAME + 1, asset(NEWS_SYMBOL, 1));
                     std::string ret = string_json_rpc(fc::json::to_string(str));
                     dlog(ret);
@@ -33,11 +34,41 @@ int main(int argc, char **argv)
                 auto end = fc::time_point::now();
                 ilog("time:${t}",("t", end - start));
                 client.start();
+            //}).detach();
             }).join();
-
         }
 
-//        while(true);
+        //while(true);
+
+        //ut for transfers
+        for(int i = 0; i < 1; i++)
+        {
+            std::thread([](){
+                //http::client client("ws://192.168.2.180:8001");
+                http::client client("ws://192.168.56.128:8002");
+                client.init();
+
+                auto start = fc::time_point::now();
+
+                auto ff =  factory::helper();
+                srand((unsigned)time(NULL));
+                for(int j = 0; j < 1; j++)
+                {
+                    std::map<account_name, asset> ts;
+                    ts[71] = asset(NEWS_SYMBOL, 10);
+                    ts[72] = asset(NEWS_SYMBOL, 10);
+                    ts[73] = asset(NEWS_SYMBOL, 10);
+                    ts[74] = asset(NEWS_SYMBOL, 10);
+                    auto str = ff.transfers(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, ts);
+                    std::string ret = string_json_rpc(fc::json::to_string(str));
+                    dlog(ret);
+                    client.send_message(ret);
+                }
+                auto end = fc::time_point::now();
+                ilog("time:${t}",("t", end - start));
+                client.start();
+            }).join();
+        }
 
     }catch (const fc::exception &e)
     {

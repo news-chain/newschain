@@ -864,52 +864,21 @@ namespace news{
         {
             modify( a, [&]( account_object& acnt )
             {
-                acnt.balance += delta;
-            });
+            	acnt.balance += delta;
+            } );
         }
 
         asset database::get_balance( const account_object& a, asset_symbol symbol )const
         {
-//            switch( symbol._symbol )
-//            {
-//                case STEEM_ASSET_NUM_STEEM:
-                    return a.balance;
-//                case STEEM_ASSET_NUM_SBD:
-//                    return a.sbd_balance;
-//                default:
-//                {
-//#ifdef STEEM_ENABLE_SMT
-//                    FC_ASSERT( symbol.space() == asset_symbol_type::smt_nai_space, "invalid symbol" );
-//         const account_regular_balance_object* arbo =
-//            find< account_regular_balance_object, by_owner_liquid_symbol >(
-//               boost::make_tuple(a.name, symbol.is_vesting() ? symbol.get_paired_symbol() : symbol ) );
-//         if( arbo == nullptr )
-//         {
-//            return asset(0, symbol);
-//         }
-//         else
-//         {
-//            return symbol.is_vesting() ? arbo->vesting : arbo->liquid;
-//         }
-//#else
-//                    FC_ASSERT( false, "invalid symbol" );
-//#endif
-//                }
-//            }
+        	return a.balance;
         }
-
-//        bool database::has_hardfork( uint32_t hardfork )const
-//        {
-////            return get_hardfork_property_object().processed_hardforks.size() > hardfork;
-//            return false;
-//        }
 
         void database::adjust_balance( const account_object& a, const asset& delta )
         {
-            bool check_balance = false; //has_hardfork( STEEM_HARDFORK_0_20__1811 );
+            bool check_balance = false;
+
             modify_balance( a, delta, check_balance );
         }
-
 
 
 

@@ -11,6 +11,7 @@ namespace factory{
     class helper{
     public:
         signed_transaction transfer(private_key_type sign_pk, account_name from, account_name to, asset num);
+        signed_transaction transfers(private_key_type sign_pk, account_name from, std::map<account_name, asset> tos);
     };
 
     std::string  string_json_rpc(const std::string &str);

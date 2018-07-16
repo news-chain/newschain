@@ -1277,7 +1277,7 @@ namespace graphene { namespace net {
         {
           // only advertise to peers who are in sync with us
           //wdump((peer->peer_needs_sync_items_from_us));
-          if( !peer->peer_needs_sync_items_from_us )
+          if( peer->peer_needs_sync_items_from_us )
           {
             std::map<uint32_t, std::vector<item_hash_t> > items_to_advertise_by_type;
             // don't send the peer anything we've already advertised to it

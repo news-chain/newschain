@@ -469,7 +469,7 @@ namespace news {
                                                            // if it's <= non_fork_high_block_num, we grab it from the main blockchain;
                                                            // if it's not, we pull it from the fork history
                                                            if( low_block_num <= non_fork_high_block_num )
-                                                              synopsis.push_back(chain->get_database().get_block_id_for_num(low_block_num));
+                                                               synopsis.push_back(chain->get_database().get_block_id_for_num(low_block_num));
                                                            else
                                                                synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
                                                            low_block_num += (true_high_block_num - low_block_num + 2) / 2;

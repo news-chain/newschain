@@ -52,7 +52,27 @@ namespace news{
                 typedef void result_type;
 
 
+                template <typename T>
+                void operator()(const T&op){
 
+                }
+
+                void operator()(const create_account_operation &op){
+                    _names.insert(op.name);
+                    _names.insert(op.creator);
+                }
+
+                void operator()(const transfer_operation &op){
+                    _names.insert(op.from);
+                    _names.insert(op.to);
+                }
+
+                void operator()(const transfers_operation &op){
+                    _names.insert(op.from);
+                    for(auto &n : op.to_names){
+                        _names.insert(n.first);
+                    }
+                }
             };
 
 

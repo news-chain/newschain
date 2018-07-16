@@ -35,13 +35,14 @@ namespace news{
                 ////////////////////////////////////////////////////////////////////////
                 void account_history_impl::on_pre_apply_operation(const news::base::operation_notification &note) {
 
+
+
+
                     flat_set<account_name> _names;
 
 
-
-
-
-
+                    get_operation_names_visitor visitor(_names);
+                    note.op.visit(visitor);
 
                     const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
                         obj.trx_id = note.trx_id;
@@ -56,18 +57,21 @@ namespace news{
                     });
 
 
-//                    account_name  nn;
-//                    const auto &history_index = _db.get_index<account_history_obj_index>().indices().get<by_account>();
+                    const auto &history_index = _db.get_index<account_history_obj_index>().indices().get<by_account>();
 
+                    for(const auto &name : _names){
+                        uint32_t seq = 1;
+                        auto itr = history_index.lower_bound(boost::make_tuple(name, UINT32_MAX));
+                        if(itr != history_index.end() && itr->name == name){
+                            seq = itr->sequence + 1;
+                        }
+                        _db.create<account_history_object>([&](account_history_object &obj){
+                            obj.name = name;
+                            obj.sequence = seq;
+                            obj.op_id = new_obj.id;
+                        });
+                    }
 
-
-
-//                    auto itr = history_index.lower_bound(boost::make_tunlp());
-//                    if(history_index != )
-//                    _db.create<account_history_object>([](account_history_object &obj){
-//                        //TODO
-//
-//                    });
 
                 }
             }
@@ -87,13 +91,6 @@ namespace news{
 
 
             account_history_plugin::account_history_plugin():_my(new detail::account_history_impl(news::app::application::getInstance().get_plugin<news::plugins::chain_plugin::chain_plugin>().get_database())) {
-
-
-
-
-
-//              how to work ?
-//            _my->_db.add_pre_apply_operation_handler(boost::bind(&detail::account_history_impl::on_pre_apply_operation, _my.get()), *this);
             }
 
             account_history_plugin::~account_history_plugin() {

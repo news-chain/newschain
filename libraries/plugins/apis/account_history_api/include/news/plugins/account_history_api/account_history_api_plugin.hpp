@@ -11,6 +11,7 @@
 #include <news/plugins/chain_plugin/chain_plugin.hpp>
 #include <app/plugin.hpp>
 #include <news/plugins/account_history_api/account_history_api.hpp>
+#include <news/plugins/account_history/account_history_plugin.hpp>
 #define ACCOUNT_HISTORY_API_NAME_PLUGIN         ("account_history_api")
 
 
@@ -28,6 +29,7 @@ namespace news{
                 NEWSAPP_PLUGIN_REQUIRES(
                 (news::plugins::json_rpc::json_rpc_plugin)
                         (news::plugins::chain_plugin::chain_plugin)
+                        (news::plugins::account_history_plugin::account_history_plugin)
                         )
 
                 static const std::string& name() { static std::string name = ACCOUNT_HISTORY_API_NAME_PLUGIN; return name; }

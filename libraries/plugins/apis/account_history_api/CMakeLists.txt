@@ -13,6 +13,7 @@ target_link_libraries(account_history_api
         news_chain
         json_rpc_plugin
         chain_plugin
+        account_his_plugin
         )
 
 target_include_directories(account_history_api PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

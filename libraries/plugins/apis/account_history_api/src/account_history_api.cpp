@@ -8,7 +8,7 @@
 #include <news/chain/database.hpp>
 #include <news/plugins/chain_plugin/chain_plugin.hpp>
 #include <news/plugins/account_history_api/account_history_api_plugin.hpp>
-
+#include <news/plugins/account_history/account_history_plugin.hpp>
 
 namespace news{
     namespace plugins{
@@ -81,7 +81,12 @@ namespace news{
 
 
             account_history_api::account_history_api():my(new detail::account_history_api_impl()) {
-                JSON_RPC_REGISTER_API(ACCOUNT_HISTORY_API_NAME_PLUGIN)
+                if(news::app::abstract_plugin::state::started == news::app::application::getInstance().get_plugin<news::plugins::account_history_plugin::account_history_plugin>().get_state()){
+                    JSON_RPC_REGISTER_API(ACCOUNT_HISTORY_API_NAME_PLUGIN)
+                }else{
+                    elog("not started account_history_api, if want use, please start account_history_plugin.");
+                }
+
             }
 
             account_history_api::~account_history_api() {

@@ -315,7 +315,7 @@ namespace news{
 
         void database::apply_block(const signed_block &block, uint64_t skip) {
             try {
-                auto block_num = block.block_num();
+//                auto block_num = block.block_num();
                 //TODO checkpoints
 
                 with_skip_flags(skip, [&](){
@@ -615,7 +615,7 @@ namespace news{
 
 
             auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
-            const chain_id_type &chain_id = NEWS_CHAIN_ID;
+
             transaction_id_type trx_id = trx.id();
             FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
 

@@ -44,7 +44,7 @@ namespace news{
 
             DEFINE_API_IMPL(database_api_impl, get_accounts)
             {
-                FC_ASSERT(args.accounts.size() > API_LIMIT, "accounts.size > API_LIMIT");
+                FC_ASSERT(args.accounts.size() <= API_LIMIT, "accounts.size > API_LIMIT");
                 get_accounts_return ret;
                 for(auto name : args.accounts){
                     const auto &ac = _db.get_account(name);

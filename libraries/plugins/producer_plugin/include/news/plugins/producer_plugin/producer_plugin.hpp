@@ -31,6 +31,7 @@ namespace news{
     namespace block_production_condition {
         enum block_production_condition_enum
         {
+			not_know=-1,
             produced = 0,
             not_synced = 1,
             not_my_turn = 2,

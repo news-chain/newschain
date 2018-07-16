@@ -35,6 +35,14 @@ namespace news{
                 ////////////////////////////////////////////////////////////////////////
                 void account_history_impl::on_pre_apply_operation(const news::base::operation_notification &note) {
 
+                    flat_set<account_name> _names;
+
+
+
+
+
+
+
                     const auto& new_obj = _db.create<operation_object>([note, this](operation_object &obj){
                         obj.trx_id = note.trx_id;
                         obj.block = note.block;

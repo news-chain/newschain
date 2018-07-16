@@ -27,6 +27,9 @@ namespace news{
 
                 DECLARE_API(
                         (get_dynamic_global_property)
+                                (get_accounts)
+                                (get_transactions_hex)
+                                (get_transaction)
                         )
 
 

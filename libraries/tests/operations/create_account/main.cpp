@@ -10,6 +10,7 @@
 
 #include <fc/io/json.hpp>
 #include "factory.hpp"
+#include "types.hpp"
 
 using namespace factory;
 
@@ -24,39 +25,48 @@ int main(int argc, char **argv){
                 http::client client("ws://192.168.2.180:7002");
                 client.init();
 
+
+
+//                client.set_handle_message([](std::string msg){
+////                    std::cout << "handle msg : " << msg << std::endl;
+//                    tools::result_body body = fc::json::from_string(msg).as<tools::result_body>();
+//                    if(body.error.valid()){
+//                       elog("error:${e}", ("e", body));
+//                    }
+//                });
+
+
                 auto start = fc::time_point::now();
 
                 auto ff =  factory::helper();
                 srand((unsigned)time(NULL));
-                for(int i = 1; i < 2; i++){
+                for(int i = 1; i < 2000; i++){
 
                     auto name = (account_name)(rand());
-                    auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, name);
+                    auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, i);
 
                     std::string ret = string_json_rpc(fc::json::to_string(str));
-                    ddump((ret));
+//                    ddump((ret));
                     client.send_message(ret);
 
-                    auto tt = ff.create_transfer(NEWS_INIT_PRIVATE_KEY, 1, 2, asset(NEWS_SYMBOL, 2));
-                    std::string ret1 =  string_json_rpc(fc::json::to_string(tt));
-                    ddump((ret1));
-                    client.send_message(ret1);
 
                 }
                 auto end = fc::time_point::now();
                 ilog("time:${t}",("t", end - start));
                 client.start();
-            }).join();
+            }).detach();
 
         }
 
-//        while(true);
+        while(true);
 
 
 
 
     }catch (const fc::exception &e){
         std::cout << e.to_detail_string() << std::endl;
+    }catch (...){
+        std::cout << "unhandle exception." << std::endl;
     }
 
 

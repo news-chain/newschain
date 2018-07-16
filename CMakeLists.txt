@@ -2,6 +2,9 @@
 
 project(baseChain)
 cmake_minimum_required(VERSION 3.0)
+#set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+#set(CMAKE_CXX_FLAGS_DEBUG "/MTd /Zi /Ob0 /Od /RTC1")
+#set(CMAKE_C_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
 
 
 
@@ -21,7 +24,7 @@ endif()
 
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g -Wall -Wno-unused-variable -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
 
 
 

@@ -3,12 +3,14 @@
 //
 
 
-#include <news/base/key_conversion.hpp>
+#include <news/plugins/database_api/database_api_args.hpp>
 
 
+using namespace news::plugins::database_api;
 int main(int argc, char **argv) {
 
-    news::base::key_to_wif()
+    get_transaction_return ret;
+    ddump((ret));
 
 
     return 0;

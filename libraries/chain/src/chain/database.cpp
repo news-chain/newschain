@@ -142,7 +142,7 @@ namespace news{
         account_name database::get_scheduled_producer(uint32_t num) const {
             const auto &gpo = get_global_property_object();
 
-            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
+            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 2;
 
             return name;
         }
@@ -173,7 +173,7 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            uint32_t count = 6000;
+            uint32_t count = 8000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
@@ -251,11 +251,11 @@ namespace news{
                     }
 
 
-                    //
-                    for(uint32_t i = 0; i < 0x10000; i++){
-                        create<block_summary_object>([](block_summary_object &){
+                    for(uint32_t i = 0; i < 0x10000; i++){                   
+						create<block_summary_object>([](block_summary_object &) {						
                         });
                     }
+					
                 });
 
 

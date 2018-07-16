@@ -195,7 +195,6 @@ namespace news{
             try {
                 for(const auto &plugin : autostart_plugins){
                     if(plugin != nullptr && plugin->get_state() == abstract_plugin::registered){
-                        elog("resiger : ${r}", ("r", plugin->get_name()));
                         plugin->initialize(my->_map_args);
                     }
                 }
@@ -258,17 +257,20 @@ namespace news{
             io_serv->stop();
         }
 
-        void application::exec() {
+ 
+        void application::exec() { 
 
-            boost::asio::signal_set set(*io_serv);
-            set.add(SIGINT);
-            set.add(SIGTERM);
-            set.async_wait(
-                    [this](boost::system::error_code /*ec*/, int /*signo*/)
-                    {
-                        quit();
+			boost::asio::signal_set set(*io_serv);
+			set.add(SIGINT);
+			set.add(SIGTERM);
+			set.async_wait(
+				[this](boost::system::error_code /*ec*/, int /*signo*/)
+			{ 
+				quit();
 
-                    });
+			});
+			 
+   
             io_serv->run();
             shutdown();
 

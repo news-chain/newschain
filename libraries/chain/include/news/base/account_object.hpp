@@ -7,8 +7,9 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/reflect/variant.hpp>
 
-#include <news/base/types.hpp>
 #include <chainbase/chainbase.hpp>
+#include <news/base/types.hpp>
+#include <news/base/asset.hpp>
 #include <news/chain/object_types.hpp>
 
 #include <boost/multi_index_container.hpp>

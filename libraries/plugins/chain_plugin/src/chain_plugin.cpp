@@ -52,7 +52,7 @@ namespace news {
 
                 class chain_plugin_impl {
                 public:
-                    chain_plugin_impl():write_queue(128) {}
+                    chain_plugin_impl() : write_queue(128) {}
 
                     ~chain_plugin_impl() {}
 
@@ -61,21 +61,21 @@ namespace news {
 
                     void stop_write_processing();
 
-                    uint64_t                    shared_memory_size = 0;
-                    uint64_t                    shared_file_full_threshold = 0;
-                    uint16_t                    shared_file_scale_rate = 0;
-                    bool                        replay = false;
-                    bool                        resync = false;
-                    boost::filesystem::path     shared_memory_path;
-                    uint32_t                    flush_state_interval = 0;
-                    uint32_t                    stop_replay_at = 0;
+                    uint64_t shared_memory_size = 0;
+                    uint16_t shared_file_full_threshold = 0;
+                    uint16_t shared_file_scale_rate = 0;
+                    bool replay = false;
+                    bool resync = false;
+                    boost::filesystem::path shared_memory_path;
+                    uint32_t flush_state_interval = 0;
+                    uint32_t stop_replay_at = 0;
 
                     chain::database db;
 
-                    bool                                        running = true;
-                    std::shared_ptr< std::thread >              write_processor_thread;
-                    boost::lockfree::queue< write_context *>    write_queue;
-                    uint16_t                                    write_lock_hold_time = 500;  //ms
+                    bool running = true;
+                    std::shared_ptr<std::thread> write_processor_thread;
+                    boost::lockfree::queue<write_context *> write_queue;
+                    uint16_t write_lock_hold_time = 500;  //ms
                 };
 
 
@@ -158,21 +158,19 @@ namespace news {
                     }
                 };
 
-                struct request_promise_visitor
-                {
-                    request_promise_visitor(){}
+                struct request_promise_visitor {
+                    request_promise_visitor() {}
 
                     typedef void result_type;
 
-                    template< typename T >
-                    void operator()( T* t )
-                    {
+                    template<typename T>
+                    void operator()(T *t) {
                         t->set_value();
                     }
                 };
 
                 void chain_plugin_impl::start_write_processing() {
-                    write_processor_thread = std::make_shared<std::thread>([&](){
+                    write_processor_thread = std::make_shared<std::thread>([&]() {
                         bool is_syncing = true;
                         write_context *cxt;
                         fc::time_point_sec start = fc::time_point::now();
@@ -202,27 +200,29 @@ namespace news {
                           * not an optimal use of system resources when we could give CPU time to read threads.
                           */
 
-                        while(running){
-                            if(!is_syncing){
+                        while (running) {
+                            if (!is_syncing) {
                                 start = fc::time_point::now();
                             }
 
-                            if(write_queue.pop( cxt) ){
-                                db.with_write_lock([&](){
-                                    while(true){
+
+                            if (write_queue.pop(cxt)) {
+                                db.with_write_lock([&]() {
+                                    while (true) {
                                         req_visitor.skip = cxt->skip;
                                         req_visitor.except = &(cxt->except);
                                         cxt->success = cxt->req_ptr.visit(req_visitor);
                                         cxt->prom_ptr.visit(promise_visitor);
-                                        if(is_syncing && start - db.head_block_time() < fc::minutes(1)){
+                                        if (is_syncing && start - db.head_block_time() < fc::minutes(1)) {
                                             start = fc::time_point::now();
                                             break;
                                         }
-                                        if(!is_syncing && write_lock_hold_time >= 0 && fc::time_point::now() - start > fc::milliseconds(write_lock_hold_time)){
+                                        if (!is_syncing && write_lock_hold_time >= 0 &&
+                                            fc::time_point::now() - start > fc::milliseconds(write_lock_hold_time)) {
                                             break;
                                         }
 
-                                        if(!write_queue.pop(cxt)){
+                                        if (!write_queue.pop(cxt)) {
                                             break;
                                         }
 
@@ -230,8 +230,8 @@ namespace news {
                                 });//with_write_lock
                             }//
 
-                            if(!is_syncing){
-                                boost::this_thread::sleep_for( boost::chrono::milliseconds(10) );
+                            if (!is_syncing) {
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
                             }
 
                         }//while
@@ -240,7 +240,7 @@ namespace news {
 
                 void chain_plugin_impl::stop_write_processing() {
                     running = false;
-                    if(write_processor_thread){
+                    if (write_processor_thread) {
                         write_processor_thread->join();
                     }
                     write_processor_thread.reset();
@@ -262,11 +262,15 @@ namespace news {
             void chain_plugin::set_program_options(options_description &cli, options_description &cfg) {
 
                 cfg.add_options()
-                        ("shared-file-size", bpo::value<std::string>()->default_value("20G"),
+                        ("shared-file-size", bpo::value<std::string>()->default_value("1G"),
                          "size of shared memory size.")
                         // ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"), "the location of the chain shared memory files (absolute path or relative to application data dir)")
                         ("flush-state-interval", bpo::value<uint32_t>()->default_value(1000),
-                         "flush shared memory changes to disk every N blocks");
+                         "flush shared memory changes to disk every N blocks")
+                        ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(9000),
+                         "A 2 precision percentage (0-10000) that defines the threshold for when to autoscale the shared memory file. Setting this to 0 disables autoscaling. Recommended value for consensus node is 9500 (95%). Full node is 9900 (99%)")
+                        ("shared-file-scale-rate", bpo::value<uint16_t>()->default_value(2000),
+                         "A 2 precision percentage (0-10000) that defines how quickly to scale the shared memory file. When autoscaling occurs the file's size will be increased by this percent. Setting this to 0 disables autoscaling. Recommended value is between 1000-2000 (10-20%)");
 
 
                 cli.add_options()
@@ -280,15 +284,17 @@ namespace news {
 
             void chain_plugin::plugin_initialize(const variables_map &options) {
                 try {
-
                     _my->shared_memory_path = news::app::application::getInstance().get_data_path() / "blockchain";
-
                     _my->flush_state_interval = options.at("flush-state-interval").as<uint32_t>();
                     _my->shared_memory_size = fc::parse_size(options.at("shared-file-size").as<string>());
 //                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
                     _my->stop_replay_at = 0;
+                    _my->shared_file_scale_rate = options.at("shared-file-scale-rate").as<uint16_t>();
+                    _my->shared_file_full_threshold = options.at("shared-file-full-threshold").as<uint16_t>();
+
 
                     _my->replay = options.at("replay-blockchain").as<bool>();
+                    _my->resync = options.at("resync-blockchain").as<bool>();
                 } catch (const fc::exception &e) {
                     elog("plugin init error ${e} , ${p}", ("e", e.what())("p", this->get_name()));
                 }
@@ -298,37 +304,43 @@ namespace news {
             void chain_plugin::plugin_startup() {
 
 
-                if (_my->resync) {
-                    //TODO sync
-                }
-
-                chain::open_db_args db_open_args;
-                db_open_args.data_dir = app::application::getInstance().get_data_path() / "blockchain";
-                db_open_args.shared_mem_dir = _my->shared_memory_path;
-                db_open_args.shared_mem_size = _my->shared_memory_size;
-                db_open_args.shared_file_full_threshold = _my->shared_file_full_threshold;
-                db_open_args.shared_file_scale_rate = _my->shared_file_scale_rate;
-                db_open_args.stop_replay_at = _my->stop_replay_at;
 
 
 
-                _my->start_write_processing();
+                    chain::open_db_args db_open_args;
+                    db_open_args.data_dir = app::application::getInstance().get_data_path() / "blockchain";
+                    db_open_args.shared_mem_dir = _my->shared_memory_path;
+                    db_open_args.shared_mem_size = _my->shared_memory_size;
+                    db_open_args.shared_file_full_threshold = _my->shared_file_full_threshold;
+                    db_open_args.shared_file_scale_rate = _my->shared_file_scale_rate;
+                    db_open_args.stop_replay_at = _my->stop_replay_at;
 
-                if (_my->replay) {
-                    //TODO stop at blocks num ?
-                    _my->db.reindex(db_open_args);
-                } else {
-                    ilog("open database dir: ${d}", ("d", _my->shared_memory_path.string()));
-                    try {
-                        _my->db.open(db_open_args);
+                    _my->start_write_processing();
 
-                    } catch (const fc::exception &e) {
-                        elog("open database error ${e}, try to replay blockchain", ("e", e.to_detail_string()));
-                        //TODO replay blcokchain
-                        _my->db.reindex(db_open_args);
+                    if (_my->resync) {
+                        //TODO sync
+                        wlog("resync blockchain");
+                        _my->db.wipe(app::application::getInstance().get_data_path(), db_open_args.shared_mem_dir,
+                                     true);
                     }
 
-                }
+
+                    if (_my->replay) {
+                        //TODO stop at blocks num ?
+                        _my->db.reindex(db_open_args);
+                    } else {
+                        ilog("open database dir: ${d}", ("d", _my->shared_memory_path.string()));
+                        try {
+                            _my->db.open(db_open_args);
+
+                        } catch (const fc::exception &e) {
+                            elog("open database error ${e}, try to replay blockchain", ("e", e.to_detail_string()));
+                            _my->db.reindex(db_open_args);
+                        }
+
+                    }
+
+//                on_sync();
             }
 
             void chain_plugin::plugin_shutdown() {
@@ -350,7 +362,7 @@ namespace news {
                 _my->write_queue.push(&cxt);
 
                 prom.get_future().get();
-                if(cxt.except){
+                if (cxt.except) {
                     throw *(cxt.except);
                 }
                 FC_ASSERT(cxt.success, "block generate error.");
@@ -367,17 +379,38 @@ namespace news {
             }
 
             void chain_plugin::accept_transaction(const news::chain::signed_transaction &trx) {
-                boost::promise< void > prom;
+                ilog("accept_transaction ${trx}", ("trx", trx));
+                boost::promise<void> prom;
                 write_context cxt;
                 cxt.req_ptr = &trx;
                 cxt.prom_ptr = &prom;
                 _my->write_queue.push(&cxt);
 
                 prom.get_future().get();
-                if(cxt.except){
-                    throw  *(cxt.except);
+                if (cxt.except) {
+                    throw *(cxt.except);
                 }
 
+            }
+
+            void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
+
+                elog("accept_block #${b}, size ${s} time ${t}", ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
+                if (syncing) {
+
+                }
+                boost::promise<void> prom;
+                write_context cxt;
+                cxt.req_ptr = &block;
+                cxt.skip = skip;
+
+                cxt.prom_ptr = &prom;
+                _my->write_queue.push(&cxt);
+
+                prom.get_future().get();
+                if (cxt.except) {
+                    throw *(cxt.except);
+                }
             }
 
 

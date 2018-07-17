@@ -9,9 +9,13 @@ target_link_libraries(NEWS ${Boost_LIBRARIES}
         webserver_plugin
         producer_plugin
         chain_plugin
+        p2p_plugin
         fc
         news_protocol
         block_api_plugin
         chain_api_plugin
-        database_api)
+        database_api
+        account_his_plugin
+        network_broadcast
+        )
 #target_include_directories(chainMain ${CMAKE_CURRENT_SOURCE_DIR})

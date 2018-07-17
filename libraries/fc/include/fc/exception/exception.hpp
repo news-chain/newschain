@@ -217,7 +217,7 @@ namespace fc
    fc::exception_factory::instance().register_exception<base>();
 
 #define FC_REGISTER_EXCEPTIONS( SEQ )\
-   static bool exception_init = []( __attribute__((unused)) bool* )->bool{ \
+   static bool exception_init = []( bool* )->bool{ \
     BOOST_PP_SEQ_FOR_EACH( FC_REGISTER_EXCEPTION, v, SEQ )  \
       return true; \
    }( &exception_init ); \

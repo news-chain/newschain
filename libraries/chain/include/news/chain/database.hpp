@@ -9,7 +9,7 @@
 #include <fc/filesystem.hpp>
 #include <fc/reflect/reflect.hpp>
 #include <fc/scoped_exit.hpp>
-
+#include <fc/uint128.hpp>
 
 
 #include <news/base/config.hpp>
@@ -23,10 +23,16 @@
 #include <news/chain/transaction_object.hpp>
 #include <news/chain/block.hpp>
 #include <news/chain/news_eveluator.hpp>
+#include <news/chain/operation_object.hpp>
 
 #include <news/base/operation.hpp>
 #include <news/base/account_object.hpp>
+#include <news/base/operation_notification.hpp>
 
+#include <boost/signals2.hpp>
+#include <app/plugin.hpp>
+
+#include <news/base/asset_symbol.hpp>
 
 namespace news{
     namespace chain{
@@ -44,8 +50,8 @@ namespace news{
             fc::path        data_dir;
             fc::path        shared_mem_dir;
             uint64_t        shared_mem_size = 0;
-            uint64_t        shared_file_full_threshold = 0;
-            uint64_t        shared_file_scale_rate = 0;
+            uint16_t        shared_file_full_threshold = 0;
+            uint16_t        shared_file_scale_rate = 0;
             uint32_t        chainbase_flag = 0;
             uint32_t        stop_replay_at = 0;
 
@@ -55,7 +61,7 @@ namespace news{
         enum validation_steps
         {
             skip_nothing                    = 0,
-            skip_producer_signature          = 1 << 0,  ///< used while reindexing
+            skip_producer_signature         = 1 << 0,  ///< used while reindexing
             skip_transaction_signatures     = 1 << 1,  ///< used by non-witness nodes
             skip_transaction_dupe_check     = 1 << 2,  ///< used while reindexing
             skip_fork_db                    = 1 << 3,  ///< used while reindexing
@@ -72,6 +78,10 @@ namespace news{
         };
 
 
+        using apply_operation_handler_t = std::function<void(const operation_notification&)>;
+
+
+
         class database : public chainbase::database{
         public:
             database();
@@ -79,16 +89,16 @@ namespace news{
 
             void                            open(const open_db_args &args);
             uint32_t                            reindex(const open_db_args &args);
-
+            void                            wipe(const fc::path &dir, const fc::path &shared_mem_dir, bool block_log = false);
             bool                            is_producing()const{return _is_producing;}
             void                            set_producing(bool p){_is_producing = p;}
 
-            uint32_t    get_slot_at_time(fc::time_point_sec when);
-            fc::time_point  get_slot_time(uint32_t slot_num ) const;
+            uint32_t                        get_slot_at_time(fc::time_point_sec when);
+            fc::time_point_sec              get_slot_time(uint32_t slot_num ) const;
 
             const dynamic_global_property_object &get_global_property_object() const;
             uint32_t                        head_block_num() const;
-            fc::time_point                  head_block_time() const;
+            fc::time_point_sec              head_block_time() const;
             block_id_type                   head_block_id() const;
 
             account_name                    get_scheduled_producer(uint32_t num) const;
@@ -108,8 +118,52 @@ namespace news{
             ////////////////////////////get             ///////////////////////////////////
             ///////////////////////////////////////////////////////////////////////////////
             fc::optional<signed_block>      fetch_block_by_number(uint32_t block_num);
-            const chain_id_type             &get_chain_id();
+            const chain_id_type             &get_chain_id() ;
+
+            /*
+           * @param trx_id
+           * @return true:if exits,
+           * */
+            bool                            is_know_transaction(const transaction_id_type &trx_id) const;
+            bool                            is_know_block(const block_id_type &id) const;
+            fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
+            uint32_t                        last_non_undoable_block_num() const;
+            const signed_transaction        get_recent_transaction(const transaction_id_type &trx_id) const;
+            block_id_type                   get_block_id_for_num(uint32_t block_num) const;
+            std::vector<block_id_type>      get_block_ids_on_fork(block_id_type head_of_fork)const;
+
+            const account_object &          get_account(const account_name &name)const;
+            const account_object*           find_account(const account_name &name)const;
+
+            void        modify_balance( const account_object& a, const asset& delta, bool check_balance );
+            asset       get_balance( const account_object& a, asset_symbol symbol )const;
+            void        adjust_balance( const account_object& a, const asset& delta );
+
+
+            ///////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////signals         ///////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            boost::signals2::connection add_pre_apply_operation_handler(const apply_operation_handler_t &func, const news::app::abstract_plugin &plugin, int32_t group = -1);
+
+            boost::signals2::connection add_post_apply_operation_handler(const apply_operation_handler_t &func, const news::app::abstract_plugin &plugin, int32_t group = -1);
+
         private:
+
+
+            template<bool IS_PRE_OPERATION>
+            boost::signals2::connection any_apply_operation_handler_impl(const apply_operation_handler_t &fun, const news::app::abstract_plugin &plugin, int32_t group);
+
+            void                        notify_post_apply_operation(const operation_notification &note);
+
+            /*  pre apply opertion
+             * */
+            boost::signals2::signal<void (const operation_notification &)>       _pre_apply_operation_signal;
+            /*post operation
+             */
+            boost::signals2::signal<void (const operation_notification &)>       _post_apply_operation_signal;
+            /////////////////////////////////////////////////////////////////////////////////
+
+
             signed_block                    _generate_block(const fc::time_point_sec when, const account_name& producer, const fc::ecc::private_key private_key_by_signed);
             void                            initialize_indexes();
 
@@ -123,20 +177,21 @@ namespace news{
             void                            apply_block(const signed_block &block, uint64_t skip = skip_nothing);
             void                            _apply_block(const signed_block &block, uint64_t skip = skip_nothing);
 
-            /*
-             * @param trx_id
-             * @return true:if exits,
-             * */
-            bool                            is_know_transaction(const transaction_id_type &trx_id);
+
             void                            _push_transaction(const signed_transaction &trx);
             void                            apply_transaction(const signed_transaction &trx, uint64_t skip);
             void                            _apply_transaction(const signed_transaction &trx);
             void                            apply_operation(const operation &op);
             void                            pop_block();
-            fc::optional<signed_block>      fetch_block_by_id( const block_id_type& id )const;
+
             void                            regists_evaluator();
             void                            clear_pending();
             void                            clear_expired_transactions();
+            block_id_type                   find_block_id_for_num(uint32_t block_num) const;
+
+            void                            check_free_memory(bool fore_print, uint32_t cuurent_block_num);
+
+
 
             //
             template<typename Function>
@@ -178,9 +233,11 @@ namespace news{
                             if(!find){
                                 _push_transaction(std::move(t));
                             }
-                        }catch (...){
-                            //TODO
-                            elog("without_pengding_transactions. ${trx}", ("trx", t));
+                        }catch (const fc::exception &e){
+//                            elog("without_pengding_transactions. ${trx}, ${e}", ("trx", t)("e", e.to_detail_string()));
+                        }
+                        catch (...){
+//                            elog("unhandle without_pengding_transactions");
                         }
                     }
                 });
@@ -203,6 +260,9 @@ namespace news{
             std::deque<signed_transaction>                  _popped_tx;
 
             std::unique_ptr< database_impl > _my;
+
+            uint16_t                                        _shared_file_full_threshold;
+            uint16_t                                        _shared_file_scale_rate;
         };
 
     }//namespace chain

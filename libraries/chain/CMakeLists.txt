@@ -4,6 +4,7 @@ add_library(news_protocol
         src/base/operation.cpp
         src/base/version.cpp
         src/base/asset.cpp
+        src/base/key_conversion.cpp
         ${BASE_HEADDERS}
         )
 target_link_libraries(news_protocol fc chainbase)
@@ -27,7 +28,7 @@ add_library(news_chain
             ${CHAIN_HEADERS}
         )
 
-target_link_libraries(news_chain fc news_protocol chainbase)
+target_link_libraries(news_chain fc news_protocol chainbase appbase)
 target_include_directories(news_chain PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 

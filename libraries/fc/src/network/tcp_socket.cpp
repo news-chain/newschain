@@ -177,7 +177,7 @@ namespace fc {
       keepalive_settings.keepaliveinterval = (ULONG)(interval.count() / fc::milliseconds(1).count());
 
       DWORD dwBytesRet = 0;
-      if (WSAIoctl(my->_sock.native(), SIO_KEEPALIVE_VALS, &keepalive_settings, sizeof(keepalive_settings),
+      if (WSAIoctl(my->_sock.native_handle(), SIO_KEEPALIVE_VALS, &keepalive_settings, sizeof(keepalive_settings),
                    NULL, 0, &dwBytesRet, NULL, NULL) == SOCKET_ERROR)
         wlog("Error setting TCP keepalive values");
 #elif !defined(__clang__) || (__clang_major__ >= 6)
@@ -319,7 +319,11 @@ namespace fc {
       my = new impl;
     try
     {
-      my->_accept.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string((string)ep.get_address()), ep.port()));
+      std::string ipstr=(string)(ep.get_address());
+      if(ipstr.compare("127.0.0.1"))
+      my->_accept.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(ipstr.c_str()), ep.port()));
+      else
+      boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), ep.port());
       my->_accept.listen();
     }
     FC_RETHROW_EXCEPTIONS(warn, "error listening on socket");

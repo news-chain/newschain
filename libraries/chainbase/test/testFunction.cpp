@@ -36,6 +36,7 @@ typedef multi_index_container<
         chainbase::allocator<book>
 > book_index;
 
+
 CHAINBASE_SET_INDEX_TYPE( book, book_index )
 
 BOOST_AUTO_TEST_SUITE(open_and_create)

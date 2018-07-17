@@ -15,6 +15,22 @@
    FC_MULTILINE_MACRO_END
 
 
+#define NEWS_TRY_NOTIFY(signal, ...)                                                \
+    try{                                                                            \
+        signal(__VA_ARGS__);                                                        \
+    }catch(const fc::exception &e){                                                 \
+        elog("caught exception in : ${e}", ("e", e.to_detail_string()));            \
+    }catch(const boost::exception &e){                                              \
+        elog("Caught exception ${e}", ("e", boost::diagnostic_information(e)));     \
+    }catch(const std::exception &e){                                                \
+        elog("Caught exception ${e}", ("e", e.what()));                             \
+    }catch(...){                                                                    \
+        elog("unhandle exception in signal!");                                      \
+    }                                                                               \
+
+
+
+
 
 namespace news{
     namespace chain{

@@ -26,8 +26,12 @@
 #else /// __GNUC__
 
 /// Macro to prevent unused variable warnings printed by some compilers.
+#ifdef _WIN32
+#define FC_UNUSED(...)  
+#else
 #define FC_UNUSED(...) DO_PRAGMA(unused(__VA_ARGS__))
 #endif /// __GNUC__
+#endif
 
 /// Macro to force printing of TODO message at compiler output.
 #define FC_TODO(msg) DO_PRAGMA(message("TODO: " #msg))

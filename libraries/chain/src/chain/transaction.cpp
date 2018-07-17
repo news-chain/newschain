@@ -24,13 +24,8 @@ namespace news{
         }
 
         void transaction::validate() const {
-
-
-
             FC_ASSERT( operations.size() > 0, "A transaction must have at least one operation", ("trx",*this) );
             for(const auto &op : operations){
-//               op.visit(op());
-                //TODO
                 op.visit(operation_validate_visitor());
             }
         }
@@ -88,14 +83,12 @@ namespace news{
             std::map<public_key_type, bool> used;
             for(auto &p : pubs){
                 used[p] = false;
-                ilog("ck : ${p}", ("p", p));
             }
 
             for(auto &op : operations){
                 account_name  name;
                 op.visit(operation_get_sign_name_visitor(name));
                 auto pk = get_key(name);
-                ilog("pk ${p}", ("p", pk));
                 FC_ASSERT(used.find(pk) != used.end(), "signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
                 used[pk] = true;
             }

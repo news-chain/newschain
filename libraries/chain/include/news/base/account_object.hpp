@@ -34,9 +34,22 @@ namespace news{
         id_type                         id;
         account_name                    name;
         account_name                    creator;
-        uint64_t                        balance = 0;
+        asset                           balance;
         fc::time_point                  create_time;
         chainbase::shared_string        public_key;
+    };
+
+
+
+    class account_authority_object : public chainbase::object<news::chain::account_authority_type, account_authority_object>{
+    public:
+        CHAINBASE_DEFAULT_CONSTRUCTOR(account_authority_object)
+
+
+        id_type                         id;
+        account_name                    name;
+
+
     };
 
 

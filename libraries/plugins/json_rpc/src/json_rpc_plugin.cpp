@@ -2,6 +2,8 @@
 // Created by boy on 18-6-19.
 //
 
+
+
 #include <news/plugins/json_rpc/json_rpc_plugin.hpp>
 #include <news/plugins/json_rpc/utility.hpp>
 
@@ -9,6 +11,18 @@
 #include <fc/macros.hpp>
 #include <fc/macros.hpp>
 #include <boost/algorithm/string.hpp>
+
+
+
+
+#ifdef DEFAULT_LOGGER
+# undef DEFAULT_LOGGER
+#endif
+#define DEFAULT_LOGGER "rpc"
+
+
+
+
 
 namespace news{
     namespace plugins{
@@ -268,7 +282,7 @@ namespace news{
                                     try
                                     {
                                         if( call ){
-//                                            ilog("func_args ${p}",("p", func_args));
+                                            ilog("func_args ${p}",("p", func_args));
                                             response.result = (*call)( func_args );
                                         }
                                     }

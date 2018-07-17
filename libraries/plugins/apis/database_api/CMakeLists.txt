@@ -2,7 +2,7 @@
 
 add_library(database_api
             src/database_api.cpp
-            src/databae_api_plugin.cpp
+            src/database_api_plugin.cpp
             include/news/plugins/database_api/database_api.hpp
             include/news/plugins/database_api/database_api_plugin.hpp
             include/news/plugins/database_api/database_api_args.hpp)

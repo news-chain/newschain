@@ -8,6 +8,7 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+
 #include <map>
 
 #include <memory>
@@ -42,7 +43,7 @@ namespace news{
             /*
              * add options desc
              * */
-            void add_program_options(const bpo::option_description &cli, const bpo::option_description cfg);
+            void add_program_options( const bpo::options_description& cli, const bpo::options_description& cfg );
 
             /*
              *   init args
@@ -107,6 +108,11 @@ namespace news{
                 return *ptr;
             }
 
+            template <typename ...Plugin>
+            void set_default_plugins(){_default_plugins = {Plugin::name()... };}
+
+
+
 
             /*
              *      get boost::asio::io_service
@@ -155,7 +161,7 @@ namespace news{
             std::shared_ptr< boost::asio::io_service> io_serv;              //use for timer
             std::unique_ptr< class application_impl > my;
 
-
+            std::vector<std::string>                                     _default_plugins;
 
 
         };

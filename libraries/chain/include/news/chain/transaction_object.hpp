@@ -22,16 +22,20 @@ namespace news{
         using namespace boost::multi_index;
         using namespace news::base;
         using namespace chainbase;
+        typedef buffer_type     packed_trx_buffer;
 
         class transaction_object : public object<transaction_object_type, transaction_object>{
             transaction_object() = delete;
         public:
-            CHAINBASE_DEFAULT_CONSTRUCTOR(transaction_object)
+//            CHAINBASE_DEFAULT_CONSTRUCTOR(transaction_object)
+            template<typename Constructor, typename Allocator>
+            transaction_object( Constructor&& c, Allocator&&  alloc):packed_trx(alloc) { c(*this); }
 
             id_type                                 id;
             fc::time_point_sec                      expiration;
             transaction_id_type                     trx_id;
-            //TODO add buffer trx?
+            packed_trx_buffer                       packed_trx;
+
         };
 
 
@@ -57,6 +61,6 @@ namespace news{
 }//news
 
 
-FC_REFLECT(news::chain::transaction_object, (id)(expiration)(trx_id))
+FC_REFLECT(news::chain::transaction_object, (id)(expiration)(trx_id)(packed_trx))
 CHAINBASE_SET_INDEX_TYPE(news::chain::transaction_object, news::chain::transaction_obj_index)
 

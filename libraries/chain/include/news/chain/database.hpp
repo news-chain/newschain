@@ -147,6 +147,9 @@ namespace news{
 
             boost::signals2::connection add_post_apply_operation_handler(const apply_operation_handler_t &func, const news::app::abstract_plugin &plugin, int32_t group = -1);
 
+
+
+            void        set_flush_interval(uint32_t flush_blocks);
         private:
 
 
@@ -270,6 +273,9 @@ namespace news{
             int32_t                                         _crruent_trx_in_block = 0;
             uint16_t                                        _current_op_in_trx = 0;
 //            uint16_t                                        _current_vir
+
+            uint32_t                                        _flush_blocks = 0;
+            uint32_t                                        _next_flush_block = 0;
 
         };
 

@@ -53,6 +53,18 @@ namespace news{
                 operation;
 
 
+        /********************************************************************
+         *                      virtual operation
+         ********************************************************************
+         * */
+
+
+        struct packed_block_reward : public base_operation{
+            account_name            producer;
+            asset                   reward;
+        };
+
+
 
     }//news::base
 }//news
@@ -63,4 +75,12 @@ FC_REFLECT_TYPENAME(news::base::operation)
 FC_REFLECT(news::base::create_account_operation, (name)(creator)(public_key))
 FC_REFLECT(news::base::transfer_operation, (from)(to)(amount)(memo))
 FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo))
+
+/********************************************************************
+   *                      virtual operation
+   ********************************************************************
+   * */
+
+FC_REFLECT(news::base::packed_block_reward, (producer)(reward))
+
 

@@ -74,8 +74,8 @@ int main(int argc, char **argv){
                 news::plugins::database_api::database_api_plugin,
 //                news::plugins::account_history_plugin::account_history_plugin,
                 news::plugins::webserver::webserver_plugin,
-                news::plugins::network_broadcast::network_broadcast_plugin,
-                news::plugins::account_history_api::account_history_api_plugin
+                news::plugins::network_broadcast::network_broadcast_plugin
+//                news::plugins::account_history_api::account_history_api_plugin
         >(argc, argv);
 
         if(!init){

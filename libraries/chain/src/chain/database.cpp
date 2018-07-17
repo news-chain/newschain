@@ -315,12 +315,37 @@ namespace news{
 
         void database::apply_block(const signed_block &block, uint64_t skip) {
             try {
-//                auto block_num = block.block_num();
+                auto block_num = block.block_num();
                 //TODO checkpoints
 
                 with_skip_flags(skip, [&](){
                     _apply_block(block, skip);
                 });
+
+
+                if(_flush_blocks != 0){
+                    if(_next_flush_block == 0){
+                        uint32_t lep = block_num + 1 + _flush_blocks * 9 / 10;
+                        uint32_t rep = block_num + 1 +  _flush_blocks;
+
+                        uint32_t span = rep - lep;
+                        uint32_t nn = lep;
+                        if(span > 0){
+                            uint64_t now = uint64_t( fc::time_point::now().time_since_epoch().count());
+                            nn += now % span;
+                        }
+                        _next_flush_block = nn;
+                    }
+
+                    if(_next_flush_block == block_num){
+                        _next_flush_block = 0;
+                        ilog("flush database shared memory at block ${b}", ("b", block_num));
+                        chainbase::database::flush();
+                    }
+                }
+
+
+
 
                 //TODO flush chainbase
             }FC_CAPTURE_AND_RETHROW()
@@ -346,11 +371,13 @@ namespace news{
                    elog("block size si too small ${block_num} ${block_size}", ("block_num", block.block_num())("block_size", block_size));
 //                   elog("block : ${b}", ("b", block.timestamp));
                 }
-
+                auto start = fc::time_point::now();
                 for(const auto &trx : block.transactions){
                     apply_transaction(trx, skip);
                 }
-
+                if(block.transactions.size() > 3000){
+                    elog("apply_operation time : ${t}ms size ${s}", ("t", (fc::time_point::now().time_since_epoch() - start.time_since_epoch()).count() / 1000)("s", block.transactions.size()));
+                }
 
 
                 update_global_property_object(block);
@@ -634,7 +661,7 @@ namespace news{
                 get_key_by_name get_public = [&](const account_name &name) -> public_key_type{
                     const auto &u_itr = get_index<account_object_index>().indices().get<by_name>();
                     auto account_itr = u_itr.find(name);
-                    FC_ASSERT(account_itr != u_itr.end(), "cant find accout ${a}", ("a", name));
+                    FC_ASSERT(account_itr != u_itr.end(), "cant find account ${a}", ("a", name));
                     std::string pk;
                     to_string(account_itr->public_key, pk);
                     public_key_type pub_key(pk);
@@ -661,6 +688,7 @@ namespace news{
             }
 
             _current_op_in_trx = 0;
+            auto start = fc::time_point::now();
             for(const auto &op : trx.operations){
                 try {
                     apply_operation(op);
@@ -668,6 +696,7 @@ namespace news{
 
                 }FC_CAPTURE_AND_RETHROW((op));
             }
+
         }
 
         void database::apply_operation(const operation &op) {
@@ -890,9 +919,10 @@ namespace news{
             modify_balance( a, delta, check_balance );
         }
 
-
-
-
+        void database::set_flush_interval(uint32_t flush_blocks) {
+            _flush_blocks = flush_blocks;
+            _next_flush_block = 0;
+        }
 
 
     }//namespace chain

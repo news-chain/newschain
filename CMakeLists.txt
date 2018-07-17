@@ -2,11 +2,6 @@
 
 project(baseChain)
 cmake_minimum_required(VERSION 3.0)
-#set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-#set(CMAKE_CXX_FLAGS_DEBUG "/MTd /Zi /Ob0 /Od /RTC1")
-#set(CMAKE_C_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-
-
 
 
 OPTION( CHAINBASE_CHECK_LOCKING "Check locks in chainbase (ON or OFF)" ON )
@@ -23,12 +18,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
-
-
-
-
 
 
 

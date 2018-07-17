@@ -306,6 +306,10 @@ namespace news {
 
 
 
+                    _my->db.set_flush_interval(_my->flush_state_interval);
+
+
+
 
                     chain::open_db_args db_open_args;
                     db_open_args.data_dir = app::application::getInstance().get_data_path() / "blockchain";

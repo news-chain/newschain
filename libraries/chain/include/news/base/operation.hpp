@@ -17,6 +17,7 @@ namespace news{
        struct base_operation{
            virtual void get_sign_name(account_name &name) const = 0;
            virtual void validate() const = 0;
+           bool is_virtual = false;
        };
 
         struct create_account_operation : public base_operation{
@@ -62,6 +63,7 @@ namespace news{
         struct packed_block_reward : public base_operation{
             account_name            producer;
             asset                   reward;
+
         };
 
 

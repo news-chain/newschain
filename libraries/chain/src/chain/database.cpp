@@ -219,6 +219,16 @@ namespace news{
             pengding_block.producer = producer;
 
 
+//
+//            packed_block_reward re_op;
+//            re_op.reward = asset(NEWS_SYMBOL, 48 * 100000000);
+//            re_op.producer = NEWS_SYSTEM_ACCOUNT_NAME;
+//            re_op.is_virtual = true;
+
+
+
+
+
             if(!(_skip_flags & skip_producer_signature)){
                 pengding_block.sign(private_key_by_signed);
             }
@@ -592,6 +602,9 @@ namespace news{
                     _block_log.set_locking(false);
                     auto itr = _block_log.read_block(0);
                     auto last_block_num = _block_log.read_head().block_num();
+                    if(args.stop_replay_at > 0 && args.stop_replay_at < last_block_num){
+                        last_block_num = args.stop_replay_at;
+                    }
                     ilog("current last_block_num ${b}", ("b", last_block_num));
                     //TODO stop at block num?
 
@@ -600,6 +613,7 @@ namespace news{
                         if(current_block_num % 10000 == 0){
                             std::cerr << itr.first.block_num() << std::endl;
                         }
+
                         apply_block(itr.first, skip_flags);
                         check_free_memory(false, current_block_num);
                         itr = _block_log.read_block( itr.second );
@@ -688,12 +702,10 @@ namespace news{
             }
 
             _current_op_in_trx = 0;
-            auto start = fc::time_point::now();
             for(const auto &op : trx.operations){
                 try {
                     apply_operation(op);
                     _current_op_in_trx++;
-
                 }FC_CAPTURE_AND_RETHROW((op));
             }
 

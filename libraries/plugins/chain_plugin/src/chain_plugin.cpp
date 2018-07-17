@@ -278,7 +278,7 @@ namespace news {
                          "clear database and replay all blocks.")
                         ("resync-blockchain", bpo::bool_switch()->default_value(false),
                          "clear database and block log, sync from p2p network.")
-                        ("stop-replay-at-block", bpo::value<uint32_t>(),
+                        ("stop-replay-at-block", bpo::value<uint32_t>()->default_value(0),
                          "Stop and exit after reaching given block number.");
             }
 
@@ -287,8 +287,7 @@ namespace news {
                     _my->shared_memory_path = news::app::application::getInstance().get_data_path() / "blockchain";
                     _my->flush_state_interval = options.at("flush-state-interval").as<uint32_t>();
                     _my->shared_memory_size = fc::parse_size(options.at("shared-file-size").as<string>());
-//                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
-                    _my->stop_replay_at = 0;
+                    _my->stop_replay_at = options.at("stop-replay-at-block").as<uint32_t>();
                     _my->shared_file_scale_rate = options.at("shared-file-scale-rate").as<uint16_t>();
                     _my->shared_file_full_threshold = options.at("shared-file-full-threshold").as<uint16_t>();
 

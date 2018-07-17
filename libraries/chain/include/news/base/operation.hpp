@@ -29,7 +29,7 @@ namespace news{
         };
 
 
-        struct transfer_operation : public base_operation{
+        struct transfer_operation : public base_operation{ //zhuan zhang 
             account_name    from;
             account_name    to;
             asset           amount;
@@ -39,7 +39,7 @@ namespace news{
         };
 
 
-        struct transfers_operation : public base_operation{
+        struct transfers_operation : public base_operation{ //pi liang zhuan zhang
             account_name                    from;
             std::map<account_name, asset>   to_names;
             std::string                     memo;

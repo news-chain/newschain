@@ -8,9 +8,9 @@
 #include <fc/network/http/websocket.hpp>
 #include <thread>
 #include <websocketpp/config/asio.hpp>
+#include <websocketpp/endpoint.hpp>
 #include <websocketpp/logger/stub.hpp>
-#include <websocketpp/client.hpp>
-
+#include <websocketpp/client.hpp> 
 
 namespace http{
 
@@ -63,16 +63,16 @@ namespace http{
 
     typedef websocketpp::client<asio_with_stub_log> websocket_client_type;
 //    typedef std::shared_ptr<websocket_connection> websocket_connection_ptr;
+	typedef websocket_client_type::message_handler message_handler;
     typedef websocket_client_type::message_ptr message_ptr;
     class client{
     public:
         client(std::string url);
         ~client();
-        void init();
-
-        void send_message(std::string msg);
-
-        void start();
+		void init();
+		void init(open_handler h, message_handler h1, close_handler h2, fail_handler h3);
+        void send_message(std::string msg); 
+		void stop();
 
         void set_handle_message(std::function<void(std::string msg)> cb);
     private:

@@ -128,7 +128,7 @@ public:
 			client.send_message(ret);
 			myusers[startid] = genkey;
 
-			auto money = asset(NEWS_SYMBOL, 300 * 100000000L);
+			auto money = asset(NEWS_SYMBOL, 300 * 10000L);
 			ff.create_transfer(myusers[1],1, startid, money); 
 			ret = string_json_rpc(id, fc::json::to_string(str));
 			client.send_message(ret);
@@ -155,7 +155,7 @@ public:
 					}, 
 						[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
 					{
-						std::cout << msg->get_payload();
+						std::cout << msg->get_payload() << std::endl;
 						result_body body = fc::json::from_string(msg->get_payload()).as<result_body>(); 
 						mytask[body.id].end_time= fc::time_point::now().sec_since_epoch();
 						if (body.error.valid())					
@@ -277,7 +277,7 @@ public:
 					auto giveto= myusers.lower_bound(to);
 					if (give == giveto)
 						continue;
-					auto money=asset(NEWS_SYMBOL, (productor()+1)*1000000L);  
+					auto money=asset(NEWS_SYMBOL, (productor()+1)*1L);
 					auto str = ff.create_transfer(give->second, give->first, giveto->first, money);
 					uint64_t id = taskid++;
 					std::string ret = string_json_rpc(id,fc::json::to_string(str));
@@ -324,7 +324,7 @@ public:
 		ilog("fail:${t}", ("t", fail));
 		ilog("fail-network:${t}", ("t", failnetwork));
 		ilog("fail-but-network is ok:${t}", ("t", fail-failnetwork));
-		ilog("ok tips/s:${t}", ("t", responsetime /ok)); 
+		ilog("ok tips/s:${t}", ("t", responsetime / ok));
 		ilog("fail but network is ok :${t}", ("t", responsetime_network_ok / fail - failnetwork)); 
 	 
 

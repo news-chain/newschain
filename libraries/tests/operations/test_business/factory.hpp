@@ -15,7 +15,7 @@ namespace factory{
 
     class helper{
     public:
-		signed_transaction  helper::create_account(news::base::private_key_type& sign_pk,const news::base::account_name& creator,
+		signed_transaction  create_account(news::base::private_key_type& sign_pk,const news::base::account_name& creator,
 			const news::base::account_name& name, news::base::private_key_type& genprivate);
         signed_transaction create_transfer(private_key_type& sign_pk, const account_name& from, const account_name& to, asset& amount);
     };

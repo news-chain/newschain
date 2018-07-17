@@ -6,7 +6,7 @@
 
 #include "factory.hpp"
 #include <random>
-
+#include <stdio.h>
 namespace factory{
 
     signed_transaction helper::create_account(news::base::private_key_type& sign_pk,const  news::base::account_name& creator,
@@ -30,6 +30,7 @@ namespace factory{
             transfer.from = from;
             transfer.to = to;
 			transfer.amount = amount;
+			transfer.memo = fc::variant(fc::time_point::now().time_since_epoch()).as<std::string>();
             trx.operations.push_back(transfer); 
             trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
             trx.sign(sign_pk, NEWS_CHAIN_ID);  
@@ -39,9 +40,8 @@ namespace factory{
 
     std::string  string_json_rpc(uint64_t taskid,const std::string &str)
 	{ 
-		   char buff[12] = { 0 };
-		   sprintf_s(buff, 12,"%d", taskid);
-		   std::string  ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +"}],\"id\":"+buff+",\"method\":\"call\"}";
+		   fc::variant vv(taskid);
+		   std::string  ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +"}],\"id\":"+vv.as<std::string>()+",\"method\":\"call\"}";
 		  return ret;
     }
 }

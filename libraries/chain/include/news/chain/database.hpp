@@ -137,7 +137,6 @@ namespace news{
 
             void        modify_balance( const account_object& a, const asset& delta, bool check_balance );
             asset       get_balance( const account_object& a, asset_symbol symbol )const;
-            bool        has_hardfork( uint32_t hardfork )const;
             void        adjust_balance( const account_object& a, const asset& delta );
 
 
@@ -264,6 +263,14 @@ namespace news{
 
             uint16_t                                        _shared_file_full_threshold;
             uint16_t                                        _shared_file_scale_rate;
+
+
+            transaction_id_type                             _current_trx_id;
+            uint32_t                                        _current_block_num = 0;
+            int32_t                                         _crruent_trx_in_block = 0;
+            uint16_t                                        _current_op_in_trx = 0;
+//            uint16_t                                        _current_vir
+
         };
 
     }//namespace chain

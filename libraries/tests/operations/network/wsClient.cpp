@@ -63,7 +63,8 @@ namespace http{
 		_client.set_open_handler(h);
 		_client.set_message_handler(h1);
 		_client.set_close_handler(h2);
-		_client.set_fail_handler(h3); 
+		_client.set_fail_handler(h3);   
+ 
         _client.init_asio();
         _client.start_perpetual();
         _client_thread = std::thread([this](){
@@ -94,6 +95,10 @@ namespace http{
 		_client.stop();
 		_client_thread.join();
 	}
+
+    void client::set_handle_message(std::function<void(std::string msg)> cb) {
+        _cb = cb;
+    }
 
 
 }

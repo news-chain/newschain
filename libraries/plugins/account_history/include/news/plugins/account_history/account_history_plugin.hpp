@@ -19,7 +19,7 @@ namespace news{
         namespace account_history_plugin{
 
             using namespace boost::program_options;
-
+            using namespace news::base;
 
             namespace detail{
                 class account_history_impl;
@@ -43,6 +43,36 @@ namespace news{
                 virtual void plugin_shutdown() override;
             private:
                 std::unique_ptr<detail::account_history_impl> _my;
+            };
+
+
+            struct get_operation_names_visitor{
+                flat_set<account_name>  &_names;
+                get_operation_names_visitor(flat_set<account_name> &names):_names(names){}
+                typedef void result_type;
+
+
+                template <typename T>
+                void operator()(const T&op){
+
+                }
+
+                void operator()(const create_account_operation &op){
+                    _names.insert(op.name);
+                    _names.insert(op.creator);
+                }
+
+                void operator()(const transfer_operation &op){
+                    _names.insert(op.from);
+                    _names.insert(op.to);
+                }
+
+                void operator()(const transfers_operation &op){
+                    _names.insert(op.from);
+                    for(auto &n : op.to_names){
+                        _names.insert(n.first);
+                    }
+                }
             };
 
 

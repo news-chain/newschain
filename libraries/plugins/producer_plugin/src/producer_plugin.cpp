@@ -262,9 +262,15 @@ namespace news{
 
 
 
+                if(!_my->_producers.empty()){
+                    news::app::application::getInstance().get_plugin<news::plugins::p2p::p2p_plugin>().set_block_production(true);
+                    if(_my->_production_enabled){
+                        if(_my->_db.head_block_num() == 0){
+                            new_chain_banner();
+                        }
+                        _my->schedule_production_loop();
+                    }
 
-                if(_my->_production_enabled){
-                    _my->schedule_production_loop();
                 }
                 else{
                     elog("No producer configured! Please add witness IDs and private keys to configuration.");

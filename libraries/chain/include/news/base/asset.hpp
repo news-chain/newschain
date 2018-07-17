@@ -94,7 +94,7 @@ namespace news{
 
 namespace fc{
     void to_variant(const news::base::asset &a, fc::variant &v);
-    void from_vaiant(const fc::variant &v, news::base::asset &a);
+    void from_variant(const fc::variant &v, news::base::asset &a);
 
 
 }

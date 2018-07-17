@@ -282,7 +282,7 @@ namespace news{
                                     try
                                     {
                                         if( call ){
-//                                            ilog("func_args ${p}",("p", func_args));
+                                            ilog("func_args ${p}",("p", func_args));
                                             response.result = (*call)( func_args );
                                         }
                                     }

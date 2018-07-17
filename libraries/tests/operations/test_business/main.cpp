@@ -101,9 +101,10 @@ public:
 			std::cout << "on open " << std::endl;
 		},
 			[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
-		{
-			//std::cout << "on recv " << msg->get_payload() << std::endl;
-			//result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();   
+		{ 
+			result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();   
+			if(body.error.valid())
+				std::cout << "on recv " << msg->get_payload() << std::endl;
 
 		},
 			[](websocketpp::connection_hdl hdl)
@@ -117,7 +118,7 @@ public:
 		});
 		auto ff = factory::helper(); 
 	 
-		int startid = 20;
+		int startid = 10000;
 		for (int i=0; i <accounts;i++,startid++)
 		{  
 			news::base::private_key_type genkey;  
@@ -127,7 +128,7 @@ public:
 			client.send_message(ret);
 			myusers[startid] = genkey;
 
-			auto money = asset(NEWS_SYMBOL, 10000000 * 100000000L);
+			auto money = asset(NEWS_SYMBOL, 300 * 100000000L);
 			ff.create_transfer(myusers[1],1, startid, money); 
 			ret = string_json_rpc(id, fc::json::to_string(str));
 			client.send_message(ret);
@@ -154,7 +155,7 @@ public:
 					}, 
 						[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
 					{
-						//std::cout << "on recv " << msg->get_payload()<< std::endl;
+						std::cout << msg->get_payload();
 						result_body body = fc::json::from_string(msg->get_payload()).as<result_body>(); 
 						mytask[body.id].end_time= fc::time_point::now().sec_since_epoch();
 						if (body.error.valid())					
@@ -190,7 +191,7 @@ public:
 						std::uniform_int_distribution<> dis(0, myusers_count - 1);
 						auto  productor = std::bind(dis, engine);
 						uint64_t from = productor()+1;  
-						uint64_t genuser=myusers_count+10;
+						uint64_t genuser=myusers_count+1000;
 						news::base::private_key_type genkey;
 						auto admin = myusers.lower_bound(from); 
 						auto first = admin->first;
@@ -203,7 +204,7 @@ public:
 						taskresult rs;
 						rs.start_time= fc::time_point::now().sec_since_epoch();
 						rs.id = id;
-						rs.result = task_result::undeal;
+						rs.result = task_result::recvfail;
 						rs.op = option_user::create_user;
 						mytask.insert(std::make_pair(id, std::move(rs)));
 						{
@@ -236,11 +237,14 @@ public:
 				},
 					[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
 				{
-					std::cout << "on recv " << msg->get_payload() << std::endl;
+					
 					result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
 					mytask[body.id].end_time = fc::time_point::now().sec_since_epoch();
 					if (body.error.valid())
+					{
 						update(body.id, task_result::fail);
+						std::cout << "on recv " << msg->get_payload() << std::endl;
+					}
 					else
 						update(body.id);
 
@@ -273,7 +277,7 @@ public:
 					auto giveto= myusers.lower_bound(to);
 					if (give == giveto)
 						continue;
-					auto money=asset(NEWS_SYMBOL, (productor()+1)*100000000L);  
+					auto money=asset(NEWS_SYMBOL, (productor()+1)*1000000L);  
 					auto str = ff.create_transfer(give->second, give->first, giveto->first, money);
 					uint64_t id = taskid++;
 					std::string ret = string_json_rpc(id,fc::json::to_string(str));
@@ -281,7 +285,7 @@ public:
 					taskresult rs;
 					rs.start_time = fc::time_point::now().sec_since_epoch();
 					rs.id = id;
-					rs.result = task_result::undeal;
+					rs.result = task_result::recvfail;
 					rs.op = option_user::transfer_one;
 					mytask.insert(std::make_pair(id, std::move(rs)));
 				} 
@@ -292,6 +296,40 @@ public:
 
 	}
 	  
+	void show_result()
+	{
+		uint64_t ok = 0;
+		uint64_t fail = 0;
+		uint64_t responsetime = 0;
+		uint64_t responsetime_network_ok = 0;
+		uint64_t failnetwork = 0;
+		ilog("time:${t}", ("t", endtime - starttime));
+		for (auto it : mytask)
+		{
+			if (it.second.result == task_result::suces)
+			{
+				responsetime += (it.second.end_time - it.second.start_time);
+				ok++;
+			}
+			else {
+				fail++;
+				if (it.second.result >= 0x1 && it.second.result <= 0x3)			
+					failnetwork++;			
+				else
+					responsetime_network_ok += it.second.end_time - it.second.start_time;
+			}
+		}
+
+		ilog("sucess:${t}", ("t",ok));
+		ilog("fail:${t}", ("t", fail));
+		ilog("fail-network:${t}", ("t", failnetwork));
+		ilog("fail-but-network is ok:${t}", ("t", fail-failnetwork));
+		ilog("ok tips/s:${t}", ("t", responsetime /ok)); 
+		ilog("fail but network is ok :${t}", ("t", responsetime_network_ok / fail - failnetwork)); 
+	 
+
+
+	}
 	bool end_business()
 	{ 
 		isstop = true;
@@ -300,8 +338,7 @@ public:
 			it->join();
 			delete it;
 		}
-		endtime = fc::time_point::now().sec_since_epoch();
-		ilog("time:${t}", ("t", endtime - starttime));
+		endtime = fc::time_point::now().sec_since_epoch(); 
 		return true;
 	}
 private:
@@ -401,7 +438,8 @@ int main(int argc, char **argv){
 				break;
 
 		}
-	 
+		bs.show_result();
+
 		getchar();
 	 
     return 0;

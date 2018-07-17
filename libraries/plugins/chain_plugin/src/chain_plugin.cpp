@@ -379,7 +379,7 @@ namespace news {
             }
 
             void chain_plugin::accept_transaction(const news::chain::signed_transaction &trx) {
-                ilog("accept_transaction ${trx}", ("trx", trx));
+//                ilog("accept_transaction ${trx}", ("trx", trx));
                 boost::promise<void> prom;
                 write_context cxt;
                 cxt.req_ptr = &trx;
@@ -395,8 +395,7 @@ namespace news {
 
             void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
-                elog("accept_block #${b}, size ${s} time ${t}",
-                     ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
+                elog("accept_block #${b}, size ${s} time ${t}", ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
                 if (syncing) {
 
                 }

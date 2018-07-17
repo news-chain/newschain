@@ -231,25 +231,25 @@ namespace graphene { namespace net
         direction = peer_connection_direction::outbound;
 
         _remote_endpoint = remote_endpoint;
-//        if( local_endpoint )
-//        {
-//          // the caller wants us to bind the local side of this socket to a specific ip/port
-//          // This depends on the ip/port being unused, and on being able to set the
-//          // SO_REUSEADDR/SO_REUSEPORT flags, and either of these might fail, so we need to
-//          // detect if this fails.
-//          try
-//          {
-//            _message_connection.bind( *local_endpoint );
-//          }
-//          catch ( const fc::canceled_exception& )
-//          {
-//            throw;
-//          }
-//          catch ( const fc::exception& except )
-//          {
-//            wlog( "Failed to bind to desired local endpoint ${endpoint}, will connect using an OS-selected endpoint: ${except}", ("endpoint", *local_endpoint )("except", except ) );
-//          }
-//        }
+        if( local_endpoint )
+        {
+          // the caller wants us to bind the local side of this socket to a specific ip/port
+          // This depends on the ip/port being unused, and on being able to set the
+          // SO_REUSEADDR/SO_REUSEPORT flags, and either of these might fail, so we need to
+          // detect if this fails.
+          try
+          {
+            _message_connection.bind( *local_endpoint );
+          }
+          catch ( const fc::canceled_exception& )
+          {
+            throw;
+          }
+          catch ( const fc::exception& except )
+          {
+            wlog( "Failed to bind to desired local endpoint ${endpoint}, will connect using an OS-selected endpoint: ${except}", ("endpoint", *local_endpoint )("except", except ) );
+          }
+        }
         negotiation_status = connection_negotiation_status::connecting;
         _message_connection.connect_to( remote_endpoint );
         negotiation_status = connection_negotiation_status::connected;

@@ -142,7 +142,7 @@ namespace news{
         account_name database::get_scheduled_producer(uint32_t num) const {
             const auto &gpo = get_global_property_object();
 
-            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 3;
+            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 2;
 
             return name;
         }
@@ -173,7 +173,7 @@ namespace news{
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            uint32_t count = 6000;
+            uint32_t count = 8000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
             for(const signed_transaction &tx : _pending_trx){
                 if(tx.expiration < when){
@@ -251,11 +251,11 @@ namespace news{
                     }
 
 
-                    //
-                    for(uint32_t i = 0; i < 0x10000; i++){
-                        create<block_summary_object>([](block_summary_object &){
+                    for(uint32_t i = 0; i < 0x10000; i++){                   
+						create<block_summary_object>([](block_summary_object &) {						
                         });
                     }
+					
                 });
 
 
@@ -315,7 +315,7 @@ namespace news{
 
         void database::apply_block(const signed_block &block, uint64_t skip) {
             try {
-                auto block_num = block.block_num();
+//                auto block_num = block.block_num();
                 //TODO checkpoints
 
                 with_skip_flags(skip, [&](){
@@ -328,6 +328,7 @@ namespace news{
 
         void database::_apply_block(const signed_block &block, uint64_t skip) {
             try {
+                _current_block_num = block.block_num();
                 if(!(skip & skip_merkle_check)){
                     auto merkle_root = block.caculate_merkle_root();
                     try {
@@ -610,9 +611,11 @@ namespace news{
             if(!(_skip_flags & skip_validate)){
                 trx.validate();
             }
+            _current_trx_id = trx.id();
+
 
             auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
-            const chain_id_type &chain_id = NEWS_CHAIN_ID;
+
             transaction_id_type trx_id = trx.id();
             FC_ASSERT( (_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(), "Duplicate transaction check failed", ("trx id ", trx_id));
 
@@ -657,9 +660,12 @@ namespace news{
 
             }
 
+            _current_op_in_trx = 0;
             for(const auto &op : trx.operations){
                 try {
                     apply_operation(op);
+                    _current_op_in_trx++;
+
                 }FC_CAPTURE_AND_RETHROW((op));
             }
         }
@@ -669,6 +675,10 @@ namespace news{
             operation_notification note(op);
 
             _my->_eveluator_registry.get_evaluator(op).apply(op);
+
+            note.block = _current_block_num;
+            note.trx_in_block = _current_op_in_trx;
+            note.trx_id = _current_trx_id;
 
             notify_post_apply_operation(note);
         }

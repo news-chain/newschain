@@ -52,17 +52,17 @@ namespace fc {
     allows us to safely mark the variable as unused. (void)var does not work
     because we cannot execute in this block.
    */
-   static bool reg_console_appender = []( __attribute__((unused)) bool* )->bool
+   static bool reg_console_appender = []( bool* )->bool
    {
       return appender::register_appender<console_appender>( "console" );
    }( &reg_console_appender );
 
-   static bool reg_file_appender = []( __attribute__((unused)) bool* )->bool
+   static bool reg_file_appender = [](bool* )->bool
    {
       return appender::register_appender<file_appender>( "file" );
    }( &reg_file_appender );
 
-   static bool reg_gelf_appender = []( __attribute__((unused)) bool* )->bool
+   static bool reg_gelf_appender = []( bool* )->bool
    {
       return appender::register_appender<gelf_appender>( "gelf" );
    }( &reg_gelf_appender );

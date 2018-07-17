@@ -29,6 +29,9 @@ namespace http{
         _client.set_message_handler([&](websocketpp::connection_hdl hdl, websocket_client_type::message_ptr msg){
 //                    std::cout << msg->get_payload() << std::endl;
 //            auto rev = msg->get_payload();
+            if(_cb){
+                _cb(msg->get_payload());
+            }
         });
 
         _client.set_close_handler([](websocketpp::connection_hdl hdl){
@@ -68,6 +71,10 @@ namespace http{
 
     void client::start() {
         _client_thread.join();
+    }
+
+    void client::set_handle_message(std::function<void(std::string msg)> cb) {
+        _cb = cb;
     }
 
 

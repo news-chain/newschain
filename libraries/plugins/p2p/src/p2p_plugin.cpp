@@ -205,7 +205,7 @@ namespace news {
                                 // you can help the network code out by throwing a block_older_than_undo_history exception.
                                 // when the net code sees that, it will stop trying to push blocks from that chain, but
                                 // leave that peer connected so that they can get sync blocks from us
-                                __int32_t  value=( block_producer | force_validate ) ? news::chain::skip_nothing :  news::chain::skip_transaction_signatures ;
+								uint32_t  value=( block_producer | force_validate ) ? news::chain::skip_nothing :  news::chain::skip_transaction_signatures ;
                                 chain->accept_block( blk_msg.block, sync_mode,value);
                                 /*
                                 if( !sync_mode )
@@ -469,7 +469,7 @@ namespace news {
                                                            // if it's <= non_fork_high_block_num, we grab it from the main blockchain;
                                                            // if it's not, we pull it from the fork history
                                                            if( low_block_num <= non_fork_high_block_num )
-                                                             ;//  synopsis.push_back(chain->get_database().get_block_id_for_num(low_block_num));
+                                                              synopsis.push_back(chain->get_database().get_block_id_for_num(low_block_num));
                                                            else
                                                                synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
                                                            low_block_num += (true_high_block_num - low_block_num + 2) / 2;
@@ -501,13 +501,15 @@ namespace news {
 
                 fc::time_point_sec p2p_plugin_impl::get_block_time( const graphene::net::item_hash_t& block_id )
                 {
+					
                     try
                     {
                         return chain->get_database().with_read_lock( [&]()
                                                           {
                                                               auto opt_block = chain->get_database().fetch_block_by_id( block_id );
-                                                              if( opt_block.valid() ) return opt_block->timestamp;
-                                                              return fc::time_point_sec::min();
+                                                              if( opt_block.valid() ) 
+																  return opt_block->timestamp; 
+															  return fc::time_point_sec::min();
                                                           });
                     } FC_CAPTURE_AND_RETHROW( (block_id) )
                 }

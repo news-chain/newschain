@@ -35,7 +35,6 @@ namespace news{
             {
                 fc::optional< news::chain::signed_block > block;
             };
-//
 
 
 

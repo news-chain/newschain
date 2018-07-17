@@ -144,7 +144,9 @@ namespace news{
                         wlog("waiting until genesis to produce block : ${t}", ("t", NEWS_GENESIS_TIME));
                         return block_production_condition::wait_for_genesis;
                     }
+
                     block_production_condition::block_production_condition_enum  result = block_production_condition::exception_producing_block;
+
                     fc::mutable_variant_object capture;
                     try {
                         result = maybe_produce_block(capture);
@@ -260,9 +262,15 @@ namespace news{
 
 
 
+                if(!_my->_producers.empty()){
+                    news::app::application::getInstance().get_plugin<news::plugins::p2p::p2p_plugin>().set_block_production(true);
+                    if(_my->_production_enabled){
+                        if(_my->_db.head_block_num() == 0){
+                            new_chain_banner();
+                        }
+                        _my->schedule_production_loop();
+                    }
 
-                if(_my->_production_enabled){
-                    _my->schedule_production_loop();
                 }
                 else{
                     elog("No producer configured! Please add witness IDs and private keys to configuration.");

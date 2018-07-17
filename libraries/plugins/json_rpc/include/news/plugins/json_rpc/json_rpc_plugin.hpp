@@ -58,6 +58,8 @@ typedef std::map< std::string, api_method > api_description;
 
 
 
+#define API_LIMIT       1000
+
 namespace news{
     namespace plugins{
         namespace json_rpc{

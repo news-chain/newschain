@@ -15,11 +15,11 @@ namespace factory{
 
     class helper{
     public:
-		signed_transaction & helper::create_account(news::base::private_key_type& sign_pk, news::base::account_name& creator,
-			news::base::account_name& name, news::base::private_key_type& genprivate);
-        signed_transaction& create_transfer(private_key_type& sign_pk, account_name& from, account_name& to, asset& amount);
+		signed_transaction  helper::create_account(news::base::private_key_type& sign_pk,const news::base::account_name& creator,
+			const news::base::account_name& name, news::base::private_key_type& genprivate);
+        signed_transaction create_transfer(private_key_type& sign_pk, const account_name& from, const account_name& to, asset& amount);
     };
 	  
-    std::string&  string_json_rpc(const std::string &str);
+    std::string  string_json_rpc(uint64_t taskid, const std::string &str);
 
 }

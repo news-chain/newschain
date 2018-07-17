@@ -6,6 +6,7 @@
 #include <fc/exception/exception.hpp>
 #include <iostream>
 
+
 #include <wsClient.hpp>
 
 #include <fc/io/json.hpp>

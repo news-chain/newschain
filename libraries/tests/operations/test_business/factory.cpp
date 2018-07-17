@@ -9,8 +9,8 @@
 
 namespace factory{
 
-    signed_transaction& helper::create_account(news::base::private_key_type& sign_pk, news::base::account_name& creator,
-                                              news::base::account_name& name,news::base::private_key_type& genprivate) {
+    signed_transaction helper::create_account(news::base::private_key_type& sign_pk,const  news::base::account_name& creator,
+                                            const  news::base::account_name& name,news::base::private_key_type& genprivate) {
         signed_transaction trx;
         create_account_operation cao;
         cao.name = name;
@@ -23,8 +23,8 @@ namespace factory{
         return trx;
     }
 
-    signed_transaction&
-    helper::create_transfer(private_key_type& sign_pk, account_name& from, account_name& to, asset& amount) {
+    signed_transaction
+    helper::create_transfer(private_key_type& sign_pk,const account_name& from, const account_name& to, asset& amount) {
             signed_transaction trx; 
             transfer_operation transfer;
             transfer.from = from;
@@ -37,11 +37,10 @@ namespace factory{
     }
 
 
-    std::string&  string_json_rpc(const std::string &str)
-	{
-		   std::random_device rd;
+    std::string  string_json_rpc(uint64_t taskid,const std::string &str)
+	{ 
 		   char buff[12] = { 0 };
-		   sprintf_s(buff, 12,"%d", rd());  
+		   sprintf_s(buff, 12,"%d", taskid);
 		   std::string  ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +"}],\"id\":"+buff+",\"method\":\"call\"}";
 		  return ret;
     }

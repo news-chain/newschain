@@ -88,9 +88,12 @@ namespace http{
     }
 
 
-    void client::start() {
-        _client_thread.join();
-    }
+     
+	void client::stop()
+	{
+		_client.stop();
+		_client_thread.join();
+	}
 
 
 }

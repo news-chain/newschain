@@ -71,9 +71,8 @@ namespace http{
         ~client();
 		void init();
 		void init(open_handler h, message_handler h1, close_handler h2, fail_handler h3);
-        void send_message(std::string msg);
-
-        void start();
+        void send_message(std::string msg); 
+		void stop();
 
     private:
 

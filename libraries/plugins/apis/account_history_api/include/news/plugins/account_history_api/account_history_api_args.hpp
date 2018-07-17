@@ -20,21 +20,21 @@ namespace news{
 
 
             struct operation_obj_api{
-                operation_obj_api(){}
+                operation_obj_api():block(0),trx_in_block(0),op_in_trx(0){}
                 template <typename  T>
                 operation_obj_api(const T& obj)
                         :trx_id(obj.trx_id)
+                        ,block(obj.block)
                         ,trx_in_block(obj.trx_in_block)
                         ,op_in_trx(obj.trx_in_block)
-                        ,block(obj.block)
                         ,timestamp(obj.timestamp){
                     op = fc::raw::unpack_from_buffer<news::base::operation>(obj.op_packed);
                 }
 
                 news::base::transaction_id_type trx_id;
-                uint32_t                    block = 0;
-                uint32_t                    trx_in_block = 0;
-                uint32_t                    op_in_trx = 0;
+                uint32_t                    block;
+                uint32_t                    trx_in_block;
+                uint32_t                    op_in_trx;
                 fc::time_point_sec          timestamp;
                 news::base::operation       op;
 

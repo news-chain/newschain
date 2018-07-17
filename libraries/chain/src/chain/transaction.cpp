@@ -81,13 +81,16 @@ namespace news{
         void signed_transaction::verify_authority(const get_key_by_name &get_key, const chain_id_type &chain_id) const{
             flat_set<public_key_type> pubs = this->get_signature_keys(chain_id);
             std::map<public_key_type, bool> used;
+            flat_set<account_name > names;
             for(auto &p : pubs){
                 used[p] = false;
             }
 
             for(auto &op : operations){
-                account_name  name;
-                op.visit(operation_get_sign_name_visitor(name));
+                op.visit(operation_get_sign_name_visitor(names));
+            }
+
+            for(auto &name :names){
                 auto pk = get_key(name);
                 FC_ASSERT(used.find(pk) != used.end(), "signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
                 used[pk] = true;

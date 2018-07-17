@@ -15,8 +15,8 @@ namespace news{
 
 
        struct base_operation{
-           virtual void get_sign_name(account_name &name) const = 0;
-           virtual void validate() const = 0;
+           void get_sign_name(flat_set<account_name> &names) const{};
+           void validate() {}
            bool is_virtual = false;
        };
 
@@ -25,7 +25,7 @@ namespace news{
             account_name    creator;
             public_key_type public_key;
             void validate() const;
-            void get_sign_name(account_name &name) const { name = creator; }
+            void get_sign_name(flat_set<account_name> &names) const { names.insert(creator);}
         };
 
 
@@ -35,7 +35,7 @@ namespace news{
             asset           amount;
             std::string     memo;
             void validate() const;
-            void get_sign_name(account_name &name) const { name = from; }
+            void get_sign_name(flat_set<account_name> &names) const{ names.insert(from);}
         };
 
 
@@ -44,7 +44,7 @@ namespace news{
             std::map<account_name, asset>   to_names;
             std::string                     memo;
             void validate() const;
-            void get_sign_name(account_name &name) const { name = from; }
+            void get_sign_name(flat_set<account_name> &names) const{ names.insert(from);}
         };
 
 

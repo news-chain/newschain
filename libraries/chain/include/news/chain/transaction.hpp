@@ -30,7 +30,7 @@ namespace news{
 
         struct operation_get_sign_name_visitor{
             typedef void result_type;
-            operation_get_sign_name_visitor(account_name &name):_name(name){}
+            operation_get_sign_name_visitor(flat_set<account_name > &name):_name(name){}
             template <typename T>
             void operator()(const T&v)const{
                 v.get_sign_name(_name);
@@ -40,7 +40,7 @@ namespace news{
             void operator()(const fc::static_variant<T...> v){
                 v.visit(*this);
             }
-            account_name &_name;
+            flat_set<account_name > &_name;
         };
 
 

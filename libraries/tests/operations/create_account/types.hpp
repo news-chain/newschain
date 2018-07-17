@@ -10,14 +10,17 @@
 #include <fc/reflect/variant.hpp>
 #include <fc/variant.hpp>
 
+#include <boost/any.hpp>
 
 namespace tools{
 
 
+
+
+
     struct result_body{
         std::string jsonrpc;
-        std::string result;
-//        std::string e
+        fc::variant result;
         fc::optional<std::string> error;
         int64_t     id;
     };
@@ -25,7 +28,6 @@ namespace tools{
 
     bool result_has_error(const result_body &body);
 }
-
 
 
 

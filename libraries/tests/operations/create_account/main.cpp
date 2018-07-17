@@ -20,7 +20,7 @@ int main(int argc, char **argv){
 
 
 
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 1; i++){
             std::thread([](){
                 http::client client("ws://192.168.2.180:7002");
                 client.init();
@@ -40,7 +40,7 @@ int main(int argc, char **argv){
 
                 auto ff =  factory::helper();
                 srand((unsigned)time(NULL));
-                for(int i = 1; i < 2000; i++){
+                for(int i = 1; i < 2; i++){
 
                     auto name = (account_name)(rand());
                     auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, name);
@@ -68,6 +68,8 @@ int main(int argc, char **argv){
     }catch (...){
         std::cout << "unhandle exception." << std::endl;
     }
+
+
 
 
 

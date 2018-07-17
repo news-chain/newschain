@@ -80,10 +80,10 @@ namespace news{
 
         };
 
-        struct deatil_signed_transaction : public signed_transaction
+        struct detail_signed_transaction : public signed_transaction
         {
-            deatil_signed_transaction(){}
-            deatil_signed_transaction(const signed_transaction &trx)
+            detail_signed_transaction(){}
+            detail_signed_transaction(const signed_transaction &trx)
             :signed_transaction(trx),trx_id(trx.id()){}
 
             transaction_id_type          trx_id;
@@ -110,4 +110,4 @@ namespace fc{
 
 FC_REFLECT(news::chain::transaction, (ref_block_num)(ref_block_prefix)(expiration)(operations))
 FC_REFLECT_DERIVED(news::chain::signed_transaction, (news::chain::transaction), (signatures))
-FC_REFLECT_DERIVED(news::chain::deatil_signed_transaction, (news::chain::signed_transaction), (trx_id)(block_num)(transaction_num))
+FC_REFLECT_DERIVED(news::chain::detail_signed_transaction, (news::chain::signed_transaction), (trx_id)(block_num)(transaction_num))

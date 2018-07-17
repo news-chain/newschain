@@ -73,7 +73,7 @@ namespace news{
                 news::base::transaction_id_type     id;
             };
 
-            typedef news::chain::deatil_signed_transaction  get_transaction_return;
+            typedef news::chain::detail_signed_transaction  get_transaction_return;
 
 
 

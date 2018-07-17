@@ -52,7 +52,7 @@ namespace news{
             };
 
             struct get_transaction_return{
-                news::chain::deatil_signed_transaction trx;
+                news::chain::detail_signed_transaction trx;
             };
 
 

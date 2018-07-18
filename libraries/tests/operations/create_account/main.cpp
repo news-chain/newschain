@@ -49,7 +49,8 @@ int main(int argc, char **argv){
 //<<<<<<< HEAD
                 for(int j = 75; j < 76; j++){
 
-                    auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, (account_name)j/*(rand())*/);
+//                    auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, (account_name)j/*(rand())*/);
+                    auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, (account_name)(rand()));
 //=======
 //                for(int i = 1; i < 2; i++){
 //
@@ -59,7 +60,7 @@ int main(int argc, char **argv){
 //>>>>>>> 5632fce04ce3899206a01bfbb8ea708089067598
                     std::string ret = string_json_rpc(fc::json::to_string(str));
                     ddump((ret));
-                    dlog(ret);
+                    //dlog(ret);
                     client.send_message(ret);
 
 

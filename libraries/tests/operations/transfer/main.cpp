@@ -12,10 +12,6 @@ int main(int argc, char **argv)
 {
     try
     {
-        news::plugins::database_api::get_transactions_hex_args args;
-        //args.trx.
-        ddump((args));
-
         //ut for transfer
         for(int i = 0; i < 1; i++)
         {

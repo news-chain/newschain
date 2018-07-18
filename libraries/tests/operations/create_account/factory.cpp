@@ -19,7 +19,7 @@ namespace factory{
         cao.public_key = fc::ecc::private_key::generate().get_public_key();
 
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 10));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 1000));
         trx.operations.push_back(cao);
         trx.sign(sign_pk, NEWS_CHAIN_ID);
         return trx;

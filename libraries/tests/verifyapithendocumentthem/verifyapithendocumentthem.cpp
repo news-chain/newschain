@@ -19,7 +19,8 @@ int main(int argc, char **argv)
     {
         //verify hashing transaction
         news::plugins::database_api::get_transactions_hex_args args;
-        //args.trx.
+        args.trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 5));   //set timer as 5 seconds
+        args.trx.sign(NEWS_INIT_PRIVATE_KEY, NEWS_CHAIN_ID);
         ddump((args));
 
         //verify creating account

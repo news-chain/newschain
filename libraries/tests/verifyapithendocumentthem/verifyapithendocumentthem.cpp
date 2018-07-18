@@ -1,12 +1,17 @@
+//
+// Created by oy on 18-7-2018.
+//
+
 #include <fc/exception/exception.hpp>
 #include <iostream>
 
 #include <wsClient.hpp>
 
 #include <fc/io/json.hpp>
-#include "factory.hpp"
+#include "vdafactory.hpp"
 #include <news/plugins/database_api/database_api.hpp>
-using namespace factory;
+
+using namespace vdafactory;
 
 int main(int argc, char **argv)
 {
@@ -26,7 +31,7 @@ int main(int argc, char **argv)
 
                 auto start = fc::time_point::now();
 
-                auto ff =  factory::helper();
+                auto ff =  vdafactory::helper();
                 srand((unsigned)time(NULL));
                 for(int j = 1; j < 2; j++)
                 {
@@ -38,7 +43,7 @@ int main(int argc, char **argv)
                 auto end = fc::time_point::now();
                 ilog("time:${t}",("t", end - start));
                 client.start();
-            //}).detach();
+                //}).detach();
             }).join();
         }
 
@@ -54,7 +59,7 @@ int main(int argc, char **argv)
 
                 auto start = fc::time_point::now();
 
-                auto ff =  factory::helper();
+                auto ff =  vdafactory::helper();
                 srand((unsigned)time(NULL));
                 for(int j = 0; j < 1; j++)
                 {
@@ -74,7 +79,8 @@ int main(int argc, char **argv)
             }).join();
         }
 
-    }catch (const fc::exception &e)
+    }
+    catch (const fc::exception &e)
     {
         std::cout << e.to_detail_string() << std::endl;
     }

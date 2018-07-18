@@ -19,11 +19,11 @@ namespace news{
 
 
         struct block_header{
+            fc::time_point_sec              timestamp;
             account_name                    producer;
             checksum_type                   transaction_merkle_root;
             block_id_type                   previous;
             news::base::version             version;
-            fc::time_point_sec              timestamp;
             digest_type                     digest() const;
 
             uint32_t                        block_num() const {return fc::endian_reverse_u32(previous._hash[0]) + 1;}
@@ -45,5 +45,5 @@ namespace news{
     }//namespace chain
 }//namespace news
 
-FC_REFLECT(news::chain::block_header, (producer)(transaction_merkle_root)(previous)(version)(timestamp))
+FC_REFLECT(news::chain::block_header, (timestamp)(producer)(transaction_merkle_root)(previous)(version))
 FC_REFLECT_DERIVED(news::chain::signed_block_header, (news::chain::block_header), (producer_signature))

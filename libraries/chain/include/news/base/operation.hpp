@@ -17,7 +17,7 @@ namespace news{
        struct base_operation{
            void get_sign_name(flat_set<account_name> &names) const{};
            void validate() {}
-           bool is_virtual = false;
+           bool is_virtual(){return false;}
        };
 
         struct create_account_operation : public base_operation{

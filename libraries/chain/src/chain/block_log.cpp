@@ -41,7 +41,7 @@ namespace news{
                         try
                         {
                             if( block_write )
-                            { 
+                            {
                                 block_stream.close();
                                 block_stream.open( block_file.generic_string().c_str(), LOG_READ );
                                 block_write = false;
@@ -55,7 +55,7 @@ namespace news{
                         try
                         {
                             if( !block_write )
-                            { 
+                            {
                                 block_stream.close();
                                 block_stream.open( block_file.generic_string().c_str(), LOG_WRITE );
                                 block_write = true;
@@ -69,12 +69,9 @@ namespace news{
                         try
                         {
                             if( index_write )
-                            { 
+                            {
                                 index_stream.close();
                                 index_stream.open( index_file.generic_string().c_str(), LOG_READ );
-								uint64_t pos1 = index_stream.tellp();
-								 ilog("check_index_read close and open ${pos}", ("pos", pos1));
- 
                                 index_write = false;
                             }
                         }
@@ -86,12 +83,10 @@ namespace news{
                         try
                         {
                             if( !index_write )
-                            {  
-                                index_stream.close(); 
-                                index_stream.open( index_file.generic_string().c_str(), LOG_WRITE ); 
-								index_stream.seekg(0, std::ios::end);
-								//ilog("check_index_write close and open ${pos}", ("pos", pos1));
-								index_write = true;
+                            {
+                                index_stream.close();
+                                index_stream.open( index_file.generic_string().c_str(), LOG_WRITE );
+                                index_write = true;
                             }
                         }
                         FC_LOG_AND_RETHROW()
@@ -218,7 +213,7 @@ namespace news{
                     my->check_block_write();
                     my->check_index_write();
 
-                    uint64_t pos = my->index_stream.tellp();
+                    uint64_t pos = my->block_stream.tellp();
 					FC_ASSERT( static_cast<uint64_t>(my->index_stream.tellp()) == sizeof( uint64_t ) * ( b.block_num() - 1 ),
                                "Append to index file occuring at wrong position.",
                                ( "position", (uint64_t) my->index_stream.tellp() )( "expected",( b.block_num() - 1 ) * sizeof( uint64_t ) ) );

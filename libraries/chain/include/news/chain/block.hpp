@@ -24,12 +24,6 @@ namespace news{
 }//namespace news
 
 
-namespace  fc{
-//    void to_variant(const news::chain::signed_block &block, fc::variant &var);
-    //TODO from_variant ?
-}
-
-
 
 
 FC_REFLECT_DERIVED(news::chain::signed_block, (news::chain::signed_block_header),(transactions))

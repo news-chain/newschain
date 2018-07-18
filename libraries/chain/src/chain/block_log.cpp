@@ -72,8 +72,8 @@ namespace news{
                             { 
                                 index_stream.close();
                                 index_stream.open( index_file.generic_string().c_str(), LOG_READ );
-								uint64_t pos1 = index_stream.tellp();
-								 ilog("check_index_read close and open ${pos}", ("pos", pos1));
+//								uint64_t pos1 = index_stream.tellp();
+//								 ilog("check_index_read close and open ${pos}", ("pos", pos1));
  
                                 index_write = false;
                             }
@@ -89,7 +89,7 @@ namespace news{
                             {  
                                 index_stream.close(); 
                                 index_stream.open( index_file.generic_string().c_str(), LOG_WRITE ); 
-								index_stream.seekg(0, std::ios::end);
+//								index_stream.seekg(0, std::ios::end);
 								//ilog("check_index_write close and open ${pos}", ("pos", pos1));
 								index_write = true;
                             }

@@ -48,10 +48,7 @@ namespace news{
         };
 
 
-        typedef fc::static_variant<create_account_operation,
-                transfer_operation,
-                transfers_operation>
-                operation;
+
 
 
         /********************************************************************
@@ -60,12 +57,23 @@ namespace news{
          * */
 
 
-        struct packed_block_reward : public base_operation{
+        struct packed_block_reward_operation : public base_operation{
             account_name            producer;
+            account_name            to_name;
             asset                   reward;
-
+            void validate() const;
+            void get_sign_name(flat_set<account_name> &names) const{ names.insert(producer);}
+            bool is_virtual(){return true;}
         };
 
+
+
+
+        typedef fc::static_variant<create_account_operation,
+                transfer_operation,
+                transfers_operation,
+                packed_block_reward_operation>
+                operation;
 
 
     }//news::base
@@ -83,6 +91,6 @@ FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo))
    ********************************************************************
    * */
 
-FC_REFLECT(news::base::packed_block_reward, (producer)(reward))
+FC_REFLECT(news::base::packed_block_reward_operation, (producer)(to_name)(reward))
 
 

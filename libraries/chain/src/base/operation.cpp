@@ -39,8 +39,12 @@ namespace news{
                 FC_ASSERT(from != b.first, "dont allow tranfer to yourself.");
                 FC_ASSERT(b.second.amount > 0, "transfer balance must > 0.");
             }
-
-
         }
+
+        void packed_block_reward_operation::validate() const {
+            FC_ASSERT(to_name == NEWS_SYSTEM_ACCEPT_NAME, "only system account.");
+        }
+
+
     }//news::base
 }//news

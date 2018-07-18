@@ -71,5 +71,15 @@ namespace news{
             }
         }
 
+
+        void packed_block_reward_evaluator::do_apply(const news::base::packed_block_reward_operation &op){
+            FC_ASSERT(op.to_name == NEWS_SYSTEM_ACCEPT_NAME, "only system account");
+            FC_ASSERT(op.producer == _db.get_scheduled_producer(_db.head_block_num() + 1), "packed producer error");
+            const auto &to = _db.get_account(op.to_name);
+            _db.modify(to, [&](account_object &obj){
+                obj.balance += op.reward;
+            });
+        }
+
     }//news::chain
 }//news

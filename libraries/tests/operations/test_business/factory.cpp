@@ -24,13 +24,14 @@ namespace factory{
     }
 
     signed_transaction
-    helper::create_transfer(private_key_type& sign_pk,const account_name& from, const account_name& to, asset& amount) {
+    helper::create_transfer(uint64_t taskid,private_key_type& sign_pk,const account_name& from, const account_name& to, asset& amount) {
             signed_transaction trx; 
             transfer_operation transfer;
             transfer.from = from;
-            transfer.to = to;
+            transfer.to = to;			
 			transfer.amount = amount;
-			transfer.memo = fc::variant(fc::time_point::now().time_since_epoch()).as<std::string>();
+			fc::variant fc(taskid);
+			transfer.memo = fc.as<std::string>();
             trx.operations.push_back(transfer); 
             trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
             trx.sign(sign_pk, NEWS_CHAIN_ID);  

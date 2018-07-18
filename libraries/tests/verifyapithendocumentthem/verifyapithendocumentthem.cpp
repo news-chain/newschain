@@ -2,14 +2,14 @@
 // Created by oy on 18-7-2018.
 //
 
-#include <fc/exception/exception.hpp>
 #include <iostream>
 
+#include <fc/exception/exception.hpp>
+#include <fc/io/json.hpp>
+#include <news/plugins/database_api/database_api.hpp>
 #include <wsClient.hpp>
 
-#include <fc/io/json.hpp>
 #include "vdafactory.hpp"
-#include <news/plugins/database_api/database_api.hpp>
 
 using namespace vdafactory;
 
@@ -17,11 +17,17 @@ int main(int argc, char **argv)
 {
     try
     {
+        //verify hashing transaction
         news::plugins::database_api::get_transactions_hex_args args;
         //args.trx.
         ddump((args));
 
-        //ut for transfer
+        //verify creating account
+
+
+
+
+        //verify transferring asset(1 to 1)
         for(int i = 0; i < 1; i++)
         {
             std::thread([](){
@@ -46,10 +52,9 @@ int main(int argc, char **argv)
                 //}).detach();
             }).join();
         }
-
         //while(true);
 
-        //ut for transfers
+        //verify transferring asset(1 to n)
         for(int i = 0; i < 1; i++)
         {
             std::thread([](){

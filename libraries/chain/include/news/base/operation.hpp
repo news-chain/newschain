@@ -17,7 +17,7 @@ namespace news{
        struct base_operation{
            void get_sign_name(flat_set<account_name> &names) const{};
            void validate() {}
-           bool is_virtual = false;
+           bool is_virtual(){return false;}
        };
 
         struct create_account_operation : public base_operation{
@@ -60,11 +60,11 @@ namespace news{
          * */
 
 
-        struct packed_block_reward : public base_operation{
-            account_name            producer;
-            asset                   reward;
-
-        };
+//        struct packed_block_reward : public base_operation{
+//            account_name            producer;
+//            asset                   reward;
+//
+//        };
 
 
 
@@ -83,6 +83,6 @@ FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo))
    ********************************************************************
    * */
 
-FC_REFLECT(news::base::packed_block_reward, (producer)(reward))
+//FC_REFLECT(news::base::packed_block_reward, (producer)(reward))
 
 

@@ -16,5 +16,7 @@ namespace vdafactory
         signed_transaction transfers(private_key_type sign_pk, account_name from, std::map<account_name, asset> tos);
     };
 
+    std::string  assemble_json_rpc_string__get_account_history(const std::string &str);
+    std::string  assemble_json_rpc_string__get_transaction(const std::string &str);
     std::string  string_json_rpc(const std::string &str);
 }

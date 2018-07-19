@@ -13,7 +13,7 @@ namespace vdafactory
         cao.public_key = fc::ecc::private_key::generate().get_public_key();
 
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 10));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 1000));
         trx.operations.push_back(cao);
         trx.sign(sign_pk, NEWS_CHAIN_ID);
         return trx;
@@ -54,10 +54,24 @@ namespace vdafactory
         return trx;
     }
 
+    std::string assemble_json_rpc_string__get_account_history(const std::string &str)
+    {
+        std::string ret;
+        ret = R"rs({"jsonrpc":"2.0","params":["account_history_api","get_account_history",{"name":1,"start":4294967295,"limit":1000}],"id":-1,"method":"call"})rs";
+        return ret;
+    }
+
+    std::string assemble_json_rpc_string__get_transaction(const std::string &str)
+    {
+        std::string ret;
+        ret = R"rs({"jsonrpc":"2.0","params":["account_history_api","get_transaction",{"trx_id":"5eb267aef6fa66fa5be0feaaa4ba318e394bfa32"}],"id":-1,"method":"call"})rs";
+        return ret;
+    }
+
     std::string  string_json_rpc(const std::string &str)
     {
             std::string ret;
-            ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"chain_api\",\"push_transaction\"," + str +"],\"id\":-1,\"method\":\"call\"}";
+            ret = R"rs({"jsonrpc":"2.0","params":["network_broadcast_api","broadcast_transaction",{"trx":)rs" + str + R"rs(}],"id":-1,"method":"call"})rs";
             return ret;
     }
 }

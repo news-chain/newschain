@@ -119,8 +119,8 @@ public:
 		{  
 			result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
 			if (body.error.valid())
-			{
-				std::cout << msg->get_payload() << std::endl;
+			{ 
+				std::cout << fc::time_point::now().time_since_epoch().to_seconds() << msg->get_payload() << std::endl;
 				update(body.id, task_result::fail);
 			}
 			else
@@ -138,28 +138,78 @@ public:
 			std::cout << "on fail " << std::endl;
 
 		});
-		auto ff = factory::helper(); 
+		factory::helper  ff;
 	 
 		for (int i=0; i <accounts;i++)
 		{  
-			startid++;
+			uint64_t id=startid++;
 			news::base::private_key_type genkey;  
-			auto str = ff.create_account(myusers[1], 1, startid, genkey); 
-			std::string ret = string_json_rpc(++taskid, fc::json::to_string(str));
+			auto str = ff.create_account(myusers[1], 1, id, genkey);
+			auto tid = taskid++;
+			std::string ret = string_json_rpc(tid, fc::json::to_string(str));
 			client.send_message(ret);
-			myusers[startid] = genkey; 
-			
-			uint64_t id = ++taskid;
-			auto money = asset(NEWS_SYMBOL, 300 * 10000L);
-			ff.create_transfer(id,myusers[1],1, startid, money);
-			ret = string_json_rpc(id, fc::json::to_string(str));
-			client.send_message(ret);
+			myusers.insert(std::make_pair(id, genkey));
+
+			taskresult rs;
+			rs.username = id;
+			rs.start_time = fc::time_point::now().time_since_epoch().count();
+			rs.id = tid;
+			rs.result = task_result::recvfail;
+			rs.op = option_user::create_user; 
+			mytask.insert(std::make_pair(tid, std::move(rs)));
+			 
+			//uint64_t id = ++taskid;
+			//auto money = asset(NEWS_SYMBOL, 300 * 10000L);
+			//ff.create_transfer(id,myusers[1],1, startid, money);
+			//ret = string_json_rpc(id, fc::json::to_string(str));
+			//client.send_message(ret);
 
 		} 
 		client.stop();
 		return true;
 
 	}
+	void init_money()
+	{
+		http::client client(getws());
+		client.init(
+			[](websocketpp::connection_hdl hdl)
+		{
+			std::cout << "on open " << std::endl;
+		},
+			[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
+		{
+			result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
+			if (body.error.valid())
+				std::cout << fc::time_point::now().time_since_epoch().to_seconds() << msg->get_payload() << std::endl;
+
+		},
+			[](websocketpp::connection_hdl hdl)
+		{
+			std::cout << "on close " << std::endl;
+		},
+			[](websocketpp::connection_hdl hdl)
+		{
+			std::cout << "on fail " << std::endl;
+
+		});
+		factory::helper  ff;
+
+		std::cout << "hava " << myusers_name.size() << " account" << std::endl;
+		for (int i = 1; i <myusers_name.size(); i++)
+		{ 
+			uint64_t id = ++taskid;
+			auto money = asset(NEWS_SYMBOL, 300 * 10000L);
+			auto str=ff.create_transfer(id, myusers[1], 1, myusers_name[i], money);
+			string ret = string_json_rpc(id, fc::json::to_string(str));
+			client.send_message(ret); 
+		}
+		client.stop();
+		
+
+	}
+
+
 	bool gen_account()
 	{ 
 			assert(thread_counts>0); 
@@ -173,14 +223,14 @@ public:
 					client.init(
 						[](websocketpp::connection_hdl hdl)
 					{
-						std::cout << "on open " << std::endl;
+						std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on open " << std::endl;
 					}, 
 						[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
 					{ 
 						result_body body = fc::json::from_string(msg->get_payload()).as<result_body>(); 						
 						if (body.error.valid())
 						{
-							std::cout << msg->get_payload() << std::endl;
+							std::cout << fc::time_point::now().time_since_epoch().to_seconds() << msg->get_payload() << std::endl;
 							update(body.id, task_result::fail);
 						}
 						else
@@ -191,17 +241,15 @@ public:
 					}, 
 						[](websocketpp::connection_hdl hdl) 
 					{
-						std::cout << "on close " << std::endl;
+						std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on close " << std::endl;
 					}, 
 						[](websocketpp::connection_hdl hdl) 
 					{
-						std::cout << "on fail " << std::endl;
+						std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on fail " << std::endl;
 
 					});
-					auto ff = factory::helper(); 
-					uint64_t lastlogtime = 0;
-					std::random_device rd;
-					std::default_random_engine engine(rd());
+					factory::helper  ff;
+					uint64_t lastlogtime = 0; 
 					while (true)
 					{
 						if (isstop)
@@ -214,6 +262,8 @@ public:
 							std::lock_guard<std::mutex> lock(mutex_myusers_name);
 							users_name_size=myusers_name.size();
 						}
+						std::random_device rd;
+						std::default_random_engine engine(rd());
 						std::uniform_int_distribution<> dis(0, users_name_size-1);
 						auto  productor = std::bind(dis, engine);
 						uint64_t from =  productor();
@@ -226,10 +276,10 @@ public:
 						client.send_message(ret); 
 						taskresult rs;
 						auto times= fc::time_point::now().time_since_epoch().count(); 
-						if ((times - lastlogtime) > 1000000 * 10)
+						if ((times - lastlogtime) > 1000000 * 60*20)
 						{
 							lastlogtime = times;
-							std::cout << "has send " << taskid << " message " << std::endl;
+							std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str()<< "has send " << taskid << " message " << std::endl;
 						}
 						rs.start_time = times;
 						rs.id = id;
@@ -255,9 +305,15 @@ public:
 
 	bool start_business(bool multiple=false)
 	{ 
-		befor_transfer_one();  
-		//std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+		mytask.clear();
+		if (!befor_transfer_one())
+			return false; 
 		boost::this_thread::sleep(boost::posix_time::seconds(5));
+		std::cout << "gen account ok" << std::endl;
+		init_money(); 
+		boost::this_thread::sleep(boost::posix_time::seconds(5));
+		mytask.clear();
+		std::cout << "init money  ok" << std::endl;
 		std::cout << "have " << myusers_name.size() << " account to test the transfer" << std::endl;
 		if (myusers_name.size() <= 5)
 			return false;
@@ -270,41 +326,44 @@ public:
 				client.init(
 					[](websocketpp::connection_hdl hdl)
 				{
-					std::cout << "on open " << std::endl;
+					std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on open " << std::endl;
 				},
 					[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
 				{
 					
 					result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
 					
-					if (body.error.valid())					
-						update(body.id, task_result::fail); 
+					if (body.error.valid())
+					{
+						std::cout << fc::time_point::now().time_since_epoch().to_seconds() << msg->get_payload() << std::endl;
+						update(body.id, task_result::fail);
+					}
 					else
 						update(body.id);
 
 				},
 					[](websocketpp::connection_hdl hdl)
 				{
-					std::cout << "on close " << std::endl;
+					std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str()<< "on close " << std::endl;
 				},
 					[](websocketpp::connection_hdl hdl)
 				{
-					std::cout << "on fail " << std::endl;
+					std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on fail " << std::endl;
 
 				});
-				auto ff = factory::helper(); 
+				factory::helper  ff;
 				static uint64_t lastlogtime=0;
 				std::random_device rd;
 				std::default_random_engine engine(rd());
+				std::uniform_int_distribution<> dis(0, myusers_name.size() - 1);
+				auto  productor = std::bind(dis, engine);
 				while(true) 
 				{
 					if (isstop)
 					{
 						client.stop();
 						break;
-					}  
-					std::uniform_int_distribution<> dis(0, myusers_name.size()-1);
-					auto  productor = std::bind(dis, engine);
+					}   
 					uint64_t from = productor(); 
 					uint64_t to = productor();
 					if (from == to)
@@ -316,12 +375,12 @@ public:
 					client.send_message(ret); 
 					taskresult rs;
 					auto times= fc::time_point::now().time_since_epoch().count();
-					if ((times - lastlogtime) > 1000000 * 10)
+					if ((times - lastlogtime) > 1000000 * 60*20)
 					{
 						lastlogtime = times;
-						std::cout << "has send " << taskid << " message " << std::endl;
+						std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str()<< "has send " << taskid << " message " << std::endl;
 					}
-						rs.start_time = times;
+					rs.start_time = times;
 					rs.id = id;
 					rs.result = task_result::recvfail;
 					rs.op = option_user::transfer_one;
@@ -366,9 +425,9 @@ public:
 		ilog("fail-network:${t}", ("t", failnetwork));
 		ilog("fail-but-network is ok:${t}", ("t", fail-failnetwork));
 	    float	rs = ok/((endtime - starttime) / 1000000);
-		ilog("ok tips/s:${t}", ("t", rs));
+		ilog("ok tps/s:${t}", ("t", rs));
 		 rs = (fail - failnetwork) / ((endtime - starttime) / 1000000); 
-		ilog("fail but network is ok tips/s:${t} ", ("t", rs));
+		ilog("fail but network is ok tps/s:${t} ", ("t", rs));
 
 
 	}
@@ -422,7 +481,7 @@ int main(int argc, char **argv){
 			("mode", program_options::value<std::string>(), "send-ws-mode(include primary and balance,default balance)");
 		program_options::variables_map vm;
 		program_options::store(program_options::parse_command_line(argc, argv, opts), vm);
-
+		std::cout << "for example --ws=\"192.168.2.183:7772\" --mode=balance --threadpool=8 --startid=410000" << std::endl;
 		cout << opts << endl;
 		run_type type = run_type::balance;
 		if (vm.count("mode")) {

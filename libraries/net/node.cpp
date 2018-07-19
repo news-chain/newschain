@@ -937,9 +937,9 @@ namespace graphene { namespace net {
             {
               fc::microseconds delay_until_retry = fc::seconds((iter->number_of_failed_connection_attempts + 1) * _node_configuration.peer_connection_retry_timeout);
 
-			  auto status = iter->last_connection_disposition;
-			  auto lst = iter->last_connection_attempt_time;
-			  auto during = fc::time_point::now() - lst;
+//			  auto status = iter->last_connection_disposition;
+//			  auto lst = iter->last_connection_attempt_time;
+//			  auto during = fc::time_point::now() - lst;
               if (!is_connection_to_endpoint_in_progress(iter->endpoint) &&
                   ((iter->last_connection_disposition != last_connection_failed &&
                     iter->last_connection_disposition != last_connection_rejected &&
@@ -3607,7 +3607,7 @@ namespace graphene { namespace net {
                                           const message_hash_type& message_hash)
     {
       VERIFY_CORRECT_THREAD();
-      fc::time_point message_receive_time = fc::time_point::now();
+//      fc::time_point message_receive_time = fc::time_point::now();
       // find out whether we requested this item while we were synchronizing or during normal operation
       // (it's possible that we request an item during normal operation and then get kicked into sync
       // mode before we receive and process the item.  In that case, we should process the item as a normal

@@ -205,7 +205,6 @@ namespace news {
                                 start = fc::time_point::now();
                             }
 
-
                             if (write_queue.pop(cxt)) {
                                 db.with_write_lock([&]() {
                                     while (true) {
@@ -231,7 +230,7 @@ namespace news {
                             }//
 
                             if (!is_syncing) {
-                                boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
                             }
 
                         }//while
@@ -303,12 +302,10 @@ namespace news {
             void chain_plugin::plugin_startup() {
 
 
+                try {
 
 
                     _my->db.set_flush_interval(_my->flush_state_interval);
-
-
-
 
                     chain::open_db_args db_open_args;
                     db_open_args.data_dir = app::application::getInstance().get_data_path() / "blockchain";
@@ -343,6 +340,9 @@ namespace news {
 
                     }
 
+                } catch (const fc::exception &e) {
+                    elog("${e}", ("e", e.to_detail_string()));
+                }
 //                on_sync();
             }
 
@@ -398,7 +398,8 @@ namespace news {
 
             void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
-                elog("accept_block #${b}, size ${s} time ${t}", ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
+                elog("accept_block #${b}, size ${s} time ${t}",
+                     ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
                 if (syncing) {
 
                 }

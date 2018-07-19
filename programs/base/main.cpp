@@ -94,10 +94,19 @@ int main(int argc, char **argv){
         app.start_up();
 
         app.exec();
+
     }catch (const std::exception &e){
         std::cout << e.what() << std::endl;
         return -1;
+    }catch (const fc::exception &e){
+        std::cout << "main exception : " << e.to_detail_string() << std::endl;
+        return 2;
+    } catch (const boost::exception &e){
+        elog("boost::exception");
+        return 3;
+    }catch (...){
+        std::cout << "unhangle exception in main" << __FUNCTION__ << __LINE__ << std::endl;
+        return 4;
     }
-
     return 0;
 }

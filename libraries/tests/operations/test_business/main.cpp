@@ -93,8 +93,11 @@ public:
 
 	void update(uint64_t id, task_result fs= task_result::suces)
 	{
+
 		{
 			std::lock_guard<std::mutex> lock(mutex_mytask);
+			if (mytask[id].id == 0 || mytask[id].op < option_user::create_user)
+				return;
 			mytask[id].end_time = fc::time_point::now().time_since_epoch().count();
 			mytask[id].result = fs;
 			{
@@ -196,8 +199,10 @@ public:
 		factory::helper  ff;
 
 		std::cout << "hava " << myusers_name.size() << " account" << std::endl;
-		for (int i = 1; i <myusers_name.size(); i++)
+		for (int i = 0; i <myusers_name.size(); i++)
 		{ 
+			if (myusers_name[i] == 1)
+				continue;
 			uint64_t id = ++taskid;
 			auto money = asset(NEWS_SYMBOL, 300 * 10000L);
 			auto str=ff.create_transfer(id, myusers[1], 1, myusers_name[i], money);
@@ -276,7 +281,7 @@ public:
 						client.send_message(ret); 
 						taskresult rs;
 						auto times= fc::time_point::now().time_since_epoch().count(); 
-						if ((times - lastlogtime) > 1000000 * 60*20)
+						if ((times - lastlogtime) > 1000000 * 60 )
 						{
 							lastlogtime = times;
 							std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str()<< "has send " << taskid << " message " << std::endl;
@@ -375,7 +380,7 @@ public:
 					client.send_message(ret); 
 					taskresult rs;
 					auto times= fc::time_point::now().time_since_epoch().count();
-					if ((times - lastlogtime) > 1000000 * 60*20)
+					if ((times - lastlogtime) > 1000000 * 60 )
 					{
 						lastlogtime = times;
 						std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str()<< "has send " << taskid << " message " << std::endl;
@@ -403,12 +408,20 @@ public:
 		uint64_t responsetime = 0;
 		uint64_t responsetime_network_ok = 0;
 		uint64_t failnetwork = 0;
+		uint64_t long_time = 0;
+		uint64_t short_time = 0xFFFFFFFFFFFFFFFF;
 		ilog("time:${t}", ("t", (endtime - starttime)/1000000));
 		for (auto it : mytask)
 		{
 			if (it.second.result == task_result::suces)
 			{
-				responsetime += (it.second.end_time - it.second.start_time);
+				assert(it.second.end_time >= it.second.start_time);
+				uint64_t current = it.second.end_time - it.second.start_time;
+				responsetime += current;
+				if (current == 0)
+					continue;
+				long_time = ((current > long_time) ? current : long_time);
+				short_time= ((short_time > current) ? current : short_time);
 				ok++;
 			}
 			else {
@@ -429,6 +442,13 @@ public:
 		 rs = (fail - failnetwork) / ((endtime - starttime) / 1000000); 
 		ilog("fail but network is ok tps/s:${t} ", ("t", rs));
 
+
+
+
+
+		ilog("the longest cost:${t}", ("t", long_time));
+		ilog("the shortest cost:${t}", ("t", short_time)); 
+		ilog("the avg cost:${t}", ("t", responsetime/ ok));
 
 	}
 	bool end_business()
@@ -552,7 +572,12 @@ int main(int argc, char **argv){
 		bs.show_result();
 
 		 
-		getchar();
+		while (true)
+		{
+			if (getchar() != 'q')
+				continue;
+			break;
+		}
 	 
     return 0;
 }

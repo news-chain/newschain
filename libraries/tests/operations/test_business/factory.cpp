@@ -9,14 +9,10 @@
 #include <stdio.h>
 namespace factory{
 
-	std::mutex mut;
+	 
     signed_transaction helper::create_account(news::base::private_key_type& sign_pk,const  news::base::account_name& creator,
                                             const  news::base::account_name& name,news::base::private_key_type& genprivate) { 
-
-												{
-													std::lock_guard<std::mutex> lock(mut);
-													std::cout << creator << "  to " << name << std::endl;
-												}
+		 
         signed_transaction trx;
         create_account_operation cao;
         cao.name = name;
@@ -32,11 +28,7 @@ namespace factory{
 
     signed_transaction
     helper::create_transfer(uint64_t taskid,private_key_type& sign_pk,const account_name& from, const account_name& to, asset& amount) 
-	{
-		{
-			std::lock_guard<std::mutex> lock(mut);
-			std::cout << from << "  to " << to << std::endl;
-		}
+	{ 
 		
 		signed_transaction trx;
             transfer_operation transfer;

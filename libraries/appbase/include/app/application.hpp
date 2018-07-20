@@ -68,8 +68,7 @@ namespace news{
                 if(existing){
                     return *dynamic_cast<Plugin*>(existing);
                 }
-//                std::cout << "regist plguin " << Plugin::name() << std::endl;
-                ilog("register plugin ${p}", ("p", Plugin::name()));
+//                ilog("register plugin ${p}", ("p", Plugin::name()));
                 auto plug = std::make_shared<Plugin>();
                 _plugins[Plugin::name()] = plug;
                 plug->register_dependencies();

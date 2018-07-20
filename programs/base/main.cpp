@@ -62,14 +62,13 @@ int main(int argc, char **argv){
         regist_plugin(app);
 
         app.set_default_plugins<
-                news::plugins::chain_plugin::chain_plugin,
-                news::plugins::p2p::p2p_plugin
+                news::plugins::p2p::p2p_plugin,
+                news::plugins::chain_plugin::chain_plugin
         >();
 
         bool init = app.initizlize<
                 news::plugins::chain_api_plugin::chain_api_plugin,
                 news::plugins::producer_plugin::producer_plugin,
-                news::plugins::p2p::p2p_plugin,
                 news::plugins::block_api_plugin::block_api_plugin,
                 news::plugins::database_api::database_api_plugin,
 //                news::plugins::account_history_plugin::account_history_plugin,
@@ -96,16 +95,16 @@ int main(int argc, char **argv){
         app.exec();
 
     }catch (const std::exception &e){
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return -1;
     }catch (const fc::exception &e){
-        std::cout << "main exception : " << e.to_detail_string() << std::endl;
+        std::cerr << "main exception : " << e.to_detail_string() << std::endl;
         return 2;
     } catch (const boost::exception &e){
-        elog("boost::exception");
+        std::cerr << boost::diagnostic_information(e) << std::endl;
         return 3;
     }catch (...){
-        std::cout << "unhangle exception in main" << __FUNCTION__ << __LINE__ << std::endl;
+        std::cerr << "unhandle exception in main\n";// << __FUNCTION__ << __LINE__ << std::endl;
         return 4;
     }
     return 0;

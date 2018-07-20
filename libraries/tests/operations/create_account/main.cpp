@@ -17,21 +17,47 @@ using namespace factory;
 int main(int argc, char **argv) {
 
     try {
+        http::client client("ws://192.168.2.180:6002");
 
-        auto start = fc::time_point::now();
+        client.init();
+
+        client.set_handle_message([](const std::string &str){
+            tools::result_body ret = fc::json::from_string(str).as<tools::result_body>();
+            if(ret.error.valid()){
+                std::cout << str << std::endl;
+            }
+        });
 
         auto ff = factory::helper();
         srand((unsigned) time(NULL));
 
-        auto name = (account_name) (rand());
-        auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, name);
+        for(int j = 0; j < 100; j++){
+            for(int i = 0; i < 2000; i++){
+                auto start = fc::time_point::now();
 
-        std::string ret = string_json_rpc(fc::json::to_string(str));
-        ddump((ret));
+                auto name = (account_name) (rand());
+                auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY, 1, name);
+
+                std::string ret = string_json_rpc(fc::json::to_string(str));
+//                ddump((ret));
 
 
-        auto end = fc::time_point::now();
-        ilog("time:${t}", ("t", end - start));
+                auto end = fc::time_point::now();
+//                ilog("time:${t}", ("t", end - start));
+
+                client.send_message(ret);
+
+
+            }
+            sleep(1);
+        }
+
+        client.stop();
+
+
+
+
+
 
     } catch (const fc::exception &e) {
         std::cout << e.to_detail_string() << std::endl;

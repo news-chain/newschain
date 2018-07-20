@@ -20,8 +20,8 @@ namespace tools{
 
     struct result_body{
         std::string jsonrpc;
-        fc::variant result;
-        fc::optional<std::string> error;
+        fc::optional<fc::variant> result;
+        fc::optional<fc::variant> error;
         int64_t     id;
     };
 

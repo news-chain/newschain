@@ -39,6 +39,9 @@ namespace news{
             fc::time_point_sec  time;
             account_name        current_producer;
             uint32_t            last_irreversible_block_num = 0;
+
+            uint32_t            current_aslot = 0;
+
         };
 
         struct by_id;
@@ -58,6 +61,6 @@ namespace news{
 }//namespace news
 
 
-FC_REFLECT(news::chain::dynamic_global_property_object, (id)(head_block_num)(head_block_id)(time)(current_producer)(last_irreversible_block_num))
+FC_REFLECT(news::chain::dynamic_global_property_object, (id)(head_block_num)(head_block_id)(time)(current_producer)(last_irreversible_block_num)(current_aslot))
 
 CHAINBASE_SET_INDEX_TYPE( news::chain::dynamic_global_property_object, news::chain::dynamic_global_property_object_index )

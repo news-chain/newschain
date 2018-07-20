@@ -10,25 +10,6 @@ namespace news {
     namespace chain {
 
         namespace detail {
-/**
- * Set the skip_flags to the given value, call callback,
- * then reset skip_flags to their previous value after
- * callback is done.
- */
-//            template< typename Lambda >
-//            void with_skip_flags(
-//                    database& db,
-//                    uint32_t skip_flags,
-//                    Lambda callback )
-//            {
-//                node_property_object& npo = db.node_properties();
-//                skip_flags_restorer restorer( npo, npo.skip_flags );
-//                npo.skip_flags = skip_flags;
-//                callback();
-//                return;
-//            }
-
-
         }//news::chain::detail
 
 
@@ -141,10 +122,11 @@ namespace news {
 
         account_name database::get_scheduled_producer(uint32_t num) const {
             const auto &gpo = get_global_property_object();
-
-            auto name = NEWS_SYSTEM_ACCOUNT_NAME + gpo.head_block_num % 2;
-
-            return name;
+            static vector<account_name> producers = {NEWS_SYSTEM_ACCOUNT_NAME, NEWS_SYSTEM_ACCOUNT_NAME+1};
+            uint64_t current_slot = gpo.current_aslot + num;
+//            elog("get_scheduled_producer ${n}", ("n", current_slot));
+            return producers[current_slot % producers.size()];
+//            return producers[(gpo.head_block_num ) % producers.size()];
         }
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
@@ -296,11 +278,22 @@ namespace news {
 
         void database::update_global_property_object(const signed_block &block) {
             const auto &gpo = get_global_property_object();
-            modify(gpo, [block](dynamic_global_property_object &obj) {
+
+            uint32_t miss_blocks = get_slot_at_time(block.timestamp);
+            assert(miss_blocks != 0);
+
+
+            modify(gpo, [block, miss_blocks](dynamic_global_property_object &obj) {
                 obj.time = block.timestamp;
                 obj.head_block_num = block.block_num();
                 obj.head_block_id = block.id();
+                obj.current_aslot += miss_blocks;
             });
+
+
+
+
+
         }
 
         void database::update_last_irreversible_block() {
@@ -634,7 +627,7 @@ namespace news {
                     while (itr.first.block_num() != last_block_num) {
                         auto current_block_num = itr.first.block_num();
                         if (current_block_num % 10000 == 0) {
-                            std::cerr << "now reindex block num :" << itr.first.block_num() << std::endl;
+                            std::cerr << "now reindex block num :" << itr.first.block_num() << " spend: " << (fc::time_point::now() - start).count() / 1000000.0 << std::endl;
                         }
 
                         apply_block(itr.first, skip_flags);

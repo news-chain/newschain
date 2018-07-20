@@ -250,6 +250,8 @@ namespace news{
 
                                 ws_ios.run();
                                 ilog("complete ws_ios listening");
+                            }catch (fc::exception &e){
+                                elog("error throw exception for http_endpoint start:   ${e}", ("e", e.what()));
                             }catch (...){
                                 elog("catch erro in ws_server");
                             }
@@ -374,12 +376,18 @@ namespace news{
 
             void webserver_plugin::plugin_startup() {
 
-                my->api = news::app::application::getInstance().find_plugin< news::plugins::json_rpc::json_rpc_plugin>();
-                FC_ASSERT(my->api != nullptr, "Could not find API Register plugin json rpc");
+
+                try {
+                    my->api = news::app::application::getInstance().find_plugin< news::plugins::json_rpc::json_rpc_plugin>();
+                    FC_ASSERT(my->api != nullptr, "Could not find API Register plugin json rpc");
+                    my->start_webserver();
+                }catch (const fc::exception &e){
+                    elog("${e}", ("e", e.to_detail_string()));
+                }catch (...){
+                    elog("unhanle exception. webserver_plugin::plugin_startup()");
+                }
 
 
-
-                my->start_webserver();
 
             }
 

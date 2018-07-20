@@ -16,7 +16,7 @@ namespace news{
         void create_account_evaluator::do_apply(const create_account_operation &o) {
             const auto &itr = _db.get_index<account_object_index>().indices().get<by_name>();
             FC_ASSERT(itr.find(o.creator) != itr.end(), "not find creator ${c}", ("c", o.creator));
-            FC_ASSERT(itr.find(o.name) == itr.end(), "user ${n} is exists.", ("n", o.name));
+            FC_ASSERT(itr.find(o.name) == itr.end(), "user ${n} is existed.", ("n", o.name));
 
             _db.create<account_object>([&](account_object &obj){
                 obj.name = o.name;

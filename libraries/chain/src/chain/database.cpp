@@ -173,21 +173,21 @@ namespace news {
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            uint32_t count = 8000;
+            uint32_t count = 1000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
 
 
-            signed_transaction reward_trx;
-
-            packed_block_reward_operation reward_op;
-            reward_op.producer = producer;
-            reward_op.to_name = NEWS_SYSTEM_ACCEPT_NAME;
-            reward_op.reward = asset(NEWS_SYMBOL, NEWS_BLOCK_REWARD);
-            reward_trx.operations.push_back(reward_op);
-            reward_trx.set_expiration(when + NEWS_BLOCK_INTERVAL);
-            reward_trx.sign(private_key_by_signed, get_chain_id());
-
-            pengding_block.transactions.push_back(reward_trx);
+//            signed_transaction reward_trx;
+//
+//            packed_block_reward_operation reward_op;
+//            reward_op.producer = producer;
+//            reward_op.to_name = NEWS_SYSTEM_ACCEPT_NAME;
+//            reward_op.reward = asset(NEWS_SYMBOL, NEWS_BLOCK_REWARD);
+//            reward_trx.operations.push_back(reward_op);
+//            reward_trx.set_expiration(when + NEWS_BLOCK_INTERVAL);
+//            reward_trx.sign(private_key_by_signed, get_chain_id());
+//
+//            pengding_block.transactions.push_back(reward_trx);
 
 
             for (const signed_transaction &tx : _pending_trx) {
@@ -634,7 +634,7 @@ namespace news {
                     while (itr.first.block_num() != last_block_num) {
                         auto current_block_num = itr.first.block_num();
                         if (current_block_num % 10000 == 0) {
-                            std::cerr << itr.first.block_num() << std::endl;
+                            std::cerr << "now reindex block num :" << itr.first.block_num() << std::endl;
                         }
 
                         apply_block(itr.first, skip_flags);

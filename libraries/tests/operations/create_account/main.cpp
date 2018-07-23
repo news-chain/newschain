@@ -17,7 +17,7 @@ using namespace factory;
 int main(int argc, char **argv) {
 
     try {
-        http::client client("ws://192.168.2.180:6002");
+        http::client client("ws://192.168.0.139:6002");
 
         client.init();
 
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
         auto ff = factory::helper();
         srand((unsigned) time(NULL));
 
-        for(int j = 0; j < 100; j++){
+        for(int j = 0; j < 1000; j++){
             for(int i = 0; i < 2000; i++){
                 auto start = fc::time_point::now();
 

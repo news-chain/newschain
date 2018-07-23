@@ -200,6 +200,7 @@ namespace news {
                           * not an optimal use of system resources when we could give CPU time to read threads.
                           */
 
+                        int count = 0;
                         while (running) {
                             if (!is_syncing) {
                                 start = fc::time_point::now();
@@ -212,6 +213,11 @@ namespace news {
                                         req_visitor.except = &(cxt->except);
                                         cxt->success = cxt->req_ptr.visit(req_visitor);
                                         cxt->prom_ptr.visit(promise_visitor);
+                                        count++;
+                                        if(count >= 100){
+                                            count = 0;
+                                            break;
+                                        }
                                         if (is_syncing && start - db.head_block_time() < fc::minutes(1)) {
                                             start = fc::time_point::now();
                                             break;
@@ -220,6 +226,7 @@ namespace news {
                                             fc::time_point::now() - start > fc::milliseconds(write_lock_hold_time)) {
                                             break;
                                         }
+
 
                                         if (!write_queue.pop(cxt)) {
                                             break;
@@ -230,7 +237,7 @@ namespace news {
                             }//
 
                             if (!is_syncing) {
-                                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
 
                         }//while

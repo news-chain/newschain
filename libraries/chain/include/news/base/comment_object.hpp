@@ -94,20 +94,21 @@ namespace news {
 			fc::time_point                  create_time;
 		};
 		  
-		struct by_permlink; 
+		struct by_vote_id;
+		struct by_vote_permlink; 
 
 		typedef multi_index_container<
 			comment_vote_object, 
 			indexed_by<
-			ordered_unique<tag<by_id>,
+			ordered_unique<tag<by_vote_id>,
 			member<comment_vote_object, comment_vote_object::id_type, &comment_vote_object::id>
-			>,
-			ordered_unique< tag< by_permlink >,
-			composite_key< comment_object,
+					>,
+			ordered_unique< tag< by_vote_permlink >,
+			composite_key< comment_vote_object,
 			member<comment_vote_object, chainbase::shared_string, &comment_vote_object::permlink>
-			>,
+						>,
 			composite_key_compare<strcmp_less>
-			>
+						>
 			>, 
  
 			chainbase::allocator <comment_vote_object>

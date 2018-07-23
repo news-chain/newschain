@@ -75,10 +75,9 @@ namespace news{
 
 		void comment_evaluator::do_apply(const news::base::comment_operation &o)
 		{    
-			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>();   
-			chainbase::shared_string to;
-			to_shared_string(o.permlink, to); 
-			auto iffind = it.find (to); 
+			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>(); 
+ 
+			auto iffind = it.find(o.permlink);
 			if (iffind != it.end()) 
 				FC_ASSERT(false,"have find permlink: ${r}", ("r", o.permlink));   
 			_db.create<comment_object>([&](comment_object &obj) {
@@ -95,11 +94,9 @@ namespace news{
 
 		void comment_vote_evaluator::do_apply(const news::base::comment_vote_operation &o)
 		{
-			const auto &it = _db.get_index<comment_vote_object_index>().indices().get<by_permlink>(); 
-			strcmp_less cmp;
-			chainbase::shared_string to;
-			to_shared_string(o.permlink, to);
-			auto iffind = it.find(to,cmp);
+			const auto &it = _db.get_index<comment_vote_object_index>().indices().get<by_vote_permlink>();  
+		
+			auto iffind = it.find(o.permlink);
 			if (iffind != it.end())
 				FC_ASSERT(false, "have find permlink: ${r}", ("r", o.permlink)); 
 

@@ -48,9 +48,25 @@ namespace news{
         };
 
 
+		struct comment_operation : public base_operation {
+			account_name   author;
+			std::string    title; // 128
+			std::string    body; //  1024
+			std::string    permlink; //128
+			std::string    metajson;
+			void validate() const;
+			void get_sign_name(flat_set<account_name> &names) const { names.insert(author); }
+		}; 
 
-
-
+			struct comment_vote_operation : public base_operation {
+			account_name   author;
+			std::string    permlink; //128		
+			uint64_t up;
+			uint64_t down; 
+			void validate() const;
+			void get_sign_name(flat_set<account_name> &names) const { names.insert(author); }
+		};
+		 
         /********************************************************************
          *                      virtual operation
          ********************************************************************
@@ -72,7 +88,9 @@ namespace news{
         typedef fc::static_variant<create_account_operation,
                 transfer_operation,
                 transfers_operation,
-                packed_block_reward_operation>
+                packed_block_reward_operation,
+				comment_operation,
+				comment_vote_operation>
                 operation;
 
 
@@ -84,7 +102,9 @@ FC_REFLECT_TYPENAME(news::base::operation)
 
 FC_REFLECT(news::base::create_account_operation, (name)(creator)(public_key))
 FC_REFLECT(news::base::transfer_operation, (from)(to)(amount)(memo))
-FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo))
+FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo)) 
+FC_REFLECT(news::base::comment_operation, (author)(title)(body)(permlink))
+FC_REFLECT(news::base::comment_vote_operation, (author)(permlink)(up)(down))
 
 /********************************************************************
    *                      virtual operation
@@ -92,5 +112,8 @@ FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo))
    * */
 
 FC_REFLECT(news::base::packed_block_reward_operation, (producer)(to_name)(reward))
+
+
+ 
 
 

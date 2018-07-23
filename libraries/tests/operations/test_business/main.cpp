@@ -308,6 +308,103 @@ public:
 		return true;
 	} 
 
+
+
+
+	bool publish_comment()
+	{
+		assert(thread_counts>0);
+		starttime = fc::time_point::now().time_since_epoch().count();
+		mytask.clear();
+		for (int i = 0; i < thread_counts; i++)
+		{
+			std::thread* th = new std::thread([&]()
+			{
+				http::client client(getws());
+				client.init(
+					[](websocketpp::connection_hdl hdl)
+				{
+					std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on open " << std::endl;
+				},
+					[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
+				{
+					result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
+					if (body.error.valid())
+					{
+						std::cout << fc::time_point::now().time_since_epoch().to_seconds() << msg->get_payload() << std::endl;
+						update(body.id, task_result::fail);
+					}
+					else
+					{
+						update(body.id);
+					}
+
+				},
+					[](websocketpp::connection_hdl hdl)
+				{
+					std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on close " << std::endl;
+				},
+					[](websocketpp::connection_hdl hdl)
+				{
+					std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "on fail " << std::endl;
+
+				});
+				factory::helper  ff;
+				uint64_t lastlogtime = 0;
+				while (true)
+				{
+					if (isstop)
+					{
+						client.stop();
+						break;
+					}
+					int users_name_size = 0;
+					{
+						std::lock_guard<std::mutex> lock(mutex_myusers_name);
+						users_name_size = myusers_name.size();
+					}
+					std::random_device rd;
+					std::default_random_engine engine(rd());
+					std::uniform_int_distribution<> dis(0, users_name_size - 1);
+					auto  productor = std::bind(dis, engine);
+					uint64_t from = productor();
+					uint64_t genuser = startid++;
+					news::base::private_key_type genkey;
+					auto admin = myusers.at(myusers_name[from]);
+					auto str = ff.publish_comment(100, myusers[1], 1, "title","body test","https://wbaidu.com","{a:text;}");
+					auto id = taskid++;
+					std::string ret = string_json_rpc(id, fc::json::to_string(str));
+					client.send_message(ret);
+					taskresult rs;
+					auto times = fc::time_point::now().time_since_epoch().count();
+					if ((times - lastlogtime) > 1000000 * 60)
+					{
+						lastlogtime = times;
+						std::cout << fc::time_point_sec(fc::time_point::now()).to_iso_string().c_str() << "has send " << taskid << " message " << std::endl;
+					}
+					rs.start_time = times;
+					rs.id = id;
+					rs.result = task_result::recvfail;
+					rs.username = genuser;
+					rs.op = option_user::create_user;
+					{
+						std::lock_guard<std::mutex> lock(mutex_mytask);
+						mytask.insert(std::make_pair(id, std::move(rs)));
+					}
+					{
+						std::lock_guard<std::mutex> lock(mutex_);
+						myusers.insert(std::make_pair(genuser, genkey));
+					}
+
+
+				}
+			});
+			th_pool.push_back(th);
+		}
+		return true;
+	}
+
+
 	bool start_business(bool multiple=false)
 	{ 
 		mytask.clear();
@@ -544,7 +641,7 @@ int main(int argc, char **argv){
 		}
 		business bs(wsaddr, type, threadcount,startid);
 
-		std::cout << "input: 1: gen account;2:transfer_one;3:transfer_ones" << std::endl;
+		std::cout << "input: 1: gen account;2:transfer_one;3:transfer_ones:4 :publish_comment" << std::endl;
 
 		int i = -1;
 		std::cin >> i;
@@ -560,6 +657,10 @@ int main(int argc, char **argv){
 		case 3:
 			bs.start_business(true);
 			break;
+		case 4:
+			bs.publish_comment();
+			break;
+			
 		}
 		while (true)
 		{

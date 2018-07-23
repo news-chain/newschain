@@ -72,6 +72,48 @@ namespace news{
         }
 
 
+
+		void comment_evaluator::do_apply(const news::base::comment_operation &o)
+		{    
+			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>();   
+			chainbase::shared_string to;
+			to_shared_string(o.permlink, to); 
+			auto iffind = it.find (to); 
+			if (iffind != it.end()) 
+				FC_ASSERT(false,"have find permlink: ${r}", ("r", o.permlink));   
+			_db.create<comment_object>([&](comment_object &obj) {
+				obj.author = o.author;
+				to_shared_string(o.title, obj.title);
+				to_shared_string(o.body, obj.body);
+				to_shared_string(o.permlink, obj.permlink);
+				to_shared_string(o.metajson, obj.metajson); 
+				obj.create_time = _db.head_block_time(); 			 
+			});  
+			 
+			 
+		} 
+
+		void comment_vote_evaluator::do_apply(const news::base::comment_vote_operation &o)
+		{
+			const auto &it = _db.get_index<comment_vote_object_index>().indices().get<by_permlink>(); 
+			strcmp_less cmp;
+			chainbase::shared_string to;
+			to_shared_string(o.permlink, to);
+			auto iffind = it.find(to,cmp);
+			if (iffind != it.end())
+				FC_ASSERT(false, "have find permlink: ${r}", ("r", o.permlink)); 
+
+			if(o.up)
+			_db.modify(*iffind, [&](comment_vote_object &obj) {
+				obj.up++;
+			}); 
+			if (o.up)
+				_db.modify(*iffind, [&](comment_vote_object &obj) {
+				obj.down++;
+			}); 
+		}
+
+
         void packed_block_reward_evaluator::do_apply(const news::base::packed_block_reward_operation &op){
             FC_ASSERT(op.to_name == NEWS_SYSTEM_ACCEPT_NAME, "only system account");
             FC_ASSERT(op.producer == _db.get_scheduled_producer(_db.head_block_num() + 1), "packed producer error");

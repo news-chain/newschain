@@ -44,3 +44,10 @@
 #define NEWS_BLOCK_REWARD               (48 * 100000000ll)
 
 
+
+
+#define NEWS_COMMENT_TITLE_MAX_LEN            128
+#define NEWS_COMMENT_BODY_MAX_LEN             1024
+
+#define NEWS_COMMENT_TITLE_MIN_LEN            1
+#define NEWS_COMMENT_BODY_MIN_LEN             10

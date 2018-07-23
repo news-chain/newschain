@@ -88,31 +88,7 @@ namespace chainbase {
    using std::unique_ptr;
    using std::vector;
 
-   struct strcmp_less
-   {
-      bool operator()( const shared_string& a, const shared_string& b )const
-      {
-         return less( a.c_str(), b.c_str() );
-      }
-
-#ifndef ENABLE_STD_ALLOCATOR
-      bool operator()( const shared_string& a, const std::string& b )const
-      {
-         return less( a.c_str(), b.c_str() );
-      }
-
-      bool operator()( const std::string& a, const shared_string& b )const
-      {
-         return less( a.c_str(), b.c_str() );
-      }
-#endif
-      private:
-         inline bool less( const char* a, const char* b )const
-         {
-            return std::strcmp( a, b ) < 0;
-         }
-   };
-
+ 
    template<uint16_t TypeNumber, typename Derived>
    struct object
    {

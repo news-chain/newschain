@@ -26,6 +26,23 @@ namespace factory{
     }
 
 
+	signed_transaction helper::publish_comment(uint64_t taskid, private_key_type& sign_pk,
+		account_name   author, std::string    title, std::string    body, std::string    permlink, std::string    metajson)
+	{
+
+		signed_transaction trx;
+		comment_operation cao;
+		cao.author = author;
+		cao.title = title;
+		cao.permlink = permlink;
+		cao.metajson = metajson;  
+		trx.operations.push_back(cao);
+		trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+		trx.sign(sign_pk, NEWS_CHAIN_ID);
+		return trx;
+	}
+
+
     signed_transaction
     helper::create_transfer(uint64_t taskid,private_key_type& sign_pk,const account_name& from, const account_name& to, asset& amount) 
 	{ 

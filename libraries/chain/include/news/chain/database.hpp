@@ -26,6 +26,7 @@
 #include <news/chain/operation_object.hpp>
 
 #include <news/base/operation.hpp>
+#include <news/base/comment_object.hpp>
 #include <news/base/account_object.hpp>
 #include <news/base/operation_notification.hpp>
 

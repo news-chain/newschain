@@ -82,6 +82,7 @@ namespace news{
 				FC_ASSERT(false,"have find permlink: ${r}", ("r", o.permlink));   
 			_db.create<comment_object>([&](comment_object &obj) {
 				obj.author = o.author;
+				obj.up = obj.down = 0;
 				to_shared_string(o.title, obj.title);
 				to_shared_string(o.body, obj.body);
 				to_shared_string(o.permlink, obj.permlink);
@@ -94,20 +95,27 @@ namespace news{
 
 		void comment_vote_evaluator::do_apply(const news::base::comment_vote_operation &o)
 		{
-			const auto &it = _db.get_index<comment_vote_object_index>().indices().get<by_vote_permlink>();  
-		
+			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>();
 			auto iffind = it.find(o.permlink);
 			if (iffind != it.end())
-				FC_ASSERT(false, "have find permlink: ${r}", ("r", o.permlink)); 
-
-			if(o.up)
-			_db.modify(*iffind, [&](comment_vote_object &obj) {
-				obj.up++;
-			}); 
-			if (o.up)
-				_db.modify(*iffind, [&](comment_vote_object &obj) {
-				obj.down++;
-			}); 
+				FC_ASSERT(false, "have find permlink: ${r}", ("r", o.permlink));  
+			if(o.ticks==0)
+				FC_ASSERT(false, "ticks ==0 "); 
+			if(o.ticks>0)
+			_db.modify(*iffind, [&](comment_object &obj) {
+				obj.up+=o.ticks;
+			});  
+			else{
+				_db.modify(*iffind, [&](comment_object &obj) {
+					obj.down += o.ticks;
+				});
+				}
+			_db.create<comment_vote_object>([&](comment_vote_object &obj) {
+				obj.voter = o.voter;
+				obj.ticks = o.ticks;
+				to_shared_string(o.permlink, obj.permlink); 
+				obj.create_time = _db.head_block_time();
+			});
 		}
 
 

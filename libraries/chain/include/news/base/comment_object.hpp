@@ -39,6 +39,8 @@ namespace news {
 			chainbase::shared_string        body;
 			chainbase::shared_string        permlink;
 			chainbase::shared_string        metajson;
+			uint64_t up;  
+			uint64_t down;  
 			fc::time_point                  create_time;
 
 		};
@@ -86,11 +88,10 @@ namespace news {
 			comment_vote_object(Constructor&& c, Allocator&&  alloc): permlink(alloc){
 				c(*this);
 			}
-			id_type                         id;
-			account_name                    author; 
-			chainbase::shared_string        permlink;
-			uint64_t						up;
-			uint64_t						down; 
+			id_type                         id; 
+			account_name                    voter;   
+			chainbase::shared_string        permlink; 
+			int								ticks;
 			fc::time_point                  create_time;
 		};
 		  
@@ -114,6 +115,8 @@ namespace news {
 			chainbase::allocator <comment_vote_object>
 			>
 			comment_vote_object_index;  
+		 
+		 
 
 	}//news::base
 }//news
@@ -124,6 +127,6 @@ FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(metaj
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_object, news::base::comment_object_index) 
 
  
-FC_REFLECT(news::base::comment_vote_object, (id)(author)(permlink)(up)(down)(create_time))
+FC_REFLECT(news::base::comment_vote_object, (id)(voter)(permlink)(ticks)(create_time))
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_vote_object, news::base::comment_vote_object_index)
 

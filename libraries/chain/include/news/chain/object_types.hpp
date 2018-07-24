@@ -25,7 +25,7 @@ namespace news{
             operation_object_type,
             account_history_object_type,
 			comment_object_type,
-			comment_vote_object_type
+			comment_vote_object_type  
         };
 
 //        typedef oid<block_summary_object>           block_summary_object_id_type;

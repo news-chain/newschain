@@ -46,9 +46,11 @@ namespace news{
 			FC_ASSERT(title.length()< NEWS_COMMENT_TITLE_MAX_LEN, "title must greater ${t}", ("t",NEWS_COMMENT_TITLE_MAX_LEN)); 
 		}
 		void comment_vote_operation::validate() const {
-			validate_account_name(author);
-			FC_ASSERT(permlink.length()< NEWS_COMMENT_TITLE_MAX_LEN, "permlink must greater ${t}", ("t", NEWS_COMMENT_TITLE_MAX_LEN));
+			validate_account_name(voter);
+			int count =0- NEWS_COMMENT_TITLES_MAX;  
+			FC_ASSERT(ticks < count || ticks > NEWS_COMMENT_TITLES_MAX, "ticks must range ${t} ${t1}", ("t", NEWS_COMMENT_TITLE_MAX_LEN)("t", count));
 		}
+		 
 		
         void packed_block_reward_operation::validate() const {
             FC_ASSERT(to_name == NEWS_SYSTEM_ACCEPT_NAME, "only system account.");

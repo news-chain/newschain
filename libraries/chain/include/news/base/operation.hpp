@@ -53,20 +53,19 @@ namespace news{
 			std::string    title; // 128
 			std::string    body; //  1024
 			std::string    permlink; //128
-			std::string    metajson;
+			std::string    metajson; 
 			void validate() const;
 			void get_sign_name(flat_set<account_name> &names) const { names.insert(author); }
 		}; 
 
 			struct comment_vote_operation : public base_operation {
-			account_name   author;
-			std::string    permlink; //128		
-			uint64_t up;
-			uint64_t down; 
+			account_name   voter; 
+			std::string    permlink; //128	 
+			 int 	   ticks ; 
 			void validate() const;
-			void get_sign_name(flat_set<account_name> &names) const { names.insert(author); }
+			void get_sign_name(flat_set<account_name> &names) const { names.insert(voter); }
 		};
-		 
+			 
         /********************************************************************
          *                      virtual operation
          ********************************************************************
@@ -104,7 +103,7 @@ FC_REFLECT(news::base::create_account_operation, (name)(creator)(public_key))
 FC_REFLECT(news::base::transfer_operation, (from)(to)(amount)(memo))
 FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo)) 
 FC_REFLECT(news::base::comment_operation, (author)(title)(body)(permlink))
-FC_REFLECT(news::base::comment_vote_operation, (author)(permlink)(up)(down))
+FC_REFLECT(news::base::comment_vote_operation, (voter)(permlink)(ticks))
 
 /********************************************************************
    *                      virtual operation

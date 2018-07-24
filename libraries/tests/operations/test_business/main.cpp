@@ -12,6 +12,12 @@
 #include "factory.hpp"
 
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+using namespace boost::uuids;
+
+
 #include <vector>
 #include <map> 
 #include <random> 
@@ -29,7 +35,10 @@ enum option_user
 {
 	create_user = 0x1,
 	transfer_one = create_user + 1,
-	transfer_ones = transfer_one + 1
+	transfer_ones = transfer_one + 1,
+	publish_comment = transfer_ones + 1,
+	comment_up = publish_comment + 1,
+	comment_down = comment_up + 1
 };
 enum task_result
 {
@@ -357,22 +366,11 @@ public:
 					{
 						client.stop();
 						break;
-					}
-					int users_name_size = 0;
-					{
-						std::lock_guard<std::mutex> lock(mutex_myusers_name);
-						users_name_size = myusers_name.size();
-					}
-					std::random_device rd;
-					std::default_random_engine engine(rd());
-					std::uniform_int_distribution<> dis(0, users_name_size - 1);
-					auto  productor = std::bind(dis, engine);
-					uint64_t from = productor();
-					uint64_t genuser = startid++;
-					news::base::private_key_type genkey;
-					auto admin = myusers.at(myusers_name[from]);
-					auto str = ff.publish_comment(100, myusers[1], 1, "title","body test","https://wbaidu.com","{a:text;}");
+					} 
+					boost::uuids::uuid a_uuid = boost::uuids::random_generator()();  
+					const string tmp_uuid = boost::uuids::to_string(a_uuid);
 					auto id = taskid++;
+					auto str = ff.publish_comment(id, myusers[1], 1, "title","body test",tmp_uuid.c_str(),"{a:text;}"); 
 					std::string ret = string_json_rpc(id, fc::json::to_string(str));
 					client.send_message(ret);
 					taskresult rs;
@@ -385,18 +383,12 @@ public:
 					rs.start_time = times;
 					rs.id = id;
 					rs.result = task_result::recvfail;
-					rs.username = genuser;
-					rs.op = option_user::create_user;
+					rs.username = 1;
+					rs.op = option_user::publish_comment;
 					{
 						std::lock_guard<std::mutex> lock(mutex_mytask);
 						mytask.insert(std::make_pair(id, std::move(rs)));
-					}
-					{
-						std::lock_guard<std::mutex> lock(mutex_);
-						myusers.insert(std::make_pair(genuser, genkey));
-					}
-
-
+					} 
 				}
 			});
 			th_pool.push_back(th);

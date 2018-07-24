@@ -72,7 +72,7 @@ namespace news {
             add_index<operation_obj_index>();
             add_index<account_history_obj_index>();
 			add_index<comment_object_index>();
-			add_index<comment_vote_object_index>();
+			add_index<comment_vote_object_index>(); 
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -755,7 +755,7 @@ namespace news {
             _my->_eveluator_registry.register_evaluator<transfers_evaluator>();
             _my->_eveluator_registry.register_evaluator<packed_block_reward_evaluator>();
 			_my->_eveluator_registry.register_evaluator<comment_evaluator>();
-			_my->_eveluator_registry.register_evaluator<comment_evaluator>();
+			_my->_eveluator_registry.register_evaluator<comment_vote_evaluator>();
         }
 
         fc::optional<signed_block> database::fetch_block_by_number(uint32_t block_num) {

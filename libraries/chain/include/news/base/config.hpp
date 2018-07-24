@@ -51,3 +51,6 @@
 
 #define NEWS_COMMENT_TITLE_MIN_LEN            1
 #define NEWS_COMMENT_BODY_MIN_LEN             10
+
+
+#define NEWS_COMMENT_TITLES_MAX             100

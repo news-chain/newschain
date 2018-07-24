@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <thread>
+#include <boost/multi_index/composite_key.hpp>
 
 using namespace chainbase;
 using namespace boost::multi_index;
@@ -22,79 +23,81 @@ using namespace boost::multi_index;
 struct book : public chainbase::object<0, book> {
 
     template<typename Constructor, typename Allocator>
-    book(  Constructor&& c, Allocator&& a ){
+    book(Constructor &&c, chainbase::allocator<Allocator> a) {
         c(*this);
     }
 
-    id_type     id;
-    uint32_t    a;
-    uint32_t         b;
+    id_type id;
+    int a;
+    int b;
 };
 
+struct by_name;
+struct by_id;
+struct by_ab;
 typedef multi_index_container<
         book,
         indexed_by<
-                ordered_unique< member<book,book::id_type,&book::id> >,
-//                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,shared_string,str1) >,
-                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,uint32_t,a) >,
-                ordered_non_unique< BOOST_MULTI_INDEX_MEMBER(book,uint32_t,b) >
+                ordered_unique<tag<by_id>,
+                        member<book, book::id_type, &book::id>
+                >
+
+                , ordered_unique<tag<by_ab>,
+                        composite_key<book,
+                                member<book, int, &book::a>,
+                                member<book, int, &book::b>
+                        >,
+                        composite_key_compare<std::less<int>, std::greater<int> >
+                >
         >,
         chainbase::allocator<book>
-> book_index;
+>
+        book_index;
 
-CHAINBASE_SET_INDEX_TYPE( book, book_index )
+CHAINBASE_SET_INDEX_TYPE(book, book_index)
 
 BOOST_AUTO_TEST_SUITE(open_and_create_rw)
 
-    BOOST_AUTO_TEST_CASE( open_and_create_rw ) {
-//        boost::filesystem::path temp = boost::filesystem::unique_path();
-        boost::filesystem::path temp("1831-1fc3-5011-eb5f");
+    BOOST_AUTO_TEST_CASE(open_and_create_rw) {
+        boost::filesystem::path temp = boost::filesystem::unique_path();
+//        boost::filesystem::path temp("1831-1fc3-5011-eb5f");
         try {
             std::cerr << temp.relative_path() << " \n";
 
             chainbase::database db;
 //            BOOST_CHECK_THROW( db.open( temp), std::runtime_error ); /// temp does not exist
-            db.open( temp, database::read_write, 1024*1024*1024 * 12L );
+            db.open(temp, 0, 1024 * 1024 * 1024 * 12L);
 //            BOOST_CHECK_THROW( db.add_index<book_index>(), std::logic_error ); /// cannot add same index twice
             db.add_index<book_index>();
 
-            BOOST_TEST_MESSAGE( "Creating book" );
-
-
+            BOOST_TEST_MESSAGE("Creating book");
             auto now = boost::posix_time::second_clock::local_time();
 
-//            std::string str = "abcdef";
 
-//            for(uint64_t j = 0; j < 10000000; j++){
-//                db.create<book>([]( book& b ) {
-//                    b.a = 1;
-//                    b.b = 2;
-//                } );
-//            }
-
-
-//
-            for(uint64_t j = 0; j < 10000000; j++){
-                const auto &bk = db.get(book::id_type(j));
-                db.modify(bk, [](book &b){
-                    b.a = 3;
-                    b.b = 4;
-                });
-
-
-
+            for(int i = 0; i < 10; i++){
+                for(int j = 0; j < 10; j++){
+                    db.create<book>([&](book &obj){
+                        obj.a = i;
+                        obj.b = j;
+                    });
+                }
             }
 
-            auto end = boost::posix_time::second_clock::local_time();
-            auto spend = end.time_of_day().total_microseconds() - now.time_of_day().total_microseconds();
-            std::cout << "end - now " << spend << std::endl;
-//            while (true);
+            const auto &itrx = db.get_index<book_index>().indices().get<by_ab>();
+            auto ee = itrx.lower_bound(boost::make_tuple(3, 3));
+            auto bb = itrx.upper_bound(boost::make_tuple(7, 7));
+            while(bb != ee && bb != itrx.end()){
+                std::cout << "id: " << bb->id._id << " a: " << bb->a << " b:" << bb->b << std::endl;
+                bb++;
+            }
 
-            db.close();
 
 
-        } catch ( ... ) {
-            bfs::remove_all( temp );
+
+
+
+        } catch (...) {
+            bfs::remove_all(temp);
             throw;
         }
     }

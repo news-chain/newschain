@@ -405,8 +405,8 @@ namespace news {
 
             void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
 
-                wlog("accept_block #${b}, size ${s} time ${t}",
-                     ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
+                wlog("accept_block #${b}, size ${s} time ${t}  sync ${cc}ms",
+                     ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp)("cc", (fc::time_point::now().time_since_epoch().count() - ((int64_t)block.timestamp.sec_since_epoch()) * 1000000) / 1000));
                 if (syncing) {
 
                 }

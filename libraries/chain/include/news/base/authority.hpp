@@ -10,13 +10,16 @@
 namespace news{
     namespace base{
 
-        struct shared_authority{
+        typedef  int32_t weight_type;
 
-            template <typename Allocator>
-            shared_authority(const Allocator &a){
-                
-            }
+
+        struct shared_authority{
+            public_key_type         key;
+            int32_t                 weight_type;
         };
 
     }
 }
+
+
+FC_REFLECT(news::base::shared_authority, (key)(weight_type))

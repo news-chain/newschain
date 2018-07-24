@@ -18,10 +18,19 @@ int main(int argc, char **argv) {
 
     try {
         http::client client("ws://192.168.0.139:6002");
+        http::client client1("ws://192.168.0.139:8002");
 
         client.init();
+        client1.init();
 
         client.set_handle_message([](const std::string &str){
+            tools::result_body ret = fc::json::from_string(str).as<tools::result_body>();
+            if(ret.error.valid()){
+                std::cout << str << std::endl;
+            }
+        });
+
+        client1.set_handle_message([](const std::string &str){
             tools::result_body ret = fc::json::from_string(str).as<tools::result_body>();
             if(ret.error.valid()){
                 std::cout << str << std::endl;
@@ -31,7 +40,7 @@ int main(int argc, char **argv) {
         auto ff = factory::helper();
         srand((unsigned) time(NULL));
 
-        for(int j = 0; j < 1000; j++){
+        for(int j = 0; j < 20000; j++){
             for(int i = 0; i < 2000; i++){
                 auto start = fc::time_point::now();
 
@@ -44,8 +53,13 @@ int main(int argc, char **argv) {
 
                 auto end = fc::time_point::now();
 //                ilog("time:${t}", ("t", end - start));
+                if(i % 2 == 0){
+                    client.send_message(ret);
+                }
+                else{
+                    client1.send_message(ret);
+                }
 
-                client.send_message(ret);
 
 
             }
@@ -53,6 +67,7 @@ int main(int argc, char **argv) {
         }
 
         client.stop();
+        client1.stop();
 
 
 

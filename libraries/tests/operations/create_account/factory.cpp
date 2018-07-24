@@ -16,8 +16,8 @@ namespace factory{
         create_account_operation cao;
         cao.name = name;
         cao.creator = creator;
-        cao.public_key = fc::ecc::private_key::generate().get_public_key();
-
+        cao.posting = {fc::ecc::private_key::generate().get_public_key(),1};
+        cao.owner = {fc::ecc::private_key::generate().get_public_key(), 1};
 
         trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
         trx.operations.push_back(cao);

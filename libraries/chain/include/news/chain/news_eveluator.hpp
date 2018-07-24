@@ -16,7 +16,6 @@ namespace news{
 NEWS_DEFINE_EVALUATOR(create_account)
 NEWS_DEFINE_EVALUATOR(transfer)
 NEWS_DEFINE_EVALUATOR(transfers)
-NEWS_DEFINE_EVALUATOR(packed_block_reward)
 NEWS_DEFINE_EVALUATOR(comment)
 NEWS_DEFINE_EVALUATOR(comment_vote)
 

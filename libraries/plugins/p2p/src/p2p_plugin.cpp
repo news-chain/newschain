@@ -404,7 +404,7 @@ namespace news {
                                                                // block is a block we know about, but it is on a fork
                                                                try
                                                                {
-                                                                  // fork_history = chain->get_database().get_block_ids_on_fork(reference_point);
+                                                                   fork_history = chain->get_database().get_block_ids_on_fork(reference_point);
                                                                    // returns a vector where the last element is the common ancestor with the preferred chain,
                                                                    // and the first element is the reference point you passed in
                                                                    assert(fork_history.size() >= 2);

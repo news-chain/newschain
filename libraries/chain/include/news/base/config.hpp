@@ -38,7 +38,7 @@
 
 #define NEWS_SYSTEM_ACCEPT_NAME         (10)
 #define NEWS_ACCEPT_NAME_PRIVATE_KEY     (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key1"))))
-#define NEWS_ACCEPT_NAME_PUBLIC_KEY      (std::string(news::base::public_key_type(NEWS_INIT_PRIVATE_KEY.get_public_key())))
+#define NEWS_ACCEPT_NAME_PUBLIC_KEY      (std::string(news::base::public_key_type(NEWS_ACCEPT_NAME_PRIVATE_KEY.get_public_key())))
 
 
 #define NEWS_BLOCK_REWARD               (48 * 100000000ll)

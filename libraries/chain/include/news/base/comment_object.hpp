@@ -85,13 +85,14 @@ namespace news {
 		public:
 			//        CHAINBASE_DEFAULT_CONSTRUCTOR(account_object)
 			template<typename Constructor, typename Allocator>
-			comment_vote_object(Constructor&& c, Allocator&&  alloc): permlink(alloc){
+			comment_vote_object(Constructor&& c, Allocator&&  alloc): permlink(alloc),memo(alloc){
 				c(*this);
 			}
 			id_type                         id; 
 			account_name                    voter;   
 			chainbase::shared_string        permlink; 
 			int								ticks;
+			chainbase::shared_string			memo;
 			fc::time_point                  create_time;
 		};
 		  
@@ -106,9 +107,10 @@ namespace news {
 					>,
 			ordered_unique< tag< by_vote_permlink >,
 			composite_key< comment_vote_object,
+			member<comment_vote_object, account_name,&comment_vote_object::voter>,
 			member<comment_vote_object, chainbase::shared_string, &comment_vote_object::permlink>
 						>,
-			composite_key_compare<strcmp_less>
+			composite_key_compare<std::less< account_name>,strcmp_less>
 						>
 			>, 
  
@@ -127,6 +129,6 @@ FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(metaj
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_object, news::base::comment_object_index) 
 
  
-FC_REFLECT(news::base::comment_vote_object, (id)(voter)(permlink)(ticks)(create_time))
+FC_REFLECT(news::base::comment_vote_object, (id)(voter)(permlink)(ticks)(memo)(create_time))
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_vote_object, news::base::comment_vote_object_index)
 

@@ -97,19 +97,12 @@ namespace news{
 		{
 			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>();
 			auto iffind = it.find(o.permlink);
-			if (iffind != it.end())
-				FC_ASSERT(false, "have find permlink: ${r}", ("r", o.permlink));  
-			if(o.ticks==0)
-				FC_ASSERT(false, "ticks ==0 "); 
-			if(o.ticks>0)
-			_db.modify(*iffind, [&](comment_object &obj) {
-				obj.up+=o.ticks;
+			if (iffind == it.end())
+				FC_ASSERT(false, "have not find permlink: ${r}", ("r", o.permlink));   
+			_db.modify(*iffind, [&](comment_object &obj) { 
+				o.ticks>0?(obj.up+=o.ticks): (obj.down += abs(o.ticks));  
 			});  
-			else{
-				_db.modify(*iffind, [&](comment_object &obj) {
-					obj.down += o.ticks;
-				});
-				}
+			 
 			_db.create<comment_vote_object>([&](comment_vote_object &obj) {
 				obj.voter = o.voter;
 				obj.ticks = o.ticks;

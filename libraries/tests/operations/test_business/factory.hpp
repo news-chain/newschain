@@ -16,11 +16,10 @@ namespace factory{
 
     class helper{
     public: 
-		signed_transaction  create_account(news::base::private_key_type& sign_pk,const news::base::account_name& creator,
-			const news::base::account_name& name, news::base::private_key_type& genprivate);
+		signed_transaction  create_account(news::base::private_key_type& sign_pk,const news::base::account_name& creator,const news::base::account_name& name, news::base::private_key_type& genprivate);
         signed_transaction create_transfer(uint64_t taskid,private_key_type& sign_pk, const account_name& from, const account_name& to, asset& amount);
-		signed_transaction publish_comment(uint64_t taskid, private_key_type& sign_pk,
-			account_name   author,	std::string    title,		std::string    body,		std::string    permlink,	std::string    metajson	);
+		signed_transaction publish_comment(uint64_t taskid, private_key_type& sign_pk,	account_name   author,	std::string    title,		std::string    body,		std::string    permlink,	std::string    metajson	);
+		signed_transaction comment_vote(uint64_t taskid, private_key_type& sign_pk,	account_name   vote,  std::string    permlink, int ticks);
 	 
     };
 	  

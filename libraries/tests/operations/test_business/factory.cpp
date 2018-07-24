@@ -59,7 +59,22 @@ namespace factory{
             trx.sign(sign_pk, NEWS_CHAIN_ID);  
             return trx;
     }
+	signed_transaction helper::comment_vote(uint64_t taskid, private_key_type& sign_pk,
+		account_name   vote, std::string    permlink, int ticks)
+	{
+		signed_transaction trx;
+		comment_vote_operation transfer;
+		transfer.voter = vote;
+		transfer.permlink = permlink; 
+		transfer.ticks= ticks;  
+		fc::variant fc(taskid);
+		transfer.memo = fc.as<std::string>();
+		trx.operations.push_back(transfer);
+		trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+		trx.sign(sign_pk, NEWS_CHAIN_ID);
+		return trx;
 
+	}
 
     std::string  string_json_rpc(uint64_t taskid,const std::string &str)
 	{ 

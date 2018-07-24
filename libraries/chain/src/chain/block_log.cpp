@@ -84,8 +84,9 @@ namespace news{
                         {
                             if( !index_write )
                             {
+								index_stream.clear();
                                 index_stream.close();
-                                index_stream.open( index_file.generic_string().c_str(), LOG_WRITE );
+                                index_stream.open( index_file.generic_string().c_str(), LOG_WRITE ); 
                                 index_write = true;
                             }
                         }

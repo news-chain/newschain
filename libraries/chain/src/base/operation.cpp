@@ -46,9 +46,11 @@ namespace news{
 			FC_ASSERT(title.length()< NEWS_COMMENT_TITLE_MAX_LEN, "title must greater ${t}", ("t",NEWS_COMMENT_TITLE_MAX_LEN)); 
 		}
 		void comment_vote_operation::validate() const {
-			validate_account_name(voter);
+			validate_account_name(voter); 
+				FC_ASSERT(ticks != 0, "ticks ==0 ");
 			int count =0- NEWS_COMMENT_TITLES_MAX;  
-			FC_ASSERT(ticks < count || ticks > NEWS_COMMENT_TITLES_MAX, "ticks must range ${t} ${t1}", ("t", NEWS_COMMENT_TITLE_MAX_LEN)("t", count));
+			FC_ASSERT( ticks > count ,"ticks must greater than ${t} ", ("t", count));
+			FC_ASSERT(  ticks < NEWS_COMMENT_TITLES_MAX, "ticks must less than ${t} }", ("t", NEWS_COMMENT_TITLE_MAX_LEN) );
 		}
 		 
 		

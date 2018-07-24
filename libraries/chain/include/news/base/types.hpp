@@ -31,6 +31,22 @@
 namespace news{
     namespace base{
 
+
+		struct strcmp_less
+		{
+			bool operator()(const chainbase::shared_string& a, const chainbase::shared_string& b)const
+			{
+				  return std::strcmp(a.c_str(), b.c_str())<0;
+			} 
+			bool operator()(const chainbase::shared_string &a, const std::string &b) const {
+				return std::strcmp(a.c_str(), b.c_str()) < 0;
+			}
+			bool operator()(const std::string &a, const chainbase::shared_string &b) const {
+				return std::strcmp(a.c_str(), b.c_str()) < 0;
+			}
+		};
+
+
         using                           std::vector;
 
 

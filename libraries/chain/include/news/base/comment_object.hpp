@@ -18,7 +18,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/hashed_index.hpp>
-
+#include <boost/multi_index/composite_key.hpp>
 
 namespace news {
 	namespace base { 
@@ -32,13 +32,15 @@ namespace news {
 			//        CHAINBASE_DEFAULT_CONSTRUCTOR(account_object)
 			template<typename Constructor, typename Allocator>
 			comment_object(Constructor&& c, Allocator&&  alloc) :title(alloc), 
-				body(alloc), permlink(alloc), metajson(alloc) { c(*this); }
+				body(alloc), permlink(alloc), parent_permlink(alloc),metajson(alloc) { c(*this); }
 			id_type                         id;  
 			account_name                    author;
 			chainbase::shared_string        title;
 			chainbase::shared_string        body;
 			chainbase::shared_string        permlink;
-			chainbase::shared_string        metajson;
+			chainbase::shared_string        metajson; 
+			account_name                    parent_author;
+			chainbase::shared_string        parent_permlink; 
 			uint64_t up;  
 			uint64_t down;  
 			fc::time_point                  create_time;
@@ -59,9 +61,10 @@ namespace news {
 			 
 			ordered_unique< tag< by_permlink >,
 			composite_key< comment_object,
+			member<comment_object, account_name, &comment_object::author>,
 			member<comment_object, chainbase::shared_string, &comment_object::permlink>
 			>,
-			composite_key_compare<strcmp_less>
+			composite_key_compare<std::less<account_name>,strcmp_less>
 			>,
 			 
 
@@ -90,9 +93,10 @@ namespace news {
 			}
 			id_type                         id; 
 			account_name                    voter;   
+			account_name					author;
 			chainbase::shared_string        permlink; 
 			int								ticks;
-			chainbase::shared_string			memo;
+			chainbase::shared_string		 memo;
 			fc::time_point                  create_time;
 		};
 		  
@@ -108,9 +112,10 @@ namespace news {
 			ordered_unique< tag< by_vote_permlink >,
 			composite_key< comment_vote_object,
 			member<comment_vote_object, account_name,&comment_vote_object::voter>,
+			member<comment_vote_object, account_name, &comment_vote_object::author>,
 			member<comment_vote_object, chainbase::shared_string, &comment_vote_object::permlink>
 						>,
-			composite_key_compare<std::less< account_name>,strcmp_less>
+			composite_key_compare<std::less< account_name>, std::less< account_name>,strcmp_less>
 						>
 			>, 
  
@@ -125,10 +130,10 @@ namespace news {
  
 
 
-FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(metajson)(create_time))
+FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(parent_authoor)(parent_permlink)(metajson)(create_time))
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_object, news::base::comment_object_index) 
 
  
-FC_REFLECT(news::base::comment_vote_object, (id)(voter)(permlink)(ticks)(memo)(create_time))
+FC_REFLECT(news::base::comment_vote_object, (id)(voter)(author)(permlink)(ticks)(memo)(create_time))
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_vote_object, news::base::comment_vote_object_index)
 

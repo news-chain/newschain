@@ -478,6 +478,8 @@ public:
 					if (++i >= myusers_name.size())
 						i = 0; 
 					auto users = myusers_name[i];
+					auto pk=myusers[users].get_public_key();
+					std::cout << pk.to_base58().c_str() << std::endl;
 					auto str = ff.publish_comment(id, myusers[users], users, "title","body test",tmp_uuid.c_str(),"{a:text;}"); 
 					std::string ret = string_json_rpc(id, fc::json::to_string(str));
 					client.send_message(ret);

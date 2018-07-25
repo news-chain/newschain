@@ -19,7 +19,7 @@ namespace factory{
         cao.creator = creator;
 		genprivate = fc::ecc::private_key::generate();
 
-		cao.posting = { fc::ecc::private_key::generate().get_public_key(),1 };
+		cao.posting = { genprivate.get_public_key(),1 };
 		cao.owner = { fc::ecc::private_key::generate().get_public_key(), 1 };
         trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
         trx.operations.push_back(cao);

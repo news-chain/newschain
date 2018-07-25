@@ -54,9 +54,6 @@ namespace news{
 		}
 		 
 		
-        void packed_block_reward_operation::validate() const {
-            FC_ASSERT(to_name == NEWS_SYSTEM_ACCEPT_NAME, "only system account.");
-        }
 
 
     }//news::base

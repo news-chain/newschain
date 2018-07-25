@@ -78,21 +78,28 @@ namespace news{
             }FC_CAPTURE_AND_RETHROW()
         }
 
-        void signed_transaction::verify_authority(const get_key_by_name &get_key, const chain_id_type &chain_id) const{
+        void signed_transaction::verify_authority(const get_key_by_name &get_posintg, const get_key_by_name &get_owner, const chain_id_type &chain_id) const{
             flat_set<public_key_type> pubs = this->get_signature_keys(chain_id);
             std::map<public_key_type, bool> used;
-            flat_set<account_name > names;
+            flat_set<account_name > posting_names;
+            flat_set<account_name > owner_names;
             for(auto &p : pubs){
                 used[p] = false;
             }
 
             for(auto &op : operations){
-                op.visit(operation_get_sign_name_visitor(names));
+                op.visit(operation_get_sign_name_visitor(posting_names, owner_names));
             }
 
-            for(auto &name :names){
-                auto pk = get_key(name);
-                FC_ASSERT(used.find(pk) != used.end(), "signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
+            for(auto &name :posting_names){
+                auto pk = get_posintg(name);
+                FC_ASSERT(used.find(pk) != used.end(), "posting signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
+                used[pk] = true;
+            }
+
+            for(auto &name :owner_names){
+                auto pk = get_owner(name);
+                FC_ASSERT(used.find(pk) != used.end(), "owner signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
                 used[pk] = true;
             }
 

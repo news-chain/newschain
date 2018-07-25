@@ -71,6 +71,7 @@ namespace news {
             add_index<news::base::account_object_index>();
             add_index<operation_obj_index>();
             add_index<account_history_obj_index>();
+            add_index<account_authority_index>();
 			add_index<comment_object_index>();
 			add_index<comment_vote_object_index>(); 
         }
@@ -160,20 +161,6 @@ namespace news {
             uint32_t count = 1000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
 
-
-//            signed_transaction reward_trx;
-//
-//            packed_block_reward_operation reward_op;
-//            reward_op.producer = producer;
-//            reward_op.to_name = NEWS_SYSTEM_ACCEPT_NAME;
-//            reward_op.reward = asset(NEWS_SYMBOL, NEWS_BLOCK_REWARD);
-//            reward_trx.operations.push_back(reward_op);
-//            reward_trx.set_expiration(when + NEWS_BLOCK_INTERVAL);
-//            reward_trx.sign(private_key_by_signed, get_chain_id());
-//
-//            pengding_block.transactions.push_back(reward_trx);
-
-
             for (const signed_transaction &tx : _pending_trx) {
                 if (tx.expiration < when) {
                     continue;
@@ -218,14 +205,6 @@ namespace news {
             pengding_block.producer = producer;
 
 
-//
-//            packed_block_reward re_op;
-//            re_op.reward = asset(NEWS_SYMBOL, 48 * 100000000);
-//            re_op.producer = NEWS_SYSTEM_ACCOUNT_NAME;
-//            re_op.is_virtual = true;
-
-
-
 
 
             if (!(_skip_flags & skip_producer_signature)) {
@@ -255,7 +234,16 @@ namespace news {
                         create<account_object>([&](account_object &obj) {
                             obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
                             obj.balance.amount = 1000000000000L;
-                            to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
+//                            to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
+                        });
+                    }
+
+
+                    for(int i = 0;i < 3; i++){
+                        create<account_authority_object>([&](account_authority_object &obj){
+                            obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
+                            obj.posting = {news::base::public_key_type(NEWS_INIT_PRIVATE_KEY.get_public_key()), 1};
+                            obj.owner = {news::base::public_key_type(NEWS_INIT_PRIVATE_KEY.get_public_key()), 1};
                         });
                     }
 
@@ -268,7 +256,14 @@ namespace news {
 
                     create<account_object>([&](account_object &obj){
                         obj.name = NEWS_SYSTEM_ACCEPT_NAME;
-                        to_shared_string(NEWS_ACCEPT_NAME_PUBLIC_KEY, obj.public_key);
+//                        to_shared_string(NEWS_ACCEPT_NAME_PUBLIC_KEY, obj.public_key);
+                    });
+
+                    create<account_authority_object>([&](account_authority_object &obj){
+                        obj.name = NEWS_SYSTEM_ACCEPT_NAME;
+//                        to_shared_string(NEWS_ACCEPT_NAME_PUBLIC_KEY, obj.public_key);
+                        obj.posting = {news::base::public_key_type(NEWS_ACCEPT_NAME_PRIVATE_KEY.get_public_key()), 1};
+                        obj.owner = {news::base::public_key_type(NEWS_ACCEPT_NAME_PRIVATE_KEY.get_public_key()), 1};
                     });
 
                 });
@@ -454,8 +449,7 @@ namespace news {
 
 //                        push all blocks on the new block
                             for (auto ritr = branches.first.rbegin(); ritr != branches.first.rend(); ritr++) {
-                                ilog("push blocks from for ${n} ${id}",
-                                     ("n", (*ritr)->data.block_num())("id", (*ritr)->data.id()));
+                                ilog("push blocks from for ${n} ${id}", ("n", (*ritr)->data.block_num())("id", (*ritr)->data.id()));
 
                                 fc::optional<fc::exception> exception;
                                 try {
@@ -697,19 +691,25 @@ namespace news {
             }
 
             if (!(_skip_flags & (skip_transaction_signatures | skip_authority_check))) {
-                get_key_by_name get_public = [&](const account_name &name) -> public_key_type {
-                    const auto &u_itr = get_index<account_object_index>().indices().get<by_name>();
+                get_key_by_name get_posting = [&](const account_name &name)  {
+                    const auto &u_itr = get_index<account_authority_index>().indices().get<by_name>();
                     auto account_itr = u_itr.find(name);
-                    FC_ASSERT(account_itr != u_itr.end(), "cant find account ${a}", ("a", name));
-                    std::string pk;
-                    to_string(account_itr->public_key, pk);
-                    public_key_type pub_key(pk);
-                    return pub_key;
-
+                    FC_ASSERT(account_itr != u_itr.end(), "in verify_authority, cant find account ${a}", ("a", name));
+//                    public_key_type pub_key(account_itr->posting.key);
+                    return account_itr->posting.key;
                 };
+
+                get_key_by_name get_owner = [&](const account_name &name)  {
+                    const auto &u_itr = get_index<account_authority_index>().indices().get<by_name>();
+                    auto account_itr = u_itr.find(name);
+                    FC_ASSERT(account_itr != u_itr.end(), "in verify_authority, cant find account ${a}", ("a", name));
+//                    public_key_type pub_key(account_itr->owner.key);
+                    return account_itr->owner.key;
+                };
+
                 try {
                     //TODO verity_authority
-                    trx.verify_authority(get_public, get_chain_id());
+                    trx.verify_authority(get_posting, get_owner, get_chain_id());
                 } catch (const fc::exception &e) {
                     //TOO catch exception
                     throw e;
@@ -753,7 +753,6 @@ namespace news {
             _my->_eveluator_registry.register_evaluator<create_account_evaluator>();
             _my->_eveluator_registry.register_evaluator<transfer_evaluator>();
             _my->_eveluator_registry.register_evaluator<transfers_evaluator>();
-            _my->_eveluator_registry.register_evaluator<packed_block_reward_evaluator>();
 			_my->_eveluator_registry.register_evaluator<comment_evaluator>();
 			_my->_eveluator_registry.register_evaluator<comment_vote_evaluator>();
         }

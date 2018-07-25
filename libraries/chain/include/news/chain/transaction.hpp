@@ -30,17 +30,19 @@ namespace news{
 
         struct operation_get_sign_name_visitor{
             typedef void result_type;
-            operation_get_sign_name_visitor(flat_set<account_name > &name):_name(name){}
+            operation_get_sign_name_visitor(flat_set<account_name > &_posting, flat_set<account_name > &_owner):post(_posting), owner(_owner){}
             template <typename T>
             void operator()(const T&v)const{
-                v.get_sign_name(_name);
+                v.get_sign_name(post);
+                v.get_sign_owner(owner);
             }
 
             template <typename ...T>
             void operator()(const fc::static_variant<T...> v){
                 v.visit(*this);
             }
-            flat_set<account_name > &_name;
+            flat_set<account_name > &post;
+            flat_set<account_name > &owner;
         };
 
 
@@ -76,7 +78,7 @@ namespace news{
             digest_type                     merkle_digest() const;
 
 
-            void                            verify_authority(const get_key_by_name &get_key, const chain_id_type &chain_id) const;
+            void                            verify_authority(const get_key_by_name &posting, const get_key_by_name &owner, const chain_id_type &chain_id) const;
 
         };
 

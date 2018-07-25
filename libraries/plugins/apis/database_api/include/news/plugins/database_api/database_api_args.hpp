@@ -63,6 +63,23 @@ namespace news{
             };
 
 
+            struct get_account_public_key_args{
+                account_name    name;
+            };
+
+
+            struct account_authority{
+                account_name                    name;
+                shared_authority                posting;
+                shared_authority                owner;
+            };
+
+            struct get_account_public_key_return{
+                bool            success;
+                fc::optional<account_authority> data;
+            };
+
+
             struct get_transactions_hex_args{
                 news::chain::signed_transaction trx;
             };
@@ -86,17 +103,24 @@ namespace news{
              * */
 
             struct comment{
-                comment(){}
+                comment():
+                id(0)
+                ,author(0)
+                ,parent_author(0)
+                ,up(0)
+                ,down(0){}
                 comment(const news::base::comment_object &obj)
                 :id(obj.id._id)
                 ,author(obj.author)
+                ,parent_author(obj.author)
                 ,up(obj.up)
                 ,down(obj.down)
                 ,create_time(obj.create_time){
                     news::base::to_string(obj.title, title);
-                    news::base::to_string(obj.permlink, permlink);
                     news::base::to_string(obj.body, body);
+                    news::base::to_string(obj.permlink, permlink);
                     news::base::to_string(obj.metajson, metajson);
+                    news::base::to_string(obj.parent_permlink, parent_permlink);
                 }
                 int64_t                         id;
                 account_name                    author;
@@ -104,10 +128,11 @@ namespace news{
                 std::string                     body;
                 std::string                     permlink;
                 std::string                     metajson;
+                account_name                    parent_author;
+                std::string                     parent_permlink;
                 uint64_t                        up;
                 uint64_t                        down;
                 fc::time_point                  create_time;
-
             };
 
 
@@ -115,7 +140,18 @@ namespace news{
                 int64_t         id;
             };
 
-            typedef comment         get_comment_by_id_return;
+            struct get_comment_by_id_return{
+                bool                        success = false;
+                fc::optional<comment>     data;
+            };
+
+
+            struct get_comment_by_permlink_args{
+                account_name        author;
+                std::string         permlink;
+            };
+
+            typedef get_comment_by_id_return    get_comment_by_permlink_return;
 
 
 
@@ -133,7 +169,13 @@ FC_REFLECT(news::plugins::database_api::get_transactions_hex_return, (hash))
 FC_REFLECT(news::plugins::database_api::get_transaction_args, (id))
 
 FC_REFLECT(news::plugins::database_api::get_comment_by_id_args, (id))
-FC_REFLECT(news::plugins::database_api::get_comment_by_id_return, (id)(author)(title)(body)(permlink)(metajson)(up)(down)(create_time))
+FC_REFLECT(news::plugins::database_api::comment, (id)(author)(title)(body)(permlink)(metajson)(up)(down)(create_time))
+FC_REFLECT(news::plugins::database_api::get_comment_by_id_return, (success)(data))
+FC_REFLECT(news::plugins::database_api::get_comment_by_permlink_args, (author)(permlink))
 
+
+FC_REFLECT(news::plugins::database_api::get_account_public_key_args, (name))
+FC_REFLECT(news::plugins::database_api::account_authority, (name)(posting)(owner))
+FC_REFLECT(news::plugins::database_api::get_account_public_key_return, (success)(data))
 
 

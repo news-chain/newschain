@@ -87,19 +87,20 @@ namespace news{
                 used[p] = false;
             }
 
+            ddump((used));
             for(auto &op : operations){
                 op.visit(operation_get_sign_name_visitor(posting_names, owner_names));
             }
 
             for(auto &name :posting_names){
                 auto pk = get_posintg(name);
-                FC_ASSERT(used.find(pk) != used.end(), "posting signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
+                FC_ASSERT(used.find(pk) != used.end(), "posting signed error : user name ${n}, public_key:${p}", ("n", name)("p", (std::string)pk));
                 used[pk] = true;
             }
 
             for(auto &name :owner_names){
                 auto pk = get_owner(name);
-                FC_ASSERT(used.find(pk) != used.end(), "owner signed error : user name ${n}, public_key:${p}", ("n", name)("p", pk.key_data));
+                FC_ASSERT(used.find(pk) != used.end(), "owner signed error : user name ${n}, public_key:${p}", ("n", name)("p", (std::string)pk));
                 used[pk] = true;
             }
 

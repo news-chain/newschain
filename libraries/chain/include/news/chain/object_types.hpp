@@ -7,14 +7,15 @@
 
 
 
-
 namespace news{
     namespace chain{
+
 
 
         class block_summary_object;
 
 
+//        class news::base::comment_object;
 
         enum object_type{
             global_property_dynamic_obj = 0,
@@ -27,9 +28,6 @@ namespace news{
 			comment_object_type,
 			comment_vote_object_type  
         };
-
-//        typedef oid<block_summary_object>           block_summary_object_id_type;
-
 
 
     }// news::chain

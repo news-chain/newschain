@@ -17,6 +17,8 @@ namespace factory{
     public:
         signed_transaction create_account(private_key_type sign_pk, account_name creator, account_name name);
         signed_transaction create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount);
+//        signed_transaction create_comment(private_key_type sign_pk, account_name from, account_name to, asset amount);
+
     };
 
 

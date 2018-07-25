@@ -66,6 +66,9 @@ namespace news{
             struct get_account_history_return{
                 std::map<uint32_t, operation_obj_api> trxs;
             };
+
+
+
         }
     }
 }

@@ -77,6 +77,8 @@ namespace news{
                     return ret;
                 }
 
+
+
             }
 
 
@@ -94,8 +96,8 @@ namespace news{
             }
 
             DEFINE_LOCKLESS_APIS( account_history_api,
-            (get_transaction)
-            (get_account_history)
+                (get_transaction)
+                (get_account_history)
             )
 
 

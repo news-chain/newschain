@@ -28,8 +28,12 @@ namespace news{
                 DECLARE_API(
                         (get_dynamic_global_property)
                                 (get_accounts)
+                                (get_account_public_key)
                                 (get_transactions_hex)
                                 (get_transaction)
+                                (get_comment_by_id)
+                                (get_comment_by_permlink)
+
                         )
 
 

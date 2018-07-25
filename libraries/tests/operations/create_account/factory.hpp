@@ -15,8 +15,10 @@ namespace factory{
 
     class helper{
     public:
-        signed_transaction create_account(private_key_type sign_pk, account_name creator, account_name name);
+        signed_transaction create_account(private_key_type sign_pk, account_name creator, account_name name, public_key_type posting, public_key_type owner);
         signed_transaction create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount);
+        signed_transaction create_comment(private_key_type sign_pk, account_name author, std::string permlink);
+
     };
 
 

@@ -27,11 +27,12 @@ namespace news{
                 DECLARE_API_IMPL(
                         (get_dynamic_global_property)
                                 (get_accounts)
+                                (get_account_public_key)
                                 (get_transactions_hex)
                                 (get_transaction)
+                                (get_comment_by_id)
+                                (get_comment_by_permlink)
                         )
-
-
                 news::chain::database &_db;
             };
 
@@ -69,7 +70,49 @@ namespace news{
             }
 
 
+            DEFINE_API_IMPL(database_api_impl, get_comment_by_id)
+            {
+                get_comment_by_id_return ret;
+                ret.success = false;
+                try {
+                    const auto &com = _db.get(comment_object::id_type(args.id));
+                    ret.success = true;
+                    ret.data = com;
+                    return ret;
+                }catch (...){
+                    return ret;
+                }
+            }
 
+            DEFINE_API_IMPL(database_api_impl,  get_comment_by_permlink)
+            {
+                get_comment_by_permlink_return ret;
+                ret.success = false;
+                const auto &itr = _db.get_index<comment_object_index>().indices().get<by_permlink>();
+                const auto &com = itr.find(boost::make_tuple(args.author, args.permlink));
+                if(com != itr.end()){
+                    ret.data = comment(*com);
+                }
+
+                return ret;
+            }
+
+
+            DEFINE_API_IMPL(database_api_impl, get_account_public_key)
+            {
+                get_account_public_key_return ret;
+                ret.success = false;
+
+                account_authority auth;
+                const auto &itr = _db.get<account_authority_object, by_name>(args.name);
+                auth.name = itr.name;
+                auth.posting = itr.posting;
+                auth.owner = itr.owner;
+                ret.data = auth;
+                ret.success = true;
+
+                return ret;
+            }
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,9 +131,12 @@ namespace news{
             DEFINE_READ_APIS(database_api,
                              (get_dynamic_global_property)
                                      (get_accounts)
+                                     (get_account_public_key)
                                      (get_transactions_hex)
                                      (get_transaction)
-            )
+                                     (get_comment_by_id)
+                                     (get_comment_by_permlink)
+                            )
         }
     }
 }

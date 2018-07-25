@@ -18,7 +18,9 @@ namespace factory{
         cao.name = name;
         cao.creator = creator;
 		genprivate = fc::ecc::private_key::generate();
-        cao.public_key = genprivate.get_public_key();
+
+		cao.posting = { fc::ecc::private_key::generate().get_public_key(),1 };
+		cao.owner = { fc::ecc::private_key::generate().get_public_key(), 1 };
         trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
         trx.operations.push_back(cao);
         trx.sign(sign_pk, NEWS_CHAIN_ID);
@@ -36,8 +38,10 @@ namespace factory{
 		cao.title = title;
 		cao.permlink = permlink;
 		cao.metajson = metajson;  
+		cao.parent_author = 0;
+		cao.parent_permlink = "";
 		trx.operations.push_back(cao);
-		trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+		trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 3000));
 		trx.sign(sign_pk, NEWS_CHAIN_ID);
 		return trx;
 	}

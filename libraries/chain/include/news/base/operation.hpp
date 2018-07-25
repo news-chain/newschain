@@ -95,7 +95,7 @@ FC_REFLECT_TYPENAME(news::base::operation)
 FC_REFLECT(news::base::create_account_operation, (name)(creator)(posting)(owner))
 FC_REFLECT(news::base::transfer_operation, (from)(to)(amount)(memo))
 FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo)) 
-FC_REFLECT(news::base::comment_operation, (author)(title)(body)(permlink))
+FC_REFLECT(news::base::comment_operation, (author)(title)(body)(permlink)(parent_author)(parent_permlink)(metajson))
 FC_REFLECT(news::base::comment_vote_operation, (voter)(author)(permlink)(ticks)(memo))
 
 /********************************************************************

@@ -278,16 +278,12 @@ public:
 						{
 							std::lock_guard<std::mutex> lock(mutex_myusers_name);
 							users_name_size=myusers_name.size();
-						}
-						std::random_device rd;
-						std::default_random_engine engine(rd());
-						std::uniform_int_distribution<> dis(0, users_name_size-1);
-						auto  productor = std::bind(dis, engine);
-						uint64_t from =  productor();
+						} 
+		 
 						uint64_t genuser = startid++;						
-						news::base::private_key_type genkey;
-						auto admin = myusers.at(myusers_name[from]);
-						auto str = ff.create_account(admin, myusers_name[from],genuser, genkey);
+						news::base::private_key_type genkey; 
+					 
+						auto str = ff.create_account(NEWS_INIT_PRIVATE_KEY,1,genuser, genkey);
 						auto id = taskid++; 
 						std::string ret = string_json_rpc(id,fc::json::to_string(str));
 						client.send_message(ret); 
@@ -428,6 +424,7 @@ public:
 
 	bool publish_comment()
 	{
+		isstop = false;
 		assert(thread_counts>0);
 		starttime = fc::time_point::now().time_since_epoch().count();
 		mytask.clear();
@@ -466,6 +463,7 @@ public:
 				});
 				factory::helper  ff;
 				uint64_t lastlogtime = 0;
+				int i = 0;
 				while (true)
 				{
 					if (isstop)
@@ -476,7 +474,11 @@ public:
 					boost::uuids::uuid a_uuid = boost::uuids::random_generator()();  
 					const string tmp_uuid = boost::uuids::to_string(a_uuid);
 					auto id = taskid++;
-					auto str = ff.publish_comment(id, myusers[1], 1, "title","body test",tmp_uuid.c_str(),"{a:text;}"); 
+				
+					if (++i >= myusers_name.size())
+						i = 0; 
+					auto users = myusers_name[i];
+					auto str = ff.publish_comment(id, myusers[users], users, "title","body test",tmp_uuid.c_str(),"{a:text;}"); 
 					std::string ret = string_json_rpc(id, fc::json::to_string(str));
 					client.send_message(ret);
 					taskresult rs;
@@ -743,12 +745,14 @@ int main(int argc, char **argv){
 			wsaddr.push_back(str);
 		}
 		business bs(wsaddr, type, threadcount,startid);
-
+	__agin:
+		
 		std::cout << "input: 1: gen account;2:transfer_one;3:transfer_ones:4 :publish_comment 5:vote_comment" << std::endl;
 
 		int i = -1;
 		std::cin >> i;
 		std::cout << "input x to stop the programe";
+		
 		switch (i)
 		{
 		case 1:
@@ -778,6 +782,7 @@ int main(int argc, char **argv){
 		}
 		bs.show_result();
 
+		goto __agin;
 		 
 		while (true)
 		{

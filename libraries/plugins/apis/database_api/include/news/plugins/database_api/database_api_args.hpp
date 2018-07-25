@@ -12,7 +12,11 @@
 
 #include <news/base/account_object.hpp>
 #include <news/base/asset.hpp>
+#include <news/base/comment_object.hpp>
 #include <news/chain/transaction.hpp>
+
+
+
 
 using namespace news::chain;
 using namespace news::plugins::json_rpc;
@@ -77,6 +81,45 @@ namespace news{
 
 
 
+            /*
+             *              comment
+             * */
+
+            struct comment{
+                comment(){}
+                comment(const news::base::comment_object &obj)
+                :id(obj.id._id)
+                ,author(obj.author)
+                ,up(obj.up)
+                ,down(obj.down)
+                ,create_time(obj.create_time){
+                    news::base::to_string(obj.title, title);
+                    news::base::to_string(obj.permlink, permlink);
+                    news::base::to_string(obj.body, body);
+                    news::base::to_string(obj.metajson, metajson);
+                }
+                int64_t                         id;
+                account_name                    author;
+                std::string                     title;
+                std::string                     body;
+                std::string                     permlink;
+                std::string                     metajson;
+                uint64_t                        up;
+                uint64_t                        down;
+                fc::time_point                  create_time;
+
+            };
+
+
+            struct get_comment_by_id_args{
+                int64_t         id;
+            };
+
+            typedef comment         get_comment_by_id_return;
+
+
+
+
         }
     }
 }
@@ -84,6 +127,13 @@ namespace news{
 FC_REFLECT(news::plugins::database_api::account, (name)(creator)(balance)(create_time))
 FC_REFLECT(news::plugins::database_api::get_accounts_args, (accounts))
 FC_REFLECT(news::plugins::database_api::get_accounts_return, (accounts))
+
 FC_REFLECT(news::plugins::database_api::get_transactions_hex_args, (trx))
 FC_REFLECT(news::plugins::database_api::get_transactions_hex_return, (hash))
 FC_REFLECT(news::plugins::database_api::get_transaction_args, (id))
+
+FC_REFLECT(news::plugins::database_api::get_comment_by_id_args, (id))
+FC_REFLECT(news::plugins::database_api::get_comment_by_id_return, (id)(author)(title)(body)(permlink)(metajson)(up)(down)(create_time))
+
+
+

@@ -29,9 +29,8 @@ namespace news{
                                 (get_accounts)
                                 (get_transactions_hex)
                                 (get_transaction)
+                                (get_comment_by_id)
                         )
-
-
                 news::chain::database &_db;
             };
 
@@ -69,6 +68,12 @@ namespace news{
             }
 
 
+            DEFINE_API_IMPL(database_api_impl, get_comment_by_id)
+            {
+                return get_comment_by_id_return();
+            }
+
+
 
 
 
@@ -90,6 +95,7 @@ namespace news{
                                      (get_accounts)
                                      (get_transactions_hex)
                                      (get_transaction)
+                                     (get_comment_by_id)
             )
         }
     }

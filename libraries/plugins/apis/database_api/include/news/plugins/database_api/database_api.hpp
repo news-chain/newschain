@@ -30,6 +30,7 @@ namespace news{
                                 (get_accounts)
                                 (get_transactions_hex)
                                 (get_transaction)
+                                (get_comment_by_id)
                         )
 
 

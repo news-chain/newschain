@@ -6,6 +6,8 @@
 #include <news/base/account_object.hpp>
 #include <chainbase/chainbase.hpp>
 #include <news/chain/database.hpp>
+#include <boost/fusion/adapted/boost_tuple.hpp>
+#include <boost/fusion/include/boost_tuple.hpp>
 namespace news{
     namespace chain{
 
@@ -75,17 +77,23 @@ namespace news{
 
 		void comment_evaluator::do_apply(const news::base::comment_operation &o)
 		{    
-			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>(); 
- 
-			auto iffind = it.find(o.permlink);
-			if (iffind != it.end()) 
-				FC_ASSERT(false,"have find permlink: ${r}", ("r", o.permlink));   
+			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>();  
+			auto itson=it.find(boost::make_tuple(o.author, o.permlink)); 		
+			 FC_ASSERT(itson==it.end(),"have publish comment:${t} ${r}", ("t", o.author)("r", o.permlink));
+			if (o.parent_permlink.length() > 0)
+			{
+				itson = it.find(boost::make_tuple(o.parent_author, o.parent_permlink));
+				FC_ASSERT(itson!=it.end(), "have not publish parent: ${r}", ("r", o.permlink));
+			}
+
 			_db.create<comment_object>([&](comment_object &obj) {
 				obj.author = o.author;
 				obj.up = obj.down = 0;
 				to_shared_string(o.title, obj.title);
 				to_shared_string(o.body, obj.body);
 				to_shared_string(o.permlink, obj.permlink);
+				obj.parent_author = o.parent_author;
+				to_shared_string(o.parent_permlink, obj.parent_permlink);
 				to_shared_string(o.metajson, obj.metajson); 
 				obj.create_time = _db.head_block_time(); 			 
 			});  
@@ -96,15 +104,16 @@ namespace news{
 		void comment_vote_evaluator::do_apply(const news::base::comment_vote_operation &o)
 		{
 			const auto &it = _db.get_index<comment_object_index>().indices().get<by_permlink>();
-			auto iffind = it.find(o.permlink);
-			if (iffind == it.end())
-				FC_ASSERT(false, "have not find permlink: ${r}", ("r", o.permlink));   
-			_db.modify(*iffind, [&](comment_object &obj) { 
+			auto itson = it.find(boost::make_tuple(o.author, o.permlink));
+			FC_ASSERT(itson != it.end(), "have not find permlink:${t} ${r}", ("t", o.author)("r", o.permlink)); 
+		 
+			_db.modify(*itson, [&](comment_object &obj) {
 				o.ticks>0?(obj.up+=o.ticks): (obj.down += abs(o.ticks));  
 			});  
 			 
 			_db.create<comment_vote_object>([&](comment_vote_object &obj) {
 				obj.voter = o.voter;
+				obj.author = o.author;
 				obj.ticks = o.ticks;
 				to_shared_string(o.permlink, obj.permlink); 
 				obj.create_time = _db.head_block_time();

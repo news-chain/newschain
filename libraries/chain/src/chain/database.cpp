@@ -114,7 +114,8 @@ namespace news {
 
 
         fc::time_point_sec database::head_block_time() const {
-            return get_global_property_object().time;
+			auto its = get_global_property_object();
+            return its.time;
         }
 
 

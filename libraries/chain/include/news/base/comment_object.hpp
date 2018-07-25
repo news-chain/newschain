@@ -18,7 +18,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
+//#include <boost/multi_index/composite_key.hpp>
 
 namespace news {
 	namespace base { 
@@ -32,8 +32,8 @@ namespace news {
 			//        CHAINBASE_DEFAULT_CONSTRUCTOR(account_object)
 			template<typename Constructor, typename Allocator>
 			comment_object(Constructor&& c, Allocator&&  alloc) :title(alloc), 
-				body(alloc), permlink(alloc),metajson(alloc), parent_permlink(alloc){ c(*this); }
-			id_type                         id;
+				body(alloc), permlink(alloc), parent_permlink(alloc),metajson(alloc) { c(*this); }
+			id_type                         id;  
 			account_name                    author;
 			chainbase::shared_string        title;
 			chainbase::shared_string        body;
@@ -127,10 +127,10 @@ namespace news {
 
 	}//news::base
 }//news
+ 
 
 
-
-FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(metajson)(parent_author)(parent_permlink)(up)(down)(create_time))
+FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(parent_authoor)(parent_permlink)(up)(down)(metajson)(create_time))
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_object, news::base::comment_object_index) 
 
  

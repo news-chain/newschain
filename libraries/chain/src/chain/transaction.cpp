@@ -87,7 +87,6 @@ namespace news{
                 used[p] = false;
             }
 
-            ddump((used));
             for(auto &op : operations){
                 op.visit(operation_get_sign_name_visitor(posting_names, owner_names));
             }

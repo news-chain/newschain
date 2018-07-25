@@ -61,7 +61,9 @@ namespace news{
 			std::string    metajson; 
 			void validate() const;
 			void get_sign_name(flat_set<account_name> &names) const { names.insert(author); }
-		}; 
+		};
+
+
 
 		struct comment_vote_operation : public base_operation {
 			account_name   voter; 

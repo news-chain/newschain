@@ -103,13 +103,8 @@ namespace news{
             {
                 get_account_public_key_return ret;
                 ret.success = false;
-
-                account_authority auth;
                 const auto &itr = _db.get<account_authority_object, by_name>(args.name);
-                auth.name = itr.name;
-                auth.posting = itr.posting;
-                auth.owner = itr.owner;
-                ret.data = auth;
+                ret.data = itr;
                 ret.success = true;
 
                 return ret;

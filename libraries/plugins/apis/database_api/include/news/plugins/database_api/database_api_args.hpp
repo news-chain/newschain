@@ -68,7 +68,12 @@ namespace news{
             };
 
 
-            struct account_authority{
+            struct account_authority
+            {
+                account_authority(const account_authority_object &obj)
+                :name(obj.name)
+                ,posting(obj.posting)
+                ,owner(obj.owner){}
                 account_name                    name;
                 shared_authority                posting;
                 shared_authority                owner;

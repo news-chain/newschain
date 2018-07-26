@@ -32,6 +32,7 @@ namespace news{
                                 (get_transaction)
                                 (get_comment_by_id)
                                 (get_comment_by_permlink)
+								(get_comment_vote_by_id)
                         )
                 news::chain::database &_db;
             };
@@ -115,6 +116,25 @@ namespace news{
             }
 
 
+			DEFINE_API_IMPL(database_api_impl, get_comment_vote_by_id)
+			{
+				get_comment_vote_by_id_return ret;
+				ret.success = false; 
+				const auto &itr = _db.get_index<comment_vote_object_index>().indices().get<by_comment_id>(); 
+				auto begin=itr.lower_bound(args.id);
+				auto end=itr.upper_bound(args.id);
+				if (begin != end)
+				{
+					ret.author = begin->author;
+					ret.permlink = begin->permlink.c_str();
+				}
+				for (; begin != end; begin++)
+					ret.data.emplace_back(*begin);
+				ret.success = true;
+				return ret;
+			}
+
+
             /////////////////////////////////////////////////////////////////////////////////////////////////
             /////////////////////////////////////database_api/////////////////////////////////////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,6 +156,7 @@ namespace news{
                                      (get_transaction)
                                      (get_comment_by_id)
                                      (get_comment_by_permlink)
+									 (get_comment_vote_by_id)
                             )
         }
     }

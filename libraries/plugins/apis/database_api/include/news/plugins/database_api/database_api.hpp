@@ -33,6 +33,7 @@ namespace news{
                                 (get_transaction)
                                 (get_comment_by_id)
                                 (get_comment_by_permlink)
+							    (get_comment_vote_by_id)
 
                         )
 

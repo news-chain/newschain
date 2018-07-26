@@ -135,6 +135,7 @@ namespace news{
                 fc::time_point                  create_time;
             };
 
+			
 
             struct get_comment_by_id_args{
                 int64_t         id;
@@ -150,9 +151,34 @@ namespace news{
                 account_name        author;
                 std::string         permlink;
             };
-
+			 
             typedef get_comment_by_id_return    get_comment_by_permlink_return;
 
+			//by comment_id 
+
+			struct  voter_info
+			{  
+				voter_info(const  comment_vote_object& other)
+				{
+					voter = other.voter;
+					ticks = other.ticks;
+					memo = other.memo.c_str();
+					create_time = other.create_time;
+				}
+				account_name                    voter;
+				int								ticks;
+				std::string              		memo;
+				fc::time_point                  create_time;
+			};
+			struct get_comment_vote_by_id_args {
+				int64_t         id;
+			};
+			struct get_comment_vote_by_id_return {
+				bool                        success = false;
+				account_name					author;
+				std::string				        permlink;
+				std::vector<voter_info>         data;
+			};
 
 
 
@@ -177,5 +203,14 @@ FC_REFLECT(news::plugins::database_api::get_comment_by_permlink_args, (author)(p
 FC_REFLECT(news::plugins::database_api::get_account_public_key_args, (name))
 FC_REFLECT(news::plugins::database_api::account_authority, (name)(posting)(owner))
 FC_REFLECT(news::plugins::database_api::get_account_public_key_return, (success)(data))
+
+ 
+FC_REFLECT(news::plugins::database_api::get_comment_vote_by_id_args, (id))
+FC_REFLECT(news::plugins::database_api::voter_info, (voter)(ticks)(memo)(create_time))
+FC_REFLECT(news::plugins::database_api::get_comment_vote_by_id_return, (success)(author)(permlink)(data))
+
+
+
+ 
 
 

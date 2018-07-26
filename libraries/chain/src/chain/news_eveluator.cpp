@@ -118,6 +118,7 @@ namespace news{
 			 
 			_db.create<comment_vote_object>([&](comment_vote_object &obj) {
 				obj.voter = o.voter;
+				obj.comment_id = itson->id._id;
 				obj.author = o.author;
 				obj.ticks = o.ticks;
 				to_shared_string(o.permlink, obj.permlink); 

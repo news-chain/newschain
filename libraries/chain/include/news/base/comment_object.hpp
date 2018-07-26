@@ -92,6 +92,7 @@ namespace news {
 				c(*this);
 			}
 			id_type                         id; 
+			id_type                         comment_id;
 			account_name                    voter;   
 			account_name					author;
 			chainbase::shared_string        permlink; 
@@ -101,14 +102,21 @@ namespace news {
 		};
 		  
 		struct by_vote_id;
+		struct by_comment_id;
 		struct by_vote_permlink; 
 
 		typedef multi_index_container<
 			comment_vote_object, 
+
 			indexed_by<
 			ordered_unique<tag<by_vote_id>,
 			member<comment_vote_object, comment_vote_object::id_type, &comment_vote_object::id>
 					>,
+			 
+			ordered_non_unique<tag<by_comment_id>,
+			member<comment_vote_object, comment_vote_object::id_type, &comment_vote_object::comment_id>
+			>,
+
 			ordered_unique< tag< by_vote_permlink >,
 			composite_key< comment_vote_object,
 			member<comment_vote_object, account_name,&comment_vote_object::voter>,
@@ -134,6 +142,6 @@ FC_REFLECT(news::base::comment_object, (id)(author)(title)(body)(permlink)(metaj
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_object, news::base::comment_object_index) 
 
  
-FC_REFLECT(news::base::comment_vote_object, (id)(voter)(author)(permlink)(ticks)(memo)(create_time))
+FC_REFLECT(news::base::comment_vote_object, (id)(comment_id)(voter)(author)(permlink)(ticks)(memo)(create_time))
 CHAINBASE_SET_INDEX_TYPE(news::base::comment_vote_object, news::base::comment_vote_object_index)
 

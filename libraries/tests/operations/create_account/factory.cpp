@@ -20,6 +20,9 @@ namespace factory{
         cao.owner = {fc::ecc::private_key::generate().get_public_key(), 1};
 
         trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.ref_block_prefix = property_object.head_block_id._hash[1];
+        trx.ref_block_num = (uint16_t)(property_object.head_block_num & 0xffff);
+
         trx.operations.push_back(cao);
         trx.sign(sign_pk, NEWS_CHAIN_ID);
         return trx;
@@ -39,6 +42,10 @@ namespace factory{
             trx.sign(sign_pk, NEWS_CHAIN_ID);
 
             return trx;
+    }
+
+    std::string helper::get_string_dynamic_property() {
+        return "{\"jsonrpc\":\"2.0\",\"params\":[\"database_api\",\"get_dynamic_global_property\", {}],\"id\":200000,\"method\":\"call\"} ";
     }
 
 

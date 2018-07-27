@@ -47,7 +47,7 @@ namespace news{
 
 
                 void accept_transaction(const news::chain::signed_transaction &trx);
-                void accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip);
+                bool accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip);
 
 
                 news::chain::signed_block generate_block(const fc::time_point_sec when, const news::base::account_name &producer, const fc::ecc::private_key &sign_pk, uint32_t skip = 0);

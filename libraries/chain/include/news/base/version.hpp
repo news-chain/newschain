@@ -54,6 +54,14 @@ namespace news{
 
 
 
+//        typedef fc::static_variant<>        block_header_extensions;
+
+
+
+
+
+
+
 
     }//news::base
 }//news

@@ -2755,12 +2755,15 @@ namespace graphene { namespace net {
         catch (const fc::exception& e)
         {
           elog("Caught unexpected exception: ${e}", ("e", e));
+          std::cerr << __FUNCTION__ <<  " exception:" << e.to_detail_string() << std::endl;
           assert(false && "exceptions not expected here");
         }
         catch (const std::exception& e)
         {
           elog("Caught unexpected exception: ${e}", ("e", e.what()));
+            std::cerr << __FUNCTION__ <<  " exception:" << e.what() << std::endl;
           assert(false && "exceptions not expected here");
+
         }
         catch (...)
         {
@@ -3657,11 +3660,13 @@ namespace graphene { namespace net {
           catch (const fc::exception& e)
           {
             elog("Caught unexpected exception: ${e}", ("e", e));
+            std::cerr << __FUNCTION__ << "exception: " << e.to_detail_string() << std::endl;
             assert(false && "exceptions not expected here");
           }
           catch (const std::exception& e)
           {
             elog("Caught unexpected exception: ${e}", ("e", e.what()));
+              std::cerr << __FUNCTION__ << "exception: " << e.what() << std::endl;
             assert(false && "exceptions not expected here");
           }
           catch (...)

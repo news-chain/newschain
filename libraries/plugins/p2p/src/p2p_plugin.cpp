@@ -206,19 +206,19 @@ namespace news {
                                 // when the net code sees that, it will stop trying to push blocks from that chain, but
                                 // leave that peer connected so that they can get sync blocks from us
 								uint32_t  value=( block_producer | force_validate ) ? news::chain::skip_nothing :  news::chain::skip_transaction_signatures ;
-                                chain->accept_block( blk_msg.block, sync_mode,value);
-                                /*
+								bool result = chain->accept_block( blk_msg.block, sync_mode,value);
+
                                 if( !sync_mode )
                                 {
                                     fc::microseconds latency = fc::time_point::now() - blk_msg.block.timestamp;
-                                    ilog( "Got ${t} transactions on block ${b} by ${w} -- latency: ${l} ms",                                 ("t", blk_msg.block.transactions.size())
+                                    wlog( "Got ${t} transactions on block ${b}  by ${w} -- latency: ${l} ms",                                 ("t", blk_msg.block.transactions.size())
                                                   ("b", blk_msg.block.block_num())
-                                                  ("w", blk_msg.block.witness)
+                                                  ("w", blk_msg.block.producer)
                                                   ("l", latency.count() / 1000) );
                                 }
-                                 */
 
-                               // return result;
+
+                                return result;
                             } catch ( const chain::unlinkable_block_exception& e ) {
                                 // translate to a graphene::net exception
                                 fc_elog(fc::logger::get("sync"),

@@ -214,7 +214,7 @@ namespace news {
                                         cxt->success = cxt->req_ptr.visit(req_visitor);
                                         cxt->prom_ptr.visit(promise_visitor);
                                         count++;
-                                        if(count >= 100){
+                                        if(count >= 500){
                                             count = 0;
                                             break;
                                         }
@@ -237,7 +237,7 @@ namespace news {
                             }//
 
                             if (!is_syncing) {
-                                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
                             }
 
                         }//while
@@ -403,11 +403,11 @@ namespace news {
 
             }
 
-            void chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
-
+            bool chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
                 wlog("accept_block #${b}, size ${s} time ${t}  sync ${cc}ms",
                      ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp)("cc", (fc::time_point::now().time_since_epoch().count() - ((int64_t)block.timestamp.sec_since_epoch()) * 1000000) / 1000));
-                if (syncing) {
+
+                if (syncing && block.block_num() % 1000 == 0) {
 
                 }
                 boost::promise<void> prom;
@@ -422,6 +422,7 @@ namespace news {
                 if (cxt.except) {
                     throw *(cxt.except);
                 }
+                return cxt.success;
             }
 
 

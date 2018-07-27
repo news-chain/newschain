@@ -156,8 +156,8 @@ namespace news {
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            uint32_t count = 4000;
-            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
+            uint32_t count = 1000;
+//            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
 
             for (const signed_transaction &tx : _pending_trx) {
                 if (tx.expiration < when) {
@@ -680,7 +680,7 @@ namespace news {
                 if (!(_skip_flags & skip_tapos_check)) {
                     const auto &tapos_block_summary = get<block_summary_object>(trx.ref_block_num);
                     FC_ASSERT(trx.ref_block_prefix == tapos_block_summary.block_id._hash[1],
-                              "transaction tapos exception trx.ref_block_prefix${t}, tapos_block_summary${a}",
+                              "transaction tapos exception trx.ref_block_prefix ${t}, tapos_block_summary ${a}",
                               ("t", trx.ref_block_prefix)("a", tapos_block_summary.block_id._hash[1]));
                 }
                 fc::time_point_sec now = head_block_time();

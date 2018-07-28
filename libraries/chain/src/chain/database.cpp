@@ -156,8 +156,8 @@ namespace news {
             //TODO block_header_size
             size_t total_block_size = 0;
             uint64_t postponed_tx_count = 0;
-            uint32_t count = 1000;
-//            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
+            uint32_t count = 2000;
+            ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
 
             for (const signed_transaction &tx : _pending_trx) {
                 if (tx.expiration < when) {

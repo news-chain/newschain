@@ -4,7 +4,7 @@
 
 
 
-#include "factory.hpp"
+#include <test/factory.hpp>
 
 namespace factory{
 
@@ -48,10 +48,43 @@ namespace factory{
         return "{\"jsonrpc\":\"2.0\",\"params\":[\"database_api\",\"get_dynamic_global_property\", {}],\"id\":200000,\"method\":\"call\"} ";
     }
 
+    signed_transaction
+    helper::create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names) {
+        signed_transaction trx;
+        for(auto &name : names){
+            create_account_operation cao;
+            cao.name = name;
+            cao.creator = creator;
+            cao.posting = {fc::ecc::private_key::generate().get_public_key(),1};
+            cao.owner = {fc::ecc::private_key::generate().get_public_key(), 1};
+            trx.operations.push_back(cao);
+        }
+
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.ref_block_prefix = property_object.head_block_id._hash[1];
+        trx.ref_block_num = (uint16_t)(property_object.head_block_num & 0xffff);
+
+
+        trx.sign(sign_pk, NEWS_CHAIN_ID);
+        return trx;
+    }
+
 
     std::string  string_json_rpc(const std::string &str){
             std::string ret;
             ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +"}],\"id\":-1,\"method\":\"call\"}";
             return ret;
+    }
+
+
+
+
+    /*
+     *                          create_factory
+     *
+     * */
+
+    create_factory::create_factory(producer_type type, int threads, uint32_t mac_cache_trx) {
+
     }
 }

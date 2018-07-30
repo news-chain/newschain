@@ -2,7 +2,7 @@
 // Created by boy on 18-7-16.
 //
 
-#include "types.hpp"
+#include <test/types.hpp>
 
 
 namespace tools{

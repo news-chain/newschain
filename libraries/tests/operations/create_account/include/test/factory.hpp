@@ -16,11 +16,32 @@ namespace factory{
     using namespace news::chain;
     using namespace news::base;
 
+    enum  producer_type{
+        create_account = 1,
+        create_accounts,
+        create_transfer
+    };
+
+
+
+    class create_factory{
+        create_factory(producer_type type, int threads, uint32_t mac_cache_trx = 500000);
+    };
+
+
+
+
+
+
+
+
+
+
     class helper{
     public:
         signed_transaction create_account(private_key_type sign_pk, account_name creator, account_name name);
+        signed_transaction create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names);
         signed_transaction create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount);
-
 
         std::string     get_string_dynamic_property();
 

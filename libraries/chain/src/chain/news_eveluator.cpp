@@ -126,7 +126,39 @@ namespace news{
 			});
 		}
 
+		void comment_read_evaluator::do_apply(const news::base::comment_read_operation &o)
+		{
+			const auto &it = _db.get_index<comment_read_object_index>().indices().get<by_read_permlink>();
+			auto itson = it.find(boost::make_tuple(o.reader,o.author, o.permlink));
+			FC_ASSERT(itson != it.end(), "have readed it:${t} ${r}", ("t", o.author)("r", o.permlink));
+			 
+			_db.create<comment_read_object>([&](comment_read_object &obj) {
+				obj.reader = o.reader;
+				obj.comment_id = itson->id._id;
+				obj.author = o.author; 
+				to_shared_string(o.permlink, obj.permlink);
+				to_shared_string(o.memo, obj.memo);
+				obj.create_time = _db.head_block_time();
+			});
+		}
 
+
+		void comment_shared_evaluator::do_apply(const news::base::comment_shared_operation &o)
+		{
+			const auto &it = _db.get_index<comment_shared_object_index>().indices().get<by_shared_permlink>();
+			auto itson = it.find(boost::make_tuple(o.shareder, o.author, o.permlink));
+			FC_ASSERT(itson != it.end(), "have shared it:${t} ${r}", ("t", o.author)("r", o.permlink));
+
+			_db.create<comment_shared_object>([&](comment_shared_object &obj) {
+				obj.shareder = o.shareder;
+				obj.comment_id = itson->id._id;
+				obj.author = o.author;
+				to_shared_string(o.permlink, obj.permlink);
+				to_shared_string(o.memo, obj.memo);
+				obj.hasreadeds = o.hasreadeds;
+				obj.create_time = _db.head_block_time();
+			});
+		}
 
 
     }//news::chain

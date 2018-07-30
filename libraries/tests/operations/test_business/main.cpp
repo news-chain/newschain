@@ -228,7 +228,9 @@ public:
 
 
 	bool gen_account()
-	{ 
+	{
+		
+			mytask.clear();
 			assert(thread_counts>0); 
 			starttime = fc::time_point::now().time_since_epoch().count();
 			mytask.clear();
@@ -271,6 +273,7 @@ public:
 					{
 						if (isstop)
 						{
+							boost::this_thread::sleep(boost::posix_time::seconds(60));
 							client.stop();
 							break;
 						} 
@@ -510,10 +513,10 @@ public:
 	bool start_business(bool multiple=false)
 	{ 
 		mytask.clear();
-		if (!befor_transfer_one())
-			return false; 
-		boost::this_thread::sleep(boost::posix_time::seconds(5));
-		std::cout << "gen account ok" << std::endl;
+		//if (!befor_transfer_one())
+		//	return false; 
+		//boost::this_thread::sleep(boost::posix_time::seconds(5));
+		//std::cout << "gen account ok" << std::endl;
 		init_money(); 
 		boost::this_thread::sleep(boost::posix_time::seconds(5));
 		mytask.clear();

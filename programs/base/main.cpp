@@ -20,6 +20,27 @@
 #include <news/plugins/network_broadcast_plugin/network_broadcast_plugin.hpp>
 #include <news/plugins/account_history_api/account_history_api_plugin.hpp>
 
+#ifdef  WIN32
+#include <imagehlp.h>
+#pragma comment(lib, "DbgHelp.lib")
+LONG ExceptionCrashHandler(EXCEPTION_POINTERS *pException)
+{
+	// 创建Dump文件
+	HANDLE hDumpFile = CreateFileW(L"Exception.dmp", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	// Dump信息
+	MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
+	dumpInfo.ExceptionPointers = pException;
+	dumpInfo.ThreadId = GetCurrentThreadId();
+	dumpInfo.ClientPointers = TRUE;
+	// 写入Dump文件内容
+	MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDumpFile, MiniDumpNormal, &dumpInfo, NULL, NULL);
+	CloseHandle(hDumpFile);
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+#endif //  WIN32
+
+
 void regist_plugin(news::app::application &app){
     app.register_plugin< news::plugins::chain_plugin::chain_plugin >();
     app.register_plugin< news::plugins::webserver::webserver_plugin >();
@@ -38,6 +59,10 @@ void regist_plugin(news::app::application &app){
 
 
 int main(int argc, char **argv){
+
+#ifdef WIN32
+	::SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)ExceptionCrashHandler);
+#endif
 
     std::cerr << "------------------------------------------" << std::endl;
 

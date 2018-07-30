@@ -74,6 +74,8 @@ namespace news {
             add_index<account_authority_index>();
 			add_index<comment_object_index>();
 			add_index<comment_vote_object_index>(); 
+			add_index<comment_read_object_index>();
+			add_index<comment_shared_object_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -812,7 +814,7 @@ namespace news {
 
         }
 
-        block_id_type database::get_block_id_for_num(uint32_t block_num) const {
+        block_id_type database::find_block_id_for_num(uint32_t block_num) const {
             block_id_type bid = find_block_id_for_num(block_num);
             FC_ASSERT(bid != block_id_type());
             return bid;

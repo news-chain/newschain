@@ -26,7 +26,9 @@ namespace news{
             operation_object_type,
             account_history_object_type,
 			comment_object_type,
-			comment_vote_object_type  
+			comment_vote_object_type, 
+			comment_read_object_type,
+			comment_shared_object_type,
         };
 
 

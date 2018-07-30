@@ -18,6 +18,8 @@ NEWS_DEFINE_EVALUATOR(transfer)
 NEWS_DEFINE_EVALUATOR(transfers)
 NEWS_DEFINE_EVALUATOR(comment)
 NEWS_DEFINE_EVALUATOR(comment_vote)
+NEWS_DEFINE_EVALUATOR(comment_read)
+NEWS_DEFINE_EVALUATOR(comment_shared)
 
 
     }//news::base

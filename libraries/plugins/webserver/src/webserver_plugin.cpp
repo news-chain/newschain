@@ -130,7 +130,10 @@ namespace news{
                     void start_webserver();
                     void stop_webserver();
 
-                    void handle_ws_message(websocket_server_type *server, connection_hdl hdl, detail::websocket_server_type::message_ptr);
+                  //  void handle_ws_message(websocket_server_type *server, connection_hdl hdl, detail::websocket_server_type::message_ptr);
+					void handle_ws_message(news::plugins::webserver::detail::websocket_server_type *server,
+						websocketpp::connection_hdl hdl,
+						std::shared_ptr<websocketpp::message_buffer::message<websocketpp::message_buffer::alloc::con_msg_manager>> msg);
                     void handle_http_message(websocket_server_type *server, connection_hdl hdl);
 
                     shared_ptr<std::thread>     http_thread;

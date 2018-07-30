@@ -73,6 +73,25 @@ namespace news{
 			 std::string       memo;
 			void validate() const;
 			void get_sign_name(flat_set<account_name> &names) const { names.insert(voter); }
+		}; 
+
+		struct comment_read_operation : public base_operation {
+			account_name   reader;
+			account_name   author;
+			std::string    permlink; //128	  
+			std::string       memo;
+			void validate()  const;
+			void get_sign_name(flat_set<account_name> &names) const { names.insert(reader); }
+		};
+
+		struct comment_shared_operation : public base_operation {
+			account_name   shareder;
+			account_name   author;
+			std::string    permlink;   
+			uint64_t       hasreadeds;
+			std::string       memo;
+			void validate()  const;
+			void get_sign_name(flat_set<account_name> &names) const { names.insert(shareder); }
 		};
 			 
         /********************************************************************
@@ -84,7 +103,9 @@ namespace news{
                 transfer_operation,
                 transfers_operation,
 				comment_operation,
-				comment_vote_operation>
+				comment_vote_operation,
+				comment_read_operation,
+				comment_shared_operation>
                 operation;
 
 
@@ -99,7 +120,10 @@ FC_REFLECT(news::base::transfer_operation, (from)(to)(amount)(memo))
 FC_REFLECT(news::base::transfers_operation, (from)(to_names)(memo)) 
 FC_REFLECT(news::base::comment_operation, (author)(title)(body)(permlink)(parent_author)(parent_permlink)(metajson))
 FC_REFLECT(news::base::comment_vote_operation, (voter)(author)(permlink)(ticks)(memo))
-
+FC_REFLECT(news::base::comment_read_operation, (reader)(author)(permlink)(memo))
+FC_REFLECT(news::base::comment_shared_operation, (shareder)(author)(permlink)(hasreadeds)(memo))
+ 
+ 
 /********************************************************************
    *                      virtual operation
    ********************************************************************

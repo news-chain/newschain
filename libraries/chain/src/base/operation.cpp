@@ -52,9 +52,10 @@ namespace news{
 			FC_ASSERT( ticks > count ,"ticks must greater than ${t} ", ("t", count));
 			FC_ASSERT(  ticks < NEWS_COMMENT_TITLES_MAX, "ticks must less than ${t} }", ("t", NEWS_COMMENT_TITLE_MAX_LEN) );
 		}
-		 
-		
-
+		void comment_read_operation::validate() const {
+			} 
+			void comment_shared_operation::validate() const {
+			}
 
     }//news::base
 }//news

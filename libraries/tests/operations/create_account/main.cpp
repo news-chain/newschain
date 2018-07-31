@@ -19,12 +19,17 @@
 #include <test/application.hpp>
 #include <fc/exception/exception.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-
+#include <fc/log/logger_config.hpp>
 
 int main(int argc, char **argv) {
 
 
     try {
+        auto config = fc::logging_config::default_config();
+        fc::configure_logging(config);
+
+
+
         test::application app;
 
 

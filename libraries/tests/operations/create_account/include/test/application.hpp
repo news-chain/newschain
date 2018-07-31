@@ -25,16 +25,17 @@ namespace test{
     class application{
     public:
         application();
+        ~application();
         void set_program_args(int argc, char **argv);
 
         void start();
+
+
 
     private:
         void handle_message(const std::string &message);
 
     private:
-
-//        std::unique_ptr<class detail::application_impl>   my;
-        std::unique_ptr< class detail::application_impl > my;
+        std::unique_ptr< detail::application_impl > my;
     };
 }

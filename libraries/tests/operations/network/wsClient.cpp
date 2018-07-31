@@ -84,10 +84,15 @@ namespace http{
 
     void client::send_message(std::string msg) {
         if(_connection->get_state() == websocketpp::session::state::open){
-            auto ec = _connection->send(msg);
-            if(ec){
-                std::cout << "send message error " << ec << std::endl;
-            }
+        	if(msg.length() > 0){
+				auto ec = _connection->send(msg);
+				if(ec){
+					std::cout << "send message error " << ec << std::endl;
+				}
+        	}
+           	else{
+				std::cout << "send message.length == 0 " << std::endl;
+        	};
         }
     }
 

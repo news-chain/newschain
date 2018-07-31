@@ -5,7 +5,8 @@
 
 
 #include <test/factory.hpp>
-
+#include <thread>
+#include <chrono>
 namespace factory{
 
     signed_transaction helper::create_account(news::base::private_key_type sign_pk, news::base::account_name creator,
@@ -84,7 +85,86 @@ namespace factory{
      *
      * */
 
-    create_factory::create_factory(producer_type type, int threads, uint32_t mac_cache_trx) {
+
+
+
+    void create_factory::start() {
+
+
+        int64_t  name = 20;
+        bool running = true;
+
+        fc::time_point start = fc::time_point::now();
+
+
+        while(running){
+
+            std::vector<account_name > names;
+            std::vector<signed_transaction> result;
+
+            for(int i = 0; i < _max_cache; i++){
+
+                switch (_type){
+                    case producer_type::create_accounts :{
+                        for(int i = 0; i < _trx_op; i++){
+                            names.push_back(name);
+                            name++;
+                        }
+                        auto trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, 1, names);
+                        result.push_back(trx);
+                        break;
+                    }
+                    case producer_type::create_transfer :{
+                        elog("todo");
+                        break;
+                    }
+                    case producer_type::create_transfers :{
+                        //TODO
+                        break;
+                    }
+                    default:{
+                        elog("unkown type.");
+                    }
+
+                }
+
+                names.clear();
+            }
+            if(_cb){
+                _cb(result);
+            }
+            result.clear();
+
+
+            if((fc::time_point::now() - start) < fc::seconds(1)){
+                while((fc::time_point::now() - start).count() > fc::seconds(1).count() - 500);
+            }
+
+
+        }
+    }
+
+    void create_factory::set_producer_data_call(produce_data cb) {
+        _cb = cb;
+    }
+
+    create_factory::create_factory(producer_type type, int threads, uint32_t trx_ops, uint32_t max_cache_trx):_type(type),_trx_op(trx_ops), _max_cache(max_cache_trx) {
 
     }
+
+    void create_factory::update_param(producer_type type, int threads, uint32_t trx_op, uint32_t max_cache_trx) {
+        _type = type;
+        _trx_op = trx_op;
+        _max_cache = max_cache_trx;
+    }
+
+    create_factory::~create_factory() {
+        elog("~create_factory()");
+    }
+
+    void create_factory::update_dynamic_property(dynamic_global_property_object obj) {
+        _help.property_object = std::move(obj);
+    }
+
+
 }

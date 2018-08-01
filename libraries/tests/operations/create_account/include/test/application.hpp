@@ -30,12 +30,13 @@ namespace test{
 
         void start();
 
-
+        void stop();
 
     private:
         void handle_message(const std::string &message);
 
     private:
+        std::shared_ptr<boost::asio::io_service>    io_serv;
         std::unique_ptr< detail::application_impl > my;
     };
 }

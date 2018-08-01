@@ -10,6 +10,9 @@
 
 #include <news/chain/global_property_object.hpp>
 #include <news/chain/block_header.hpp>
+#include <thread>
+#include <fc/crypto/pke.hpp>
+
 namespace factory{
 
     class helper;
@@ -36,6 +39,7 @@ namespace factory{
         helper(){}
         signed_transaction create_account(private_key_type sign_pk, account_name creator, account_name name);
         signed_transaction create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names);
+        signed_transaction create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names, std::map<account_name, fc::ecc::private_key> &map);
         signed_transaction create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount);
 
         std::string     get_string_dynamic_property();
@@ -58,15 +62,17 @@ namespace factory{
 
         void            set_producer_data_call(produce_data cb);
         void            start();
-
+        void            stop();
 
     private:
-        producer_type           _type;
-        produce_data            _cb;
-        uint32_t                _trx_op;
-        uint32_t                _max_cache;
+        producer_type                               _type;
+        produce_data                                _cb;
+        uint32_t                                    _trx_op;
+        uint32_t                                    _max_cache;
 
-        helper                  _help;
+        helper                                      _help;
+        bool                                        _running;
+        std::shared_ptr< std::thread >             _thread;
 
     };
 

@@ -43,15 +43,9 @@ namespace test{
         };
 
 
-
-
-
-
-
-
         class application_impl{
         public:
-            application_impl():write_queue(256),get_queue(256){
+            application_impl(boost::asio::io_service &io):write_queue(256),get_queue(256),_timer(io){
 
             }
             ~application_impl(){}
@@ -76,14 +70,18 @@ namespace test{
 //            std::shared_ptr<std::thread>        _send_threads;
             boost::lockfree::queue<write_context*>  write_queue;
             boost::lockfree::queue<get_context*>    get_queue;
-
+            boost::asio::deadline_timer         _timer;
 
             test::record                    _record;
             factory::create_factory         _create_factory;
 
 
+
+
+
             void start_loop();
 
+            void post_dynamic_property();
         };
 
 
@@ -165,6 +163,21 @@ namespace test{
                             else{
                                 elog("unhandle message data.");
                             }
+                            if(cxt->id == 0){   //update dynamic_property
+                                try {
+                                    if(!cxt->ret.error.valid() && cxt->ret.result.valid()){
+                                        auto dy = cxt->ret.result->as<dynamic_global_property_object>();
+                                        _create_factory.update_dynamic_property(dy);
+                                        wlog("update dynamic property success.");
+                                    }
+                                    else{
+                                        elog("update dynamic property error.");
+                                    }
+                                }catch (const fc::exception &e){
+                                    elog("update dynamic property error.");
+                                }
+
+                            }
 
                             delete  cxt;
                             cxt = nullptr;
@@ -180,6 +193,19 @@ namespace test{
                 }
             }).detach();
 
+
+
+            //定时器， 更新全局信息
+            _timer.expires_from_now(boost::posix_time::microseconds(fc::minutes(10).count()));
+            _timer.async_wait([&](const boost::system::error_code &e){
+                post_dynamic_property();
+            });
+        }
+
+        void application_impl::post_dynamic_property() {
+            auto cxt = new detail::write_context();
+            cxt->data = "{\"jsonrpc\":\"2.0\",\"params\":[\"database_api\",\"get_dynamic_global_property\",{}],\"id\":0,\"method\":\"call\"}";
+            write_queue.push(cxt);
         }
 
 
@@ -189,7 +215,7 @@ namespace test{
 
 
 
-    application::application():my(new detail::application_impl()) {
+    application::application():io_serv(std::make_shared<boost::asio::io_service>()),my(new detail::application_impl(*io_serv)) {
 
     }
 
@@ -205,12 +231,7 @@ namespace test{
                 ("second-send", bpo::value<uint32_t>()->default_value(500), "every second send trx")
                 ("log-time", bpo::value<uint32_t>()->default_value(10), "how long log data.(second)");
 
-
-
         bpo::store(bpo::parse_command_line(argc, argv, my->_cfg_desc), my->_map_args);
-//        bpo::store(bpo::parse_command_line(argc, argv, _op_desc), _map_args);
-
-
 
     }
 
@@ -222,7 +243,7 @@ namespace test{
             }
             if( my->_map_args.count("websocket")){
                 std::vector<std::string> address =  my->_map_args["websocket"].as<std::vector<std::string>>();
-                FC_ASSERT(address.size() > 0, "must once server address.");
+                FC_ASSERT(address.size() > 0, "must one server address.");
 
                 for(const auto &ad : address){
                     auto client = std::make_shared<http::client>(ad);
@@ -264,7 +285,7 @@ namespace test{
             }
 
 
-            my->_create_factory.update_param(type, 1, my->_trx_ops, my->_second_send + 10);
+            my->_create_factory.update_param(type, my->_clients.size(), my->_trx_ops, my->_second_send + 10);
 
 
 
@@ -278,22 +299,21 @@ namespace test{
             });
 
             my->start_loop();
+            my->_create_factory.start();
 
 
-            std::thread([&](){
-                my->_create_factory.start();
-            }).join();
+            my->post_dynamic_property();
+            boost::asio::signal_set set(*io_serv);
+            set.add(SIGINT);
+            set.add(SIGTERM);
+            set.async_wait([this](boost::system::error_code , int){
+                stop();
+            });
+
+            io_serv->run();
 
 
-        }catch (const fc::exception &e){
-            std::cerr << e.to_detail_string() << std::endl;
-        }catch (const std::exception &e){
-            std::cerr << e.what() << std::endl;
-        }
-
-
-
-
+        }FC_CAPTURE_AND_LOG(("error"))
     }
 
     void application::handle_message(const std::string &message) {
@@ -308,16 +328,20 @@ namespace test{
             my->get_queue.push(get_cxt);
         }FC_CAPTURE_AND_LOG((message))
 
-
-
-
     }
 
     application::~application() {
         my.reset();
     }
 
+    void application::stop() {
+        elog("stop ! ");
+        my->_create_factory.stop();
+        my->_record.stop();
+        io_serv->stop();
 
+
+    }
 
 
 }

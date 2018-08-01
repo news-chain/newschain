@@ -34,17 +34,16 @@ namespace news{
 
         void transfer_evaluator::do_apply(const transfer_operation &o)
         {
-            const auto &it = _db.get_index<account_object_index>().indices().get<by_name>();
-            FC_ASSERT(it.find(o.from) != it.end(), "not find sender ${from}", ("from", o.from));
-            FC_ASSERT(it.find(o.to) != it.end(), "not find receiver ${to}", ("to", o.to));
+            const auto &from = _db.get_account(o.from);
+            const auto &to = _db.get_account(o.to);
+            FC_ASSERT(from.balance.amount >= o.amount.amount, "${from} not enough balance");
+            _db.modify(from , [&](account_object &obj){
+                obj.balance.amount -= o.amount.amount;
+            });
 
-            FC_ASSERT(o.amount > asset(o.amount.symbol, 0), "sender's amount must be greater than nought ${a}", ("a", o.amount));
-
-            const account_object *ac = _db.find_account(o.from);
-            FC_ASSERT( _db.get_balance( *ac, o.amount.symbol ) >= o.amount, "Account does not have sufficient funds for transfer." );
-            _db.adjust_balance( *ac, -o.amount );
-            ac = _db.find_account(o.to);
-            _db.adjust_balance( *ac, o.amount );
+            _db.modify(to, [&](account_object &obj){
+                obj.balance.amount += o.amount.amount;
+            });
         }
 
         void transfers_evaluator::do_apply(const news::base::transfers_operation &o)

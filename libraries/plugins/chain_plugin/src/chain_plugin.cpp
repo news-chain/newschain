@@ -113,6 +113,7 @@ namespace news {
 
                         try {
 //                                STATSD_START_TIMER( chain, write_time, push_tx, 1.0f )
+//                            ilog("accept_transaction ${trx}", ("trx", *trx));
                             db->push_transaction(*trx);
 //                                STATSD_STOP_TIMER( chain, write_time, push_tx )
 
@@ -220,11 +221,13 @@ namespace news {
 //                                        }
                                         if (is_syncing && start - db.head_block_time() < fc::minutes(1)) {
                                             start = fc::time_point::now();
+
                                             is_syncing = false;
                                             break;
                                         }
                                         if (!is_syncing && write_lock_hold_time >= 0 &&
                                             fc::time_point::now() - start > fc::milliseconds(write_lock_hold_time)) {
+
                                             break;
                                         }
 
@@ -390,7 +393,7 @@ namespace news {
             }
 
             void chain_plugin::accept_transaction(const news::chain::signed_transaction &trx) {
-//                ilog("accept_transaction ${trx}", ("trx", trx));
+
                 boost::promise<void> prom;
                 write_context cxt;
                 cxt.req_ptr = &trx;
@@ -399,6 +402,7 @@ namespace news {
 
                 prom.get_future().get();
                 if (cxt.except) {
+                    ilog("accept_transaction except ${e}", ("e", *(cxt.except)));
                     throw *(cxt.except);
                 }
 
@@ -421,6 +425,7 @@ namespace news {
 
                 prom.get_future().get();
                 if (cxt.except) {
+                    ilog("accept_block except ${e}", ("e", *(cxt.except)));
                     throw *(cxt.except);
                 }
                 return cxt.success;

@@ -26,6 +26,7 @@ namespace  test{
         bool update_data(uint64_t id, tools::get_context cxt);
 
         void log_data_and_move();
+        void stop();
     private:
         std::map<uint64_t, tools::get_context>  _data;
 //        uint64_t                            _id;

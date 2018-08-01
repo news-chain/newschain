@@ -81,10 +81,10 @@ namespace test {
                 not_receive++;
                 continue;
             }
-
-            if (dd.second.ret.error.valid()) {
+            else if (dd.second.ret.error.valid()) {
 //                wlog("error ${e}", ("e", dd.second.ret.error));
                 failed++;
+                remove_data.push_back(dd.first);
             } else {
                 success++;
                 remove_data.push_back(dd.first);
@@ -97,7 +97,12 @@ namespace test {
             _data.erase(id);
         }
 
+        if(send_count == 0){
+            elog("not send any message.");
+            return;
+        }
         average = all_time / send_count;
+
 
         std::cout << "*************************************************" << std::endl;
         std::cout << "max_request_time: " << max_request_time / 1000 << "ms" << std::endl;
@@ -109,9 +114,9 @@ namespace test {
         std::cout << "average:          " << average / 1000 << "ms" << std::endl;
         std::cout << "*************************************************" << std::endl;
 
+    }
 
-//        _data.clear();
-
-
+    void record::stop() {
+        log_data_and_move();
     }
 }

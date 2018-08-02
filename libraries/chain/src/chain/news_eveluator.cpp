@@ -48,32 +48,24 @@ namespace news{
 
         void transfers_evaluator::do_apply(const news::base::transfers_operation &o)
         {
-            //check out the existence of sender
-            const auto &it = _db.get_index<account_object_index>().indices().get<by_name>();
-            FC_ASSERT(it.find(o.from) != it.end(), "not find sender ${from}", ("from", o.from));
-            FC_ASSERT(o.to_names.size() >= 1, "number of receivers must be greater than 0");
-            const auto &r = o.to_names.begin();
-            std::string str;
-            asset ar(r->second.symbol, 0);
-            for(const auto& r : o.to_names)
-            {
-//                str = r.second.to_string();
+            const auto &from = _db.get_account(o.from);
+            asset sum(NEWS_SYMBOL, 0);
+            for(const auto &itr : o.to_names){
+                _db.get_account(itr.first);
+                sum += itr.second;
+            }
+            FC_ASSERT(from.balance >= sum, "${u} has not enough balance.", ("u", o.from));
 
-                //check out the existence of each of receivers
-                FC_ASSERT(it.find(r.first) != it.end(), "not find receiver: ${r}", ("r", r.first));
-                //summary every payments
-                ar += r.second;
+            _db.modify(from, [&](account_object &obj){
+                obj.balance -= sum;
+            });
+
+            for(const auto &itr : o.to_names){
+                _db.modify(_db.get_account(itr.first), [&](account_object &obj){
+                    obj.balance += itr.second;
+                });
             }
 
-            const account_object *ac = _db.find_account(o.from);
-            FC_ASSERT( _db.get_balance( *ac, ar.symbol ) >= ar, "Account does not have sufficient funds for transfer." );
-            _db.adjust_balance( *ac, -ar );
-
-            for(const auto& r : o.to_names)
-            {
-                ac = _db.find_account(r.first);
-                _db.adjust_balance( *ac, r.second );
-            }
         }
 
 

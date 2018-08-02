@@ -16,6 +16,7 @@
 #include <test/record.hpp>
 #include <test/types.hpp>
 #include <fc/io/json.hpp>
+#include <chrono>
 
 namespace test{
 
@@ -123,10 +124,11 @@ namespace test{
 
                             if(count <= 0 ){
                                 if( (fc::time_point::now() - start).count() < fc::seconds(1).count() ){
-                                    while( !((fc::time_point::now() - start).count() > fc::seconds(1).count()) ){
-//                                    std::this_thread::sleep_for(2s);
+                                    int64_t sl = ( start + fc::seconds(1) - fc::time_point::now() ).count() / 1000;
+                                    if(sl != 0){
+                                        std::this_thread::sleep_for(std::chrono::operator""ms(sl));
                                     }
-//                                    ilog("sleep for. ${t}", ("t", fc::time_point::now() - start));
+//                                    ilog("sleep for. ${t} ms", ("t", sl));
                                 }
                                 count = _second_send;
                                 start = fc::time_point::now();

@@ -232,7 +232,8 @@ namespace news {
                     for (int i = 0; i < 3; i++) {
                         create<account_object>([&](account_object &obj) {
                             obj.name = NEWS_SYSTEM_ACCOUNT_NAME + i;
-                            obj.balance.amount = 1000000000000L;
+//                            obj.balance.amount = 1000000000000L;
+                            obj.balance.amount = INT64_MAX;
 //                            to_shared_string(NEWS_INIT_PUBLIC_KEY, obj.public_key);
                         });
                     }

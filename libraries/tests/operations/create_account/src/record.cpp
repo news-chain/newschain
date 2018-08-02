@@ -82,7 +82,7 @@ namespace test {
                 continue;
             }
             else if (dd.second.ret.error.valid()) {
-//                wlog("error ${e}", ("e", dd.second.ret.error));
+                wlog("error ${e}", ("e", dd.second.ret.error));
                 failed++;
                 remove_data.push_back(dd.first);
             } else {

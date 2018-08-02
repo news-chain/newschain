@@ -102,6 +102,25 @@ namespace factory {
 
     }
 
+    signed_transaction
+    helper::create_transfers(private_key_type sign_pk, account_name from, std::map<account_name, asset> asset) {
+
+        signed_transaction trx;
+        transfers_operation to;
+        to.from = from;
+        to.to_names = std::move(asset);
+        to.memo = boost::uuids::to_string(boost::uuids::random_generator()());
+
+        trx.operations.push_back(to);
+
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.ref_block_prefix = property_object.head_block_id._hash[1];
+        trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
+        trx.sign(sign_pk, NEWS_CHAIN_ID);
+
+        return trx;
+    }
+
 
     std::string string_json_rpc(const std::string &str) {
         std::string ret;
@@ -121,13 +140,13 @@ namespace factory {
 
     void create_factory::start() {
         _thread = std::make_shared<std::thread>([&]() {
-            int64_t name = 20;
+//            int64_t name = 20;
             fc::time_point start = fc::time_point::now();
             boost::mt19937  rng(time(0));
 
-            std::vector<account_name>   transfer_names;
-            std::map<account_name, fc::ecc::private_key> names_pk;
-            std::map<account_name, int64_t > names_balance;
+            std::vector<account_name>                       transfer_names;
+            std::map<account_name, fc::ecc::private_key>    names_pk;
+            std::map<account_name, int64_t >                names_balance;
             size_t max_transfer_accounts_size = 200;
 
 
@@ -138,7 +157,7 @@ namespace factory {
                     signed_transaction trx;
 
                     //第一次，创建账号
-                    if(transfer_names.size() <= max_transfer_accounts_size){
+                    if(transfer_names.size() < max_transfer_accounts_size && _type == producer_type::create_transfer){
                         for(int i = 0; i < max_transfer_accounts_size; i++){
                             transfer_names.push_back(rng());
                         }
@@ -147,6 +166,14 @@ namespace factory {
                         break;
                     }
 
+                    if(transfer_names.size() < max_transfer_accounts_size && _type == producer_type::create_transfers){
+                        for(int i = 0; i < max_transfer_accounts_size; i++){
+                            transfer_names.push_back(rng());
+                        }
+                        trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, transfer_names, names_pk);
+                        result.push_back(trx);
+                        break;
+                    }
 
                     switch (_type) {
                         case producer_type::create_accounts : {
@@ -163,20 +190,31 @@ namespace factory {
 
                             if( names_balance[op_name] <= 100){
                                 trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, op_name, asset(NEWS_SYMBOL, 1));
+                                names_balance[op_name] += 1;
                             }
                             else{
                                 trx = _help.create_transfer(names_pk[op_name], op_name, NEWS_SYSTEM_ACCOUNT_NAME, asset(NEWS_SYMBOL, 1));
+                                names_balance[op_name] -= 1;
                             }
                             result.push_back(trx);
                             break;
                         }
                         case producer_type::create_transfers : {
-                            //TODO
-
+//                            i = _max_cache; //break for
+                            std::map<account_name, asset> tf_map;
+                            for(auto &itr : transfer_names){
+                                tf_map[itr] = asset(NEWS_SYMBOL, 1);
+                            }
+                            ddump((_trx_op));
+                            for(int j = 0; j < _trx_op; j++){
+                                trx = _help.create_transfers(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, tf_map);
+                                result.push_back(trx);
+                            }
                             break;
                         }
                         default: {
                             elog("unkown type.");
+                            assert(false);
                         }
 
                     }
@@ -186,14 +224,19 @@ namespace factory {
                 if (_cb) {
                     _cb(result);
                 }
+
+
                 result.clear();
 
-
                 if ((fc::time_point::now() - start) < fc::seconds(1)) {
-                    while ((fc::time_point::now() - start).count() > fc::seconds(1).count() - 500);
+                    int64_t sl = ( start + fc::seconds(1) - fc::time_point::now() ).count() / 1000;
+                    if(sl != 0){
+                        std::this_thread::sleep_for(std::chrono::operator""ms(sl));
+                    }
                 }
+                start = fc::time_point::now();
 
-            }
+            } // while
         });
     }
 

@@ -402,18 +402,16 @@ namespace news {
 
                 prom.get_future().get();
                 if (cxt.except) {
-                    ilog("accept_transaction except ${e}", ("e", *(cxt.except)));
+//                    ilog("accept_transaction except ${e}", ("e", *(cxt.except)));
                     throw *(cxt.except);
                 }
 
             }
 
             bool chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
-                wlog("accept_block #${b}, size ${s} time ${t}  sync ${cc}ms",
-                     ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp)("cc", (fc::time_point::now().time_since_epoch().count() - ((int64_t)block.timestamp.sec_since_epoch()) * 1000000) / 1000));
-
                 if (syncing && block.block_num() % 1000 == 0) {
-
+                    wlog("accept_block #${b}, size ${s} time ${t}  sync ${cc}ms",
+                         ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp)("cc", (fc::time_point::now().time_since_epoch().count() - ((int64_t)block.timestamp.sec_since_epoch()) * 1000000) / 1000));
                 }
                 boost::promise<void> prom;
                 write_context cxt;

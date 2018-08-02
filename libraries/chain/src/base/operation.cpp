@@ -34,6 +34,7 @@ namespace news{
 
         void transfers_operation::validate() const{
             validate_account_name(from);
+            FC_ASSERT(to_names.size() > 0);
             for(const auto &b : this->to_names){
                 validate_account_name(b.first);
                 FC_ASSERT(from != b.first, "dont allow tranfer to yourself.");

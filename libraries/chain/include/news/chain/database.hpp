@@ -187,7 +187,7 @@ namespace news{
             void                            apply_operation(const operation &op);
             void                            pop_block();
 
-            void                            regists_evaluator();
+            void                            register_evaluator();
             void                            clear_pending();
             void                            clear_expired_transactions();
             block_id_type                   find_block_id_for_num(uint32_t block_num) const;

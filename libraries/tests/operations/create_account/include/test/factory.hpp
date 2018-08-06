@@ -41,7 +41,7 @@ namespace factory{
         signed_transaction  create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names);
         signed_transaction  create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names, std::map<account_name, fc::ecc::private_key> &map);
         signed_transaction  create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount);
-        signed_transaction  create_transfers(private_key_type sign_pk, account_name from, std::map<account_name, asset> to_asset);
+        signed_transaction  create_transfers(private_key_type sign_pk, account_name from, std::vector<std::map<account_name, asset>> to_asset);
         std::string     get_string_dynamic_property();
 
 

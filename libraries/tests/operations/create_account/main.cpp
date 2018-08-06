@@ -27,19 +27,16 @@ int main(int argc, char **argv) {
     try {
         auto config = fc::logging_config::default_config();
         fc::configure_logging(config);
-
-
-
         test::application app;
-
-
         app.set_program_args(argc, argv);
-
-
         app.start();
+
     }catch (const std::exception &e){
         std::cerr << e.what() << std::endl;
         return -1;
+    }catch (const fc::assert_exception &e){
+        std::cerr << e.to_detail_string() << std::endl;
+        return 2;
     }catch (const fc::exception &e){
         std::cerr << "main exception : " << e.to_detail_string() << std::endl;
         return 2;

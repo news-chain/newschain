@@ -82,7 +82,7 @@ namespace test {
                 continue;
             }
             else if (dd.second.ret.error.valid()) {
-                wlog("error ${e}", ("e", dd.second.ret.error));
+//                wlog("error ${e}", ("e", dd.second.ret.error));
                 failed++;
                 remove_data.push_back(dd.first);
             } else {
@@ -105,6 +105,7 @@ namespace test {
 
 
         std::cout << "*************************************************" << std::endl;
+        std::cout << "time :            " << std::string(fc::time_point::now()) << std::endl;
         std::cout << "max_request_time: " << max_request_time / 1000 << "ms" << std::endl;
         std::cout << "min_request_time: " << min_request_time / 1000 << "ms" << std::endl;
         std::cout << "send_count:       " << send_count << std::endl;
@@ -114,6 +115,11 @@ namespace test {
         std::cout << "average:          " << average / 1000 << "ms" << std::endl;
         std::cout << "*************************************************" << std::endl;
 
+
+        if(failed * 1.0 / (send_count * 1.0) > 0.1){
+            std::cerr << "failed too many." << std::endl;
+            assert(true);
+        }
     }
 
     void record::stop() {

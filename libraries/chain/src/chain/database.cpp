@@ -37,7 +37,7 @@ namespace news {
 
             initialize_indexes();
             init_genesis(args);
-            regists_evaluator();
+            register_evaluator();
 
 
             auto log_header = _block_log.head();
@@ -193,8 +193,6 @@ namespace news {
                 elog("Postponed ${n} transactions due to block size limit", ("n", postponed_tx_count));
             }
 
-            //TODO_pending_tx_session->reset(); ?
-//            _pending_trx_session->push();
             _pending_trx_session.reset();
 
 
@@ -215,7 +213,7 @@ namespace news {
             }
 
 
-            //TODO push block
+
             push_block(pengding_block, _skip_flags);
 
             return pengding_block;
@@ -361,10 +359,6 @@ namespace news {
                     }
                 }
 
-
-
-
-                //TODO flush chainbase
             } FC_CAPTURE_AND_RETHROW()
         }
 
@@ -378,8 +372,9 @@ namespace news {
                                   ("new_block merkle root", block.producer_signature)("caculate merkle root ",
                                                                                       merkle_root));
                     } catch (fc::assert_exception &e) {
-                        //TODO catch exception
+                        // TODO?
                         elog("_apply_block ", ("e", e.what()));
+                        throw e;
                     }
                 }
 
@@ -568,7 +563,7 @@ namespace news {
                 undo();
 
                 //TODO record poped transaction , insert next blocks?
-//                _popped_tx.insert(_popped_tx.begin(), head_block->transactions.begin())
+                _popped_tx.insert(_popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end());
 
             } FC_CAPTURE_AND_RETHROW()
 
@@ -749,7 +744,7 @@ namespace news {
             notify_post_apply_operation(note);
         }
 
-        void database::regists_evaluator() {
+        void database::register_evaluator() {
             _my->_eveluator_registry.register_evaluator<create_account_evaluator>();
             _my->_eveluator_registry.register_evaluator<transfer_evaluator>();
             _my->_eveluator_registry.register_evaluator<transfers_evaluator>();

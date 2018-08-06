@@ -18,13 +18,13 @@
 #include <fc/io/json.hpp>
 #include <chrono>
 
-namespace test{
+namespace test {
 
 
     using namespace news::chain;
 
 
-    namespace  detail{
+    namespace detail {
 
         using namespace news::chain;
         using namespace tools;
@@ -32,52 +32,50 @@ namespace test{
 //        typedef boost::promise<void>*       promise_ptr;
 
 
-        struct write_context{
-            write_context(){
+        struct write_context {
+            write_context() {
 
             }
-            ~write_context(){
+
+            ~write_context() {
 
             }
-            std::string         data;
+
+            std::string data;
 
         };
 
 
-        class application_impl{
+        class application_impl {
         public:
-            application_impl(boost::asio::io_service &io):write_queue(256),get_queue(256),_timer(io){
+            application_impl(boost::asio::io_service &io) : write_queue(256), get_queue(256), _timer(io) {
 
             }
-            ~application_impl(){}
+
+            ~application_impl() {}
 
 
 //            bpo::options_description    _op_desc;
-            bpo::options_description    _cfg_desc;
+            bpo::options_description _cfg_desc;
 
-            bpo::variables_map          _map_args;
+            bpo::variables_map _map_args;
 
-            std::vector<std::shared_ptr<http::client>>   _clients;
+            std::vector<std::shared_ptr<http::client>> _clients;
 
-            uint16_t                    _producer_threads;
-            uint32_t                    _trx_ops;
-            uint32_t                    _send_type;
-            uint32_t                    _second_send;
-            uint32_t                    _log_time;
-
-
+            uint16_t _producer_threads;
+            uint32_t _trx_ops;
+            uint32_t _send_type;
+            uint32_t _second_send;
+            uint32_t _log_time;
 
 
 //            std::shared_ptr<std::thread>        _send_threads;
-            boost::lockfree::queue<write_context*>  write_queue;
-            boost::lockfree::queue<get_context*>    get_queue;
-            boost::asio::deadline_timer         _timer;
+            boost::lockfree::queue<write_context *> write_queue;
+            boost::lockfree::queue<get_context *> get_queue;
+            boost::asio::deadline_timer _timer;
 
-            test::record                    _record;
-            factory::create_factory         _create_factory;
-
-
-
+            test::record _record;
+            factory::create_factory _create_factory;
 
 
             void start_loop();
@@ -86,26 +84,25 @@ namespace test{
         };
 
 
-
         void application_impl::start_loop() {
 
             //发送数据
-            for(auto &cc : _clients){
-                std::thread([&](){
+            for (auto &cc : _clients) {
+                std::thread([&]() {
                     write_context *cxt = nullptr;
                     bool running = true;
                     fc::time_point start = fc::time_point::now();
-                    uint32_t    count = _second_send;
-                    while(running){
+                    uint32_t count = _second_send;
+                    while (running) {
                         try {
-                            if(write_queue.pop(cxt)){
-                                if(cxt->data.length() > 0
-//                                   && cxt->data.length() < 5000
-                                   && cxt != nullptr){
+                            if (write_queue.pop(cxt)) {
+                                if (cxt->data.length() > 0
+                                    //                                   && cxt->data.length() < 5000
+                                    && cxt != nullptr) {
 
                                     get_context *get_cxt = new get_context();
                                     auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
-                                    if(send.id == 0){
+                                    if (send.id == 0) {
                                         elog("send id  == 0 .");
                                     }
                                     get_cxt->id = send.id;
@@ -116,17 +113,17 @@ namespace test{
                                     count--;
                                 }
 
-                                if(cxt != nullptr){
+                                if (cxt != nullptr) {
                                     delete cxt;
                                     cxt = nullptr;
                                 }
                             }
 
-                            if(count <= 0 ){
-                                if( (fc::time_point::now() - start).count() < fc::seconds(1).count() ){
-                                    int64_t sl = ( start + fc::seconds(1) - fc::time_point::now() ).count() / 1000;
-                                    if(sl != 0){
-                                        std::this_thread::sleep_for(std::chrono::operator""ms(sl));
+                            if (count <= 0) {
+                                if ((fc::time_point::now() - start).count() < fc::seconds(1).count()) {
+                                    int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
+                                    if (sl != 0) {
+                                        std::this_thread::sleep_for(std::chrono::operator ""ms(sl));
                                     }
 //                                    ilog("sleep for. ${t} ms", ("t", sl));
                                 }
@@ -135,9 +132,9 @@ namespace test{
 //                                ilog("update time ${t}", ("t", start));
                             }
 
-                        }catch (const std::exception &e){
+                        } catch (const std::exception &e) {
                             wlog("std::exception ${e}", ("e", e.what()));
-                        }catch (const fc::exception &e){
+                        } catch (const fc::exception &e) {
                             wlog("${e}", ("e", e.to_detail_string()));
                         }
 
@@ -148,50 +145,54 @@ namespace test{
 
             //handle record message
             //处理接受数据
-            std::thread([&](){
+            std::thread([&]() {
                 bool running = true;
                 get_context *cxt = nullptr;
                 fc::time_point start = fc::time_point::now();
-                while(running){
 
-                    while(get_queue.pop(cxt)){
-                        if(cxt != nullptr){
-                            if(cxt->get_time != fc::time_point()){              //更新接受数据
-                                _record.update_data(cxt->id, *cxt);
-                            }
-                            else if(cxt->send_time != fc::time_point()){            //发送数据
-                                _record.add_send_data(cxt->id, *cxt);
-                            }
-                            else{
-                                elog("unhandle message data.");
-                            }
-                            if(cxt->id == 0){   //update dynamic_property
-                                try {
-                                    if(!cxt->ret.error.valid() && cxt->ret.result.valid()){
-                                        auto dy = cxt->ret.result->as<dynamic_global_property_object>();
-                                        _create_factory.update_dynamic_property(dy);
-                                        wlog("update dynamic property success.");
-                                    }
-                                    else{
+                uint32_t log_time = 12;
+                while (running) {
+                    try {
+                        while (get_queue.pop(cxt)) {
+                            if (cxt != nullptr) {
+                                if (cxt->get_time != fc::time_point()) {              //更新接受数据
+                                    _record.update_data(cxt->id, *cxt);
+                                } else if (cxt->send_time != fc::time_point()) {            //发送数据
+                                    _record.add_send_data(cxt->id, *cxt);
+                                } else {
+                                    elog("unhandle message data.");
+                                }
+                                if (cxt->id == 0) {   //update dynamic_property
+                                    try {
+                                        if (!cxt->ret.error.valid() && cxt->ret.result.valid()) {
+                                            auto dy = cxt->ret.result->as<dynamic_global_property_object>();
+                                            _create_factory.update_dynamic_property(dy);
+                                            wlog("update dynamic property success.");
+                                        } else {
+                                            elog("update dynamic property error.");
+                                        }
+                                    } catch (const fc::exception &e) {
                                         elog("update dynamic property error.");
                                     }
-                                }catch (const fc::exception &e){
-                                    elog("update dynamic property error.");
+
                                 }
 
+                                delete cxt;
+                                cxt = nullptr;
+
                             }
-
-                            delete  cxt;
-                            cxt = nullptr;
-
                         }
+                        //log data
+                        if (fc::time_point::now() - start > fc::seconds(log_time)) {
+                            log_time = _log_time;
+                            _record.log_data_and_move();
+                            start = fc::time_point::now();
+                        }
+                    }catch(const std::exception &e){
+                        elog("${e}", ("e", e.what()));
+                    }catch (const fc::exception &e){
+                        elog("${e}", ("e", e.to_detail_string()));
                     }
-                    //log data
-                    if ( fc::time_point::now() - start > fc::seconds(_log_time) ){
-                        _record.log_data_and_move();
-                        start = fc::time_point::now();
-                    }
-
                 }
             }).detach();
 
@@ -199,7 +200,7 @@ namespace test{
 
             //定时器， 更新全局信息
             _timer.expires_from_now(boost::posix_time::microseconds(fc::minutes(10).count()));
-            _timer.async_wait([&](const boost::system::error_code &e){
+            _timer.async_wait([&](const boost::system::error_code &e) {
                 post_dynamic_property();
             });
         }
@@ -214,10 +215,8 @@ namespace test{
     }
 
 
-
-
-
-    application::application():io_serv(std::make_shared<boost::asio::io_service>()),my(new detail::application_impl(*io_serv)) {
+    application::application() : io_serv(std::make_shared<boost::asio::io_service>()),
+                                 my(new detail::application_impl(*io_serv)) {
 
     }
 
@@ -239,24 +238,24 @@ namespace test{
 
     void application::start() {
         try {
-            if( my->_map_args.count("help")){
+            if (my->_map_args.count("help")) {
                 std::cout << my->_cfg_desc << std::endl;
                 return;
             }
-            if( my->_map_args.count("websocket")){
-                std::vector<std::string> address =  my->_map_args["websocket"].as<std::vector<std::string>>();
+            if (my->_map_args.count("websocket")) {
+                std::vector<std::string> address = my->_map_args["websocket"].as<std::vector<std::string>>();
                 FC_ASSERT(address.size() > 0, "must one server address.");
 
-                for(const auto &ad : address){
+                for (const auto &ad : address) {
                     auto client = std::make_shared<http::client>(ad);
                     client->init();
-                    client->set_handle_message([&](const std::string &str){
+                    client->set_handle_message([&](const std::string &str) {
                         handle_message(str);
                     });
                     my->_clients.emplace_back(std::move(client));
 
                 }
-            }else{
+            } else {
                 std::cout << "must init server address" << std::endl;
                 return;
             }
@@ -268,9 +267,8 @@ namespace test{
             my->_log_time = my->_map_args["log-time"].as<uint32_t>();
 
 
-
             factory::producer_type type;
-            switch (my->_send_type){
+            switch (my->_send_type) {
                 case 1:
                     type = factory::producer_type::create_accounts;
                     break;
@@ -290,10 +288,9 @@ namespace test{
             my->_create_factory.update_param(type, my->_clients.size(), my->_trx_ops, my->_second_send + 10);
 
 
-
-            my->_create_factory.set_producer_data_call([&](std::vector<signed_transaction> trx){
+            my->_create_factory.set_producer_data_call([&](std::vector<signed_transaction> trx) {
                 auto ret = my->_record.add_record_data(trx);
-                for(auto &r : ret){
+                for (auto &r : ret) {
                     auto cxt = new detail::write_context();
                     cxt->data = r;
                     my->write_queue.push(cxt);
@@ -308,14 +305,14 @@ namespace test{
             boost::asio::signal_set set(*io_serv);
             set.add(SIGINT);
             set.add(SIGTERM);
-            set.async_wait([this](boost::system::error_code , int){
+            set.async_wait([this](boost::system::error_code, int) {
                 stop();
             });
 
             io_serv->run();
 
 
-        }FC_CAPTURE_AND_LOG(("error"))
+        } FC_CAPTURE_AND_LOG(("error"))
     }
 
     void application::handle_message(const std::string &message) {
@@ -328,7 +325,7 @@ namespace test{
             get_cxt->get_time = fc::time_point::now();
             get_cxt->ret = ret;
             my->get_queue.push(get_cxt);
-        }FC_CAPTURE_AND_LOG((message))
+        } FC_CAPTURE_AND_LOG((message))
 
     }
 

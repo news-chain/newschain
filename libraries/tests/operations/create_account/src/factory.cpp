@@ -24,7 +24,7 @@ namespace factory {
         cao.posting = {fc::ecc::private_key::generate().get_public_key(), 1};
         cao.owner = {fc::ecc::private_key::generate().get_public_key(), 1};
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
 
@@ -66,7 +66,7 @@ namespace factory {
             trx.operations.push_back(cao);
         }
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
 
@@ -92,7 +92,7 @@ namespace factory {
             map[name] = post_key;
         }
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
 
@@ -103,15 +103,17 @@ namespace factory {
     }
 
     signed_transaction
-    helper::create_transfers(private_key_type sign_pk, account_name from, std::map<account_name, asset> asset) {
+    helper::create_transfers(private_key_type sign_pk, account_name from, std::vector<std::map<account_name, asset>> asset) {
 
         signed_transaction trx;
-        transfers_operation to;
-        to.from = from;
-        to.to_names = std::move(asset);
-        to.memo = boost::uuids::to_string(boost::uuids::random_generator()());
+        for(auto &itr : asset){
+            transfers_operation to;
+            to.from = from;
+            to.to_names = std::move(itr);
+            to.memo = boost::uuids::to_string(boost::uuids::random_generator()());
+            trx.operations.push_back(to);
+        }
 
-        trx.operations.push_back(to);
 
         trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
@@ -157,8 +159,8 @@ namespace factory {
                     signed_transaction trx;
 
                     //第一次，创建账号
-                    if(transfer_names.size() < max_transfer_accounts_size && _type == producer_type::create_transfer){
-                        for(int i = 0; i < max_transfer_accounts_size; i++){
+                    if(transfer_names.size() < _max_cache && _type == producer_type::create_transfer){
+                        for(int i = 0; i < _max_cache; i++){
                             transfer_names.push_back(rng());
                         }
                         trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, transfer_names, names_pk);
@@ -186,7 +188,8 @@ namespace factory {
                         }
                         case producer_type::create_transfer : {
 
-                            account_name op_name = transfer_names[0];
+                            uint64_t random = rng() % transfer_names.size();
+                            account_name op_name = transfer_names[random];
 
                             if( names_balance[op_name] <= 100){
                                 trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, op_name, asset(NEWS_SYMBOL, 1));
@@ -197,6 +200,8 @@ namespace factory {
                                 names_balance[op_name] -= 1;
                             }
                             result.push_back(trx);
+
+
                             break;
                         }
                         case producer_type::create_transfers : {
@@ -205,11 +210,13 @@ namespace factory {
                             for(auto &itr : transfer_names){
                                 tf_map[itr] = asset(NEWS_SYMBOL, 1);
                             }
-                            ddump((_trx_op));
+
+                            std::vector<std::map<account_name, asset>> assets;
                             for(int j = 0; j < _trx_op; j++){
-                                trx = _help.create_transfers(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, tf_map);
-                                result.push_back(trx);
+                                assets.push_back(tf_map);
                             }
+                            trx = _help.create_transfers(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, assets);
+                            result.push_back(trx);
                             break;
                         }
                         default: {

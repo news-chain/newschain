@@ -11,9 +11,9 @@
 #define NEWS_SYMBOL                     ((uint64_t(8) | uint64_t('N') << 8 | uint64_t('E') << 16 | uint64_t('W') << 24 | uint64_t('T') << 32))
 
 #define NEWS_BLOCK_INTERVAL             3
-#define NEWS_TRANSACTIONS_MAN_SIZE      (1024 * 32)
+#define NEWS_TRANSACTIONS_MAX_SIZE      (1024 * 32)
 #define NEWS_MIN_BLOCK_SIZE             (128)
-#define NEWS_MAX_BLOCK_SIZE             (NEWS_TRANSACTIONS_MAN_SIZE * NEWS_BLOCK_INTERVAL * 2000L)
+#define NEWS_MAX_BLOCK_SIZE             (1024 * 1024L)
 
 #define NEWS_MAX_PRODUCER_VOTE          21
 #define IRREVERSIBLE_BLOCK_NUM          (21)            //about 1min        18446744073709551616

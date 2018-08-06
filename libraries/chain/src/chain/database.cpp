@@ -814,7 +814,7 @@ namespace news {
 
         }
 
-        block_id_type database::find_block_id_for_num(uint32_t block_num) const {
+        block_id_type database::get_block_id_for_num(uint32_t block_num) const {
             block_id_type bid = find_block_id_for_num(block_num);
             FC_ASSERT(bid != block_id_type());
             return bid;

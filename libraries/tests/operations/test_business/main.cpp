@@ -72,7 +72,7 @@ FC_REFLECT(result_body, (jsonrpc)(result)(error)(id))
 using namespace factory;
  
 
-typedef std::vector<std::thread*> thread_pool;
+typedef std::vector<std::shared_ptr<std::thread>> thread_pool;
 typedef std::map<news::base::account_name, news::base::private_key_type> users;
 typedef std::map<news::base::account_name, news::base::private_key_type>::iterator users_it;
 class business
@@ -121,69 +121,7 @@ public:
 
 			}
 		}
-	}
-	bool befor_transfer_one(int accounts=30)
-	{
-		http::client client(getws());
-		client.init(
-			[](websocketpp::connection_hdl hdl)
-		{
-			std::cout << "on open " << std::endl;
-		},
-			[&](websocketpp::connection_hdl hdl, http::message_ptr msg)
-		{  
-			result_body body = fc::json::from_string(msg->get_payload()).as<result_body>();
-			if (body.error.valid())
-			{ 
-				std::cout << fc::time_point::now().time_since_epoch().to_seconds() << msg->get_payload() << std::endl;
-				update(body.id, task_result::fail);
-			}
-			else
-			{
-				update(body.id);
-			}
-
-		},
-			[](websocketpp::connection_hdl hdl)
-		{
-			std::cout << "on close " << std::endl;
-		},
-			[](websocketpp::connection_hdl hdl)
-		{
-			std::cout << "on fail " << std::endl;
-
-		});
-		factory::helper  ff;
-	 
-		for (int i=0; i <accounts;i++)
-		{  
-			uint64_t id=startid++;
-			news::base::private_key_type genkey;  
-			auto str = ff.create_account(myusers[1], 1, id, genkey);
-			auto tid = taskid++;
-			std::string ret = string_json_rpc(tid, fc::json::to_string(str));
-			client.send_message(ret);
-			myusers.insert(std::make_pair(id, genkey));
-
-			taskresult rs;
-			rs.username = id;
-			rs.start_time = fc::time_point::now().time_since_epoch().count();
-			rs.id = tid;
-			rs.result = task_result::recvfail;
-			rs.op = option_user::create_user; 
-			mytask.insert(std::make_pair(tid, std::move(rs)));
-			 
-			//uint64_t id = ++taskid;
-			//auto money = asset(NEWS_SYMBOL, 300 * 10000L);
-			//ff.create_transfer(id,myusers[1],1, startid, money);
-			//ret = string_json_rpc(id, fc::json::to_string(str));
-			//client.send_message(ret);
-
-		} 
-		client.stop();
-		return true;
-
-	}
+	} 
 	void init_money()
 	{
 		http::client client(getws());
@@ -273,7 +211,7 @@ public:
 					{
 						if (isstop)
 						{
-							boost::this_thread::sleep(boost::posix_time::seconds(60));
+							//boost::this_thread::sleep(boost::posix_time::seconds(60));
 							client.stop();
 							break;
 						} 
@@ -314,7 +252,8 @@ public:
 
 					}   
 				});
-				th_pool.push_back(th);
+				std::shared_ptr<std::thread> sps(th);
+				th_pool.push_back(sps);
 			} 
 		return true;
 	} 
@@ -418,7 +357,8 @@ public:
 						boost::this_thread::sleep(boost::posix_time::seconds(5));
 				}
 			});
-			th_pool.push_back(th);
+			std::shared_ptr<std::thread> sps(th);
+			th_pool.push_back(sps);
 		}
 		return true;
 	}
@@ -504,7 +444,8 @@ public:
 					} 
 				}
 			});
-			th_pool.push_back(th);
+			std::shared_ptr<std::thread> sps(th);
+			th_pool.push_back(sps);
 		}
 		return true;
 	}
@@ -597,7 +538,8 @@ public:
 					}
 				} 
 			});
-			th_pool.push_back(th);
+			std::shared_ptr<std::thread> sps(th);
+			th_pool.push_back(sps);
 		}
 		return true;
 
@@ -657,13 +599,13 @@ public:
 	{ 
 		isstop = true;
 		for (auto it : th_pool)
-		{
-			it->join();
-			delete it;
+		{ 
+			it->join(); 
 		}
 		endtime = fc::time_point::now().time_since_epoch().count();
 		return true;
 	}
+	 
 private:
 	thread_pool th_pool; 
 	int thread_counts;
@@ -774,6 +716,7 @@ int main(int argc, char **argv){
 			break;
 		case 5:
 			bs.vote_comment();
+			break;
 			break;
 			
 		}

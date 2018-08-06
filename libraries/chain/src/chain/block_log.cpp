@@ -58,6 +58,7 @@ namespace news{
                             {
                                 block_stream.close();
                                 block_stream.open( block_file.generic_string().c_str(), LOG_WRITE );
+								block_stream.seekg(0, std::ios::end);
                                 block_write = true;
                             }
                         }
@@ -71,7 +72,7 @@ namespace news{
                             if( index_write )
                             {
                                 index_stream.close();
-                                index_stream.open( index_file.generic_string().c_str(), LOG_READ );
+                                index_stream.open( index_file.generic_string().c_str(), LOG_READ );						
                                 index_write = false;
                             }
                         }
@@ -83,10 +84,10 @@ namespace news{
                         try
                         {
                             if( !index_write )
-                            {
-								index_stream.clear();
-                                index_stream.close();
-                                index_stream.open( index_file.generic_string().c_str(), LOG_WRITE ); 
+                            {  
+								index_stream.close();
+                                index_stream.open( index_file.generic_string().c_str(), LOG_WRITE ); 		
+								index_stream.seekg(0, std::ios::end);
                                 index_write = true;
                             }
                         }
@@ -119,6 +120,8 @@ namespace news{
 
                 my->block_stream.open( my->block_file.generic_string().c_str(), LOG_WRITE );
                 my->index_stream.open( my->index_file.generic_string().c_str(), LOG_WRITE );
+				int64_t posblock =my->block_stream.tellp();
+				int64_t posstream = my->block_stream.tellp();
                 my->block_write = true;
                 my->index_write = true;
 
@@ -209,12 +212,10 @@ namespace news{
                     if( my->use_locking )
                     {
                         lock.lock();;
-                    }
-
+                    } 
                     my->check_block_write();
                     my->check_index_write();
-
-                    uint64_t pos = my->block_stream.tellp();
+                    uint64_t pos = my->block_stream.tellp(); 
 					FC_ASSERT( static_cast<uint64_t>(my->index_stream.tellp()) == sizeof( uint64_t ) * ( b.block_num() - 1 ),
                                "Append to index file occuring at wrong position.",
                                ( "position", (uint64_t) my->index_stream.tellp() )( "expected",( b.block_num() - 1 ) * sizeof( uint64_t ) ) );

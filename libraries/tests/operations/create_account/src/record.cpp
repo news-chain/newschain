@@ -64,11 +64,13 @@ namespace test {
         uint64_t average = 0;
         uint64_t all_time = 0;
         uint32_t not_receive = 0;
+        uint32_t time_out = 0;
 
 
 //        auto data = std::move(_data);
         std::vector<uint64_t> remove_data;
 
+        fc::time_point now = fc::time_point::now();
         for (auto &dd : _data) {
             auto spend = (dd.second.get_time - dd.second.send_time).count();
             if(spend > 0){
@@ -79,6 +81,10 @@ namespace test {
 
             if(dd.second.ret.jsonrpc.length() == 0){
                 not_receive++;
+                if(now - dd.second.send_time > fc::minutes(1)){
+                    time_out++;
+                    remove_data.push_back(dd.first);
+                }
                 continue;
             }
             else if (dd.second.ret.error.valid()) {
@@ -112,13 +118,18 @@ namespace test {
         std::cout << "success:          " << success << std::endl;
         std::cout << "failed:           " << failed << std::endl;
         std::cout << "not_receive:      " << not_receive << std::endl;
+        std::cout << "time_out:         " << time_out << std::endl;
         std::cout << "average:          " << average / 1000 << "ms" << std::endl;
         std::cout << "*************************************************" << std::endl;
 
 
         if(failed * 1.0 / (send_count * 1.0) > 0.1){
             std::cerr << "failed too many." << std::endl;
-            assert(true);
+            exit(2);
+        }
+        if(time_out * 1.0 / (send_count * 1.0) > 0.1){
+            std::cerr << "time_out too many" << std::endl;
+            exit(3);
         }
     }
 

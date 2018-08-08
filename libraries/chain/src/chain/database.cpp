@@ -62,6 +62,9 @@ namespace news {
 
             //TODO init hardforks
 
+            with_write_lock([&]() {
+                init_hardforks();
+            });
         }
 
         void database::initialize_indexes() {
@@ -72,6 +75,7 @@ namespace news {
             add_index<operation_obj_index>();
             add_index<account_history_obj_index>();
             add_index<account_authority_index>();
+            add_index<hardfork_property_index>();
         }
 
         uint32_t database::get_slot_at_time(fc::time_point_sec when) {
@@ -154,7 +158,7 @@ namespace news {
 
 
             //TODO block_header_size
-            size_t total_block_size = 0;
+            size_t total_block_size = fc::raw::pack_size(signed_block_header()) + 4;
             uint64_t postponed_tx_count = 0;
             uint32_t count = 10000;
             ilog("_pending_trx.size:${s}", ("s", _pending_trx.size()));
@@ -264,6 +268,14 @@ namespace news {
                         obj.owner = {news::base::public_key_type(NEWS_ACCEPT_NAME_PRIVATE_KEY.get_public_key()), 1};
                     });
 
+
+                    create<hardfork_property_object>([](hardfork_property_object &obj){
+                        obj.processed_hadrdfork.push_back(NEWS_GENESIS_TIME);
+                    });
+
+
+
+
                 });
 
 
@@ -324,7 +336,7 @@ namespace news {
                 }
             }
 
-
+            _fork_database.set_max_size(gpo.head_block_num - gpo.last_irreversible_block_num + 1);
         }
 
 
@@ -354,8 +366,9 @@ namespace news {
 
                     if (_next_flush_block == block_num) {
                         _next_flush_block = 0;
-                        ilog("flush database shared memory at block ${b}", ("b", block_num));
+
                         chainbase::database::flush();
+                        elog("flush database shared memory at block ${b}", ("b", block_num));
                     }
                 }
 
@@ -365,6 +378,22 @@ namespace news {
         void database::_apply_block(const signed_block &block, uint64_t skip) {
             try {
                 _current_block_num = block.block_num();
+
+                if(BOOST_UNLIKELY(block.block_num() == 1)){
+                    uint32_t n = 0;
+                    for(; n < NEWS_HARDFORK_NUM ; n++){
+                        if(_hardfork_times[n + 1] > block.timestamp){
+                            break;
+                        }
+                    }
+
+                    if(n > 0){
+                        ilog("processing ${n} genesis hardfork", ("n", n));
+                        set_hardfork(n, true);
+                    }
+
+                }
+
                 if (!(skip & skip_merkle_check)) {
                     auto merkle_root = block.caculate_merkle_root();
                     try {
@@ -395,12 +424,11 @@ namespace news {
                                  "s", block.transactions.size()));
                 }
 
-
                 update_global_property_object(block);
                 update_last_irreversible_block();
                 create_block_summary(block);
                 clear_expired_transactions();
-
+                process_hardforks();
             } FC_CAPTURE_AND_RETHROW()
         }
 
@@ -439,8 +467,10 @@ namespace news {
                             wlog("switching to for : ${id}", ("id", new_block->data.id()));
                             auto branches = _fork_database.fetch_branch_from(new_block->data.id(), head_block_id());
 
-                            while (head_block_id() != branches.second.back()->data.previous)
+                            while (head_block_id() != branches.second.back()->data.previous){
+                                elog("pop block head_block_id =${h} , previous ${p}", ("h", head_block_id())("p", branches.second.back()->data.previous));
                                 pop_block();
+                            }
 
 //                        push all blocks on the new block
                             for (auto ritr = branches.first.rbegin(); ritr != branches.first.rend(); ritr++) {
@@ -930,25 +960,99 @@ namespace news {
         }
 
 
-        void database::modify_balance(const account_object &a, const asset &delta, bool check_balance) {
-            modify(a, [&](account_object &acnt) {
-                acnt.balance += delta;
-            });
-        }
-
-        asset database::get_balance(const account_object &a, asset_symbol symbol) const {
-            return a.balance;
-        }
-
-        void database::adjust_balance(const account_object &a, const asset &delta) {
-            bool check_balance = false;
-
-            modify_balance(a, delta, check_balance);
-        }
-
         void database::set_flush_interval(uint32_t flush_blocks) {
             _flush_blocks = flush_blocks;
             _next_flush_block = 0;
+        }
+
+        void database::init_hardforks() {
+            _hardfork_times[0] = fc::time_point_sec(NEWS_GENESIS_TIME);
+            _hardfork_versions[0] = version(0, 0, 0);
+
+            _hardfork_times[NEWS_HARDFORK_01] = fc::time_point_sec(NEWS_HARDFORK_01_TIME);
+            _hardfork_versions[NEWS_HARDFORK_01] = version(0, 0, 1);
+
+            _hardfork_times[NEWS_HARDFORK_02] = fc::time_point_sec(NEWS_HARDFORK_02_TIME);
+            _hardfork_versions[NEWS_HARDFORK_02] = version(0, 0, 2);
+        }
+
+        void database::set_hardfork(uint32_t hardfork, bool now) {
+            const auto &hpo = get_hardfork_property_object();
+
+            for(uint32_t i = hpo.last_hardfork + 1; i <= hardfork && i <= NEWS_HARDFORK_NUM; i++){
+                modify(hpo, [&](hardfork_property_object &obj){
+                    obj.next_hardfork_version = _hardfork_versions[i];
+                    obj.next_hardfork_time = head_block_time();
+                });
+
+                if(now){
+                    _apply_hardfork(i);
+                }
+            }
+
+
+        }
+
+        const hardfork_property_object &database::get_hardfork_property_object() const {
+            try{
+                return get<hardfork_property_object>();
+            }FC_CAPTURE_AND_RETHROW()
+        }
+
+        void database::_apply_hardfork(uint32_t hardfork) {
+            elog("_apply_hardfork ${n}  at block ${m}", ("n", hardfork)("m", head_block_num()));
+            switch (hardfork){
+                case NEWS_HARDFORK_01:
+                {
+                    break;
+                }
+                case NEWS_HARDFORK_02:
+                {
+                    break;
+                }
+                default:{
+                    elog("unkown hardfork ${n}", ("n", hardfork));
+                    break;
+                }
+            }
+
+            const auto &hpo = get_hardfork_property_object();
+            elog("hpo size ${s}", ("s", hpo.processed_hadrdfork.size()));
+            modify(hpo, [&](hardfork_property_object &obj){
+                FC_ASSERT(hardfork == obj.last_hardfork + 1, "Hardfork being applied out of");
+                FC_ASSERT(obj.processed_hadrdfork.size() == hardfork, "Hardfork being applied out of");
+                obj.processed_hadrdfork.push_back(_hardfork_times[hardfork]);
+                obj.last_hardfork = hardfork;
+                obj.current_hardfork_version = _hardfork_versions[hardfork];
+                FC_ASSERT(obj.processed_hadrdfork[obj.last_hardfork] == _hardfork_times[obj.last_hardfork], "Hardfork processing failed sanity check...");
+
+            });
+        }
+
+        void database::process_hardforks() {
+            try{
+                const auto &hpo = get_hardfork_property_object();
+//                while(_hardfork_versions[hpo.last_hardfork] < hpo.next_hardfork_version
+//                        && hpo.next_hardfork_time <= head_block_time()){
+//                    if(hpo.last_hardfork < NEWS_HARDFORK_NUM){
+//                        _apply_hardfork(hpo.last_hardfork + 1);
+//                    }
+//                    else{
+//                        elog("unkown hardfork exception.");
+//                        throw unknown_hardfork_exception();
+//                    }
+//                }
+
+                while(hpo.last_hardfork < NEWS_HARDFORK_NUM
+                        && _hardfork_times[hpo.last_hardfork + 1] <= head_block_time()){
+                    _apply_hardfork(hpo.last_hardfork + 1);
+                }
+
+            }FC_CAPTURE_AND_RETHROW()
+        }
+
+        bool database::has_harfork(uint32_t hardfork) const {
+            return get_hardfork_property_object().processed_hadrdfork.size() > hardfork;
         }
 
 

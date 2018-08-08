@@ -33,6 +33,8 @@
 #include <app/plugin.hpp>
 
 #include <news/base/asset_symbol.hpp>
+#include <news/chain/hardfork_property_object.hpp>
+#include <news/base/hardfork_config.hpp>
 
 namespace news{
     namespace chain{
@@ -135,9 +137,8 @@ namespace news{
             const account_object &          get_account(const account_name &name)const;
             const account_object*           find_account(const account_name &name)const;
 
-            void        modify_balance( const account_object& a, const asset& delta, bool check_balance );
-            asset       get_balance( const account_object& a, asset_symbol symbol )const;
-            void        adjust_balance( const account_object& a, const asset& delta );
+
+
 
 
             ///////////////////////////////////////////////////////////////////////////////
@@ -149,7 +150,9 @@ namespace news{
 
 
 
-            void        set_flush_interval(uint32_t flush_blocks);
+            void                        set_flush_interval(uint32_t flush_blocks);
+            const                       hardfork_property_object& get_hardfork_property_object() const;
+            bool                        has_harfork(uint32_t hardfork) const;
         private:
 
 
@@ -193,9 +196,10 @@ namespace news{
             block_id_type                   find_block_id_for_num(uint32_t block_num) const;
 
             void                            check_free_memory(bool fore_print, uint32_t cuurent_block_num);
-
-
-
+            void                            init_hardforks();
+            void                            set_hardfork(uint32_t n, bool now = true);
+            void                            _apply_hardfork(uint32_t hardfork);
+            void                            process_hardforks();
             //
             template<typename Function>
             auto with_skip_flags(uint64_t flags, Function   &&ff){
@@ -277,6 +281,8 @@ namespace news{
             uint32_t                                        _flush_blocks = 0;
             uint32_t                                        _next_flush_block = 0;
 
+            fc::time_point_sec                              _hardfork_times[NEWS_HARDFORK_NUM + 1];
+            version                                         _hardfork_versions[NEWS_HARDFORK_NUM + 1];
         };
 
     }//namespace chain

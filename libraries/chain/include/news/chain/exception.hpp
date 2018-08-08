@@ -36,5 +36,6 @@ namespace news{
     namespace chain{
         FC_DECLARE_EXCEPTION( chain_exception, 4000000, "blockchain exception" )
         FC_DECLARE_DERIVED_EXCEPTION( unlinkable_block_exception, chain_exception, 4010000, "unlinkable block" );
+        FC_DECLARE_DERIVED_EXCEPTION( unknown_hardfork_exception, chain_exception, 4020000, "chain attempted to apply unknown hardfork" )
     }
 }

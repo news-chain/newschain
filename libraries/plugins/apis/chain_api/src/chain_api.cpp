@@ -29,30 +29,26 @@ namespace news{
                 DEFINE_API_IMPL(chain_api_impl, push_block)
                 {
                     push_block_return result;
-                    result.error = "{\"code\":\"TODO push_block\"}";
-                    return  result;
+                    result.success = false;
+                    try {
+                        _chain_plugin.accept_block(args.block, false, 0);
+                        result.success = true;
+                    }catch (const fc::exception &e){
+                        result.error = e.to_detail_string();
+                    }catch (const std::exception &e){
+                        result.error = e.what();
+                    }
+                    catch (...){
+                        result.error = "uknown error.";
+                    }
+                    return result;
                 }
 
                 DEFINE_API_IMPL(chain_api_impl, push_transaction)
                 {
                     push_transaction_return result;
-
-
                     try {
-//                        news::base::private_key_type private_key_type = news::base::private_key_type::generate();
-//
-//                        news::chain::signed_transaction trx;
-//                        news::base::create_account_operation op;
-//                        op.name = fc::time_point::now().sec_since_epoch() % 100000;
-//                        op.creator = 1;
-//                        op.public_key = private_key_type.get_public_key();
-//
-//                        trx.expiration = fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 10);
-//                        trx.operations.push_back(op);
-//                        trx.sign(private_key_type, NEWS_CHAIN_ID);
-
                         _chain_plugin.accept_transaction(args);
-
                     }catch (const fc::exception &e){
                         result.error = e.to_detail_string();
                         result.success = false;

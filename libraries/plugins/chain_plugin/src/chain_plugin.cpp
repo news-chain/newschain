@@ -36,6 +36,7 @@ namespace news {
                     const fc::ecc::private_key &block_signing_private_key;
                     uint32_t skip;
                     signed_block block;
+
                 };
 
                 typedef fc::static_variant<const signed_block *, const signed_transaction *, generate_block_request *> write_request_ptr;
@@ -47,6 +48,7 @@ namespace news {
                     bool success = true;
                     fc::optional<fc::exception> except;
                     promise_ptr prom_ptr;
+                    fc::time_point  push_time;
                 };
 
 
@@ -85,6 +87,7 @@ namespace news {
                     database *db;
                     uint32_t skip = 0;
                     fc::optional<fc::exception> *except;
+                    fc::time_point  push_time;
 
                     typedef bool result_type;
 
@@ -136,12 +139,16 @@ namespace news {
 
                         try {
 //                                STATSD_START_TIMER( chain, write_time, generate_block, 1.0f )
+                            auto start = fc::time_point::now();
+                            ilog("generate_block_request ${t} ", ("t", (start - push_time).count()));
                             req->block = db->generate_block(
                                     req->when,
                                     req->witness_owner,
                                     req->block_signing_private_key,
                                     req->skip
                             );
+                            ilog("generate_block_request ${t} -------- ", ("t", (fc::time_point::now() - start).count()));
+
 //                                STATSD_STOP_TIMER( chain, write_time, generate_block )
 
                             result = true;
@@ -201,7 +208,6 @@ namespace news {
                           * not an optimal use of system resources when we could give CPU time to read threads.
                           */
 
-//                        int count = 0;
                         while (running) {
                             if (!is_syncing) {
                                 start = fc::time_point::now();
@@ -212,13 +218,10 @@ namespace news {
                                     while (true) {
                                         req_visitor.skip = cxt->skip;
                                         req_visitor.except = &(cxt->except);
+                                        req_visitor.push_time = cxt->push_time;
                                         cxt->success = cxt->req_ptr.visit(req_visitor);
                                         cxt->prom_ptr.visit(promise_visitor);
-//                                        count++;
-//                                        if(count >= 500){
-//                                            count = 0;
-//                                            break;
-//                                        }
+
                                         if (is_syncing && start - db.head_block_time() < fc::minutes(1)) {
                                             start = fc::time_point::now();
 
@@ -367,11 +370,14 @@ namespace news {
             news::chain::signed_block
             chain_plugin::generate_block(const fc::time_point_sec when, const news::base::account_name &producer,
                                          const fc::ecc::private_key &sign_pk, uint32_t skip) {
+
+                auto start = fc::time_point::now();
                 generate_block_request req(when, producer, sign_pk, skip);
                 boost::promise<void> prom;
                 write_context cxt;
                 cxt.req_ptr = &req;
                 cxt.prom_ptr = &prom;
+                cxt.push_time = fc::time_point::now();
 
                 _my->write_queue.push(&cxt);
 
@@ -381,6 +387,7 @@ namespace news {
                 }
                 FC_ASSERT(cxt.success, "block generate error.");
 
+                ilog("generate_block time ${t}", ("t", (fc::time_point::now() - start).count()));
                 return req.block;
             }
 
@@ -410,8 +417,8 @@ namespace news {
 
             bool chain_plugin::accept_block(const news::chain::signed_block &block, bool syncing, uint32_t skip) {
                 if (syncing && block.block_num() % 1000 == 0) {
-                    wlog("accept_block #${b}, size ${s} time ${t}  sync ${cc}ms",
-                         ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp)("cc", (fc::time_point::now().time_since_epoch().count() - ((int64_t)block.timestamp.sec_since_epoch()) * 1000000) / 1000));
+                    wlog("accept_block #${b}, size ${s} time ${t} ",
+                         ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
                 }
                 boost::promise<void> prom;
                 write_context cxt;

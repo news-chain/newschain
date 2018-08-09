@@ -129,12 +129,14 @@ namespace news{
                     }
 
                     //TODO add skip flag
+                    auto start = fc::time_point::now();
                     auto block = _chain_plugin.generate_block(now, producer, private_key->second, 0);
 //                    ilog("block : ${b}", ("b", block));
                     cap("n", block.block_num())("t", block.timestamp)("p", block.producer)("b", block.transactions.size())("size", fc::raw::pack_size(block));
 
-                    news::app::application::getInstance().get_plugin<news::plugins::p2p::p2p_plugin>().broadcast_block(block);
 
+                    news::app::application::getInstance().get_plugin<news::plugins::p2p::p2p_plugin>().broadcast_block(block);
+                    ilog("produce block time : ${t}", ("t", (fc::time_point::now() - start).count()));
                     return block_production_condition::produced;
 
                 }

@@ -103,7 +103,7 @@ namespace test {
                                     get_context *get_cxt = new get_context();
                                     auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
                                     if (send.id == 0) {
-                                        elog("send id  == 0 .");
+                                        elog("send id  == 0 . ${e}", ("e", send));
                                     }
                                     get_cxt->id = send.id;
                                     get_cxt->send = send;
@@ -164,6 +164,7 @@ namespace test {
                                 }
                                 if (cxt->id == 0) {   //update dynamic_property
                                     try {
+                                        elog("update dynamic : ${e}", ("e", cxt->ret));
                                         if (!cxt->ret.error.valid() && cxt->ret.result.valid()) {
                                             auto dy = cxt->ret.result->as<dynamic_global_property_object>();
                                             _create_factory.update_dynamic_property(dy);
@@ -172,7 +173,7 @@ namespace test {
                                             elog("update dynamic property error.");
                                         }
                                     } catch (const fc::exception &e) {
-                                        elog("update dynamic property error.");
+                                        elog("update dynamic property error. exception");
                                     }
 
                                 }
@@ -196,10 +197,8 @@ namespace test {
                 }
             }).detach();
 
-
-
             //定时器， 更新全局信息
-            _timer.expires_from_now(boost::posix_time::microseconds(fc::minutes(10).count()));
+            _timer.expires_from_now(boost::posix_time::microseconds(fc::minutes(1).count()));
             _timer.async_wait([&](const boost::system::error_code &e) {
                 post_dynamic_property();
             });
@@ -298,10 +297,29 @@ namespace test {
             });
 
             my->start_loop();
+
+            std::thread([&](){
+                bool flag = true;
+                while(flag){
+
+                    for(auto &cc : my->_clients){
+                        if(cc->is_open()){
+                            flag = false;
+                        }else{
+                            break;
+                        }
+                    }
+                    std::this_thread::sleep_for(std::chrono::operator ""ms(500));
+                }
+                my->post_dynamic_property();
+                std::this_thread::sleep_for(std::chrono::operator ""ms(1000));
+                elog("update dynamic end.");
+
+            }).join();
+            elog("start create factory.");
             my->_create_factory.start();
 
 
-            my->post_dynamic_property();
             boost::asio::signal_set set(*io_serv);
             set.add(SIGINT);
             set.add(SIGTERM);

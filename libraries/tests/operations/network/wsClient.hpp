@@ -80,6 +80,7 @@ namespace http{
 		void stop();
 
         void set_handle_message(std::function<void(std::string msg)> cb);
+        bool is_open();
     private:
 
         std::string _url;
@@ -89,5 +90,7 @@ namespace http{
         websocket_client_type::connection_ptr _connection;
 
         std::function<void(std::string msg)> _cb;
+
+        bool _is_open = false;
     };
 }

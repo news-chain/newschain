@@ -35,12 +35,7 @@ namespace news{
                 ////////////////////////////////////////////////////////////////////////
                 void account_history_impl::on_pre_apply_operation(const news::base::operation_notification &note) {
 
-
-
-
                     flat_set<account_name> _names;
-
-
                     get_operation_names_visitor visitor(_names);
                     note.op.visit(visitor);
 

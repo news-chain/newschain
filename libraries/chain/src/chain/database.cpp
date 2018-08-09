@@ -136,13 +136,14 @@ namespace news {
 
         signed_block database::generate_block(const fc::time_point_sec when, const account_name &producer,
                                               const fc::ecc::private_key private_key_by_signed, uint64_t skip) {
+            auto start = fc::time_point::now();
             signed_block result;
             with_skip_flags(skip, [&]() {
                 try {
                     result = _generate_block(when, producer, private_key_by_signed);
                 } FC_CAPTURE_AND_RETHROW((result))
             });
-
+            ilog("-----skip generate_block time ${t}", ("t", (fc::time_point::now() - start).count()));
 
             return result;
         }
@@ -150,7 +151,7 @@ namespace news {
         signed_block database::_generate_block(const fc::time_point_sec when, const account_name &producer,
                                                const fc::ecc::private_key private_key_by_signed) {
             //
-
+            auto start = fc::time_point::now();
             signed_block pengding_block;
 
             _pending_trx_session.reset();
@@ -219,7 +220,7 @@ namespace news {
 
 
             push_block(pengding_block, _skip_flags);
-
+            ilog("generate_block time ${t}", ("t", (fc::time_point::now() - start).count()));
             return pengding_block;
         }
 
@@ -743,12 +744,13 @@ namespace news {
             }
 
             if (!(_skip_flags & skip_transaction_dupe_check)) {
-                create<transaction_object>([&](transaction_object &obj) {
-                    obj.trx_id = trx_id;
-                    obj.expiration = trx.expiration;
-                    fc::raw::pack_to_buffer(obj.packed_trx, trx);
-                });
-
+                try{
+                    create<transaction_object>([&](transaction_object &obj) {
+                        obj.trx_id = trx_id;
+                        obj.expiration = trx.expiration;
+                        fc::raw::pack_to_buffer(obj.packed_trx, trx);
+                    });
+                }FC_CAPTURE_AND_RETHROW((trx))
             }
 
             _current_op_in_trx = 0;

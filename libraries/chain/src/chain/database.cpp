@@ -543,7 +543,7 @@ namespace news {
 
         bool database::is_know_transaction(const transaction_id_type &trx_id) const {
             try {
-                const auto &trx_itr = get_index<transaction_obj_index>().indices().get<by_trx_id>();
+                const auto &trx_itr = get_index<transaction_obj_index>().indices().get<by_trx_obj_id>();
                 return trx_itr.find(trx_id) != trx_itr.end();
             } FC_CAPTURE_AND_RETHROW((trx_id))
 
@@ -696,11 +696,14 @@ namespace news {
             _current_trx_id = trx.id();
 
 
-            auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
+//            auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
 
             transaction_id_type trx_id = trx.id();
-            FC_ASSERT((_skip_flags | skip_transaction_dupe_check) || trx_index.find(trx_id) != trx_index.end(),
-                      "Duplicate transaction check failed", ("trx id ", trx_id));
+
+//            idump((_skip_flags)(skip_transaction_dupe_check));
+
+            FC_ASSERT((_skip_flags | skip_transaction_dupe_check) ||  (find<transaction_object, by_trx_obj_id>(trx_id) == nullptr), "Duplicate transaction check failed ${trxid}" , ("trxid", trx_id));
+//            FC_ASSERT((find<transaction_object, by_trx_obj_id>(trx_id) == nullptr), "Duplicate transaction check failed ${trxid}" , ("trxid", trx_id));
 
             if (BOOST_LIKELY(head_block_num()) > 0) {
 
@@ -750,7 +753,7 @@ namespace news {
                         obj.expiration = trx.expiration;
                         fc::raw::pack_to_buffer(obj.packed_trx, trx);
                     });
-                }FC_CAPTURE_AND_RETHROW((trx))
+                }FC_CAPTURE_AND_RETHROW(("create<transaction_object>"))
             }
 
             _current_op_in_trx = 0;
@@ -826,7 +829,7 @@ namespace news {
 
         const signed_transaction database::get_recent_transaction(const transaction_id_type &trx_id) const {
             try {
-                auto &index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
+                auto &index = get_index<transaction_obj_index>().indices().get<by_trx_obj_id>();
                 auto itr = index.find(trx_id);
                 FC_ASSERT(itr != index.end());
                 signed_transaction trx;

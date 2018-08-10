@@ -24,6 +24,8 @@
 #include <chrono>
 #include <future>
 
+#include <wsClient.hpp>
+
 
 using namespace news::chain;
 
@@ -157,6 +159,27 @@ namespace news {
                         std::atomic_bool &_activityFlag;
                     };
 
+                };
+
+
+
+                class http_broadcast{
+                public:
+                    http_broadcast(){}
+                    http_broadcast(std::vector<std::string> nodes){
+
+                    }
+
+
+
+
+                    void broadcast(const news::chain::signed_block &block){
+
+                    }
+
+
+                private:
+                    std::vector<http::client>   _clients;
                 };
 
 
@@ -577,7 +600,8 @@ namespace news {
                         ("p2p-parameters", bpo::value<string>(), ("P2P network parameters. (Default: " +
                                                                   fc::json::to_string(
                                                                           graphene::net::node_configuration()) +
-                                                                  " )").c_str());
+                                                                  " )").c_str())
+                        ("post-block-ws", bpo::value<std::string>(), ("brodcast block"));
                 cli.add_options()
                         ("force-validate", bpo::bool_switch()->default_value(false),
                          "Force validation of all transactions. Deprecated in favor of p2p-force-validate")
@@ -593,7 +617,7 @@ namespace news {
                 if (options.count("p2p-endpoint"))
                     my->endpoint = fc::ip::endpoint::from_string(options.at("p2p-endpoint").as<string>());
 
-                my->user_agent = "Steem Reference Implementation";
+                my->user_agent = "NEWS Reference Implementation";
 
                 if (options.count("p2p-max-connections"))
                     my->max_connections = options.at("p2p-max-connections").as<uint32_t>();
@@ -749,6 +773,7 @@ namespace news {
             void p2p_plugin::broadcast_block(const news::chain::signed_block &block) {
                 ulog("Broadcasting block #${n}", ("n", block.block_num()));
                 my->node->broadcast(graphene::net::block_message(block));
+
             }
 
             void p2p_plugin::broadcast_transaction(const news::chain::signed_transaction &tx) {

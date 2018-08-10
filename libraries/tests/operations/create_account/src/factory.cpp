@@ -12,6 +12,10 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
+#define EXPIRATION_TIME     180
+
+
+
 namespace factory {
 
     signed_transaction helper::create_account(news::base::private_key_type sign_pk, news::base::account_name creator,
@@ -25,7 +29,7 @@ namespace factory {
         cao.posting = {fc::ecc::private_key::generate().get_public_key(), 1};
         cao.owner = {fc::ecc::private_key::generate().get_public_key(), 1};
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + EXPIRATION_TIME));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
 
@@ -45,7 +49,7 @@ namespace factory {
         transfer.memo = boost::uuids::to_string(boost::uuids::random_generator()());
         trx.operations.push_back(transfer);
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + EXPIRATION_TIME));
         trx.sign(sign_pk, NEWS_CHAIN_ID);
 
         return trx;
@@ -67,7 +71,7 @@ namespace factory {
             trx.operations.push_back(cao);
         }
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + EXPIRATION_TIME));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
 
@@ -93,7 +97,7 @@ namespace factory {
             map[name] = post_key;
         }
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 500));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + EXPIRATION_TIME));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
 
@@ -117,7 +121,7 @@ namespace factory {
         }
 
 
-        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+        trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + EXPIRATION_TIME));
         trx.ref_block_prefix = property_object.head_block_id._hash[1];
         trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
         trx.sign(sign_pk, NEWS_CHAIN_ID);

@@ -3984,7 +3984,7 @@ namespace graphene { namespace net {
           if (message_to_process.msg_type == trx_message_type)
           {
             trx_message transaction_message_to_process = message_to_process.as<trx_message>();
-            dlog("passing message containing transaction ${trx} to client", ("trx", transaction_message_to_process.trx.id()));
+              ilog("passing message containing transaction ${trx} to client   time${t}", ("trx", transaction_message_to_process.trx)("t", fc::time_point::now().time_since_epoch()));
             _delegate->handle_transaction(transaction_message_to_process);
           }
           else
@@ -5055,6 +5055,7 @@ namespace graphene { namespace net {
     {
       VERIFY_CORRECT_THREAD();
       fc::uint160_t hash_of_message_contents;
+      message_hash_type hash_of_item_to_broadcast = item_to_broadcast.id();
       if( item_to_broadcast.msg_type == graphene::net::block_message_type )
       {
         graphene::net::block_message block_message_to_broadcast = item_to_broadcast.as<graphene::net::block_message>();
@@ -5065,9 +5066,9 @@ namespace graphene { namespace net {
       {
         graphene::net::trx_message transaction_message_to_broadcast = item_to_broadcast.as<graphene::net::trx_message>();
         hash_of_message_contents = transaction_message_to_broadcast.trx.id(); // for debugging
-        dlog( "broadcasting trx: ${trx}", ("trx", transaction_message_to_broadcast) );
+        ilog( "broadcasting trx: ${trx}  time ${t}", ("trx", transaction_message_to_broadcast.trx)("t", fc::time_point::now().time_since_epoch()));
       }
-      message_hash_type hash_of_item_to_broadcast = item_to_broadcast.id();
+
 
       _message_cache.cache_message( item_to_broadcast, hash_of_item_to_broadcast, propagation_data, hash_of_message_contents );
       _new_inventory.insert( item_id(item_to_broadcast.msg_type, hash_of_item_to_broadcast ) );

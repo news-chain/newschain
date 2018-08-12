@@ -54,7 +54,7 @@ namespace news {
 
                 class chain_plugin_impl {
                 public:
-                    chain_plugin_impl() : write_queue(128) {}
+                    chain_plugin_impl() : write_queue(256),write_block_queue(8) {}
 
                     ~chain_plugin_impl() {}
 
@@ -77,7 +77,8 @@ namespace news {
                     bool running = true;
                     std::shared_ptr<std::thread> write_processor_thread;
                     boost::lockfree::queue<write_context *> write_queue;
-                    uint16_t write_lock_hold_time = 500;  //ms
+                    boost::lockfree::queue<write_context *> write_block_queue;
+                    uint16_t write_lock_hold_time = 200;  //ms
                 };
 
 
@@ -213,7 +214,7 @@ namespace news {
                                 start = fc::time_point::now();
                             }
 
-                            if (write_queue.pop(cxt)) {
+                            if (write_block_queue.pop(cxt) || write_queue.pop(cxt)) {
                                 db.with_write_lock([&]() {
                                     while (true) {
                                         req_visitor.skip = cxt->skip;
@@ -230,12 +231,16 @@ namespace news {
                                         }
                                         if (!is_syncing && write_lock_hold_time >= 0 &&
                                             fc::time_point::now() - start > fc::milliseconds(write_lock_hold_time)) {
-
                                             break;
                                         }
 
+                                        if(write_block_queue.pop(cxt)){
+//                                            wlog("generate or push block .");
+                                            continue;
+                                        }
 
                                         if (!write_queue.pop(cxt)) {
+//                                            ilog("trx trx trx.");
                                             break;
                                         }
 
@@ -379,7 +384,8 @@ namespace news {
                 cxt.prom_ptr = &prom;
                 cxt.push_time = fc::time_point::now();
 
-                _my->write_queue.push(&cxt);
+//                _my->write_queue.push(&cxt);
+                _my->write_block_queue.push(&cxt);
 
                 prom.get_future().get();
                 if (cxt.except) {
@@ -426,8 +432,8 @@ namespace news {
                 cxt.skip = skip;
 
                 cxt.prom_ptr = &prom;
-                _my->write_queue.push(&cxt);
-
+//                _my->write_queue.push(&cxt);
+                _my->write_block_queue.push(&cxt);
                 prom.get_future().get();
                 if (cxt.except) {
                     ilog("accept_block except ${e}", ("e", *(cxt.except)));

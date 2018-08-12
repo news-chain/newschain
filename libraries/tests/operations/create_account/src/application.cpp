@@ -102,8 +102,9 @@ namespace test {
 
                                     get_context *get_cxt = new get_context();
                                     auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
+//                                    ilog("send  ========= ${s}", ("s", send));
                                     if (send.id == 0) {
-                                        elog("send id  == 0 . ${e}", ("e", send));
+//                                        elog("send id  == 0 . ${e}", ("e", send));
                                     }
                                     get_cxt->id = send.id;
                                     get_cxt->send = send;
@@ -120,15 +121,17 @@ namespace test {
                             }
 
                             if (count <= 0) {
+                                 post_dynamic_property();
                                 if ((fc::time_point::now() - start).count() < fc::seconds(1).count()) {
                                     int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
                                     if (sl != 0) {
-                                        std::this_thread::sleep_for(std::chrono::operator ""ms(sl));
+                                        std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(sl));
                                     }
 //                                    ilog("sleep for. ${t} ms", ("t", sl));
                                 }
                                 count = _second_send;
                                 start = fc::time_point::now();
+
 //                                ilog("update time ${t}", ("t", start));
                             }
 
@@ -164,11 +167,11 @@ namespace test {
                                 }
                                 if (cxt->id == 0) {   //update dynamic_property
                                     try {
-                                        elog("update dynamic : ${e}", ("e", cxt->ret));
+//                                        elog("update dynamic : ${e}", ("e", cxt->ret));
                                         if (!cxt->ret.error.valid() && cxt->ret.result.valid()) {
                                             auto dy = cxt->ret.result->as<dynamic_global_property_object>();
                                             _create_factory.update_dynamic_property(dy);
-                                            wlog("update dynamic property success.");
+//                                            wlog("update dynamic property success.");
                                         } else {
                                             elog("update dynamic property error.");
                                         }
@@ -198,7 +201,7 @@ namespace test {
             }).detach();
 
             //定时器， 更新全局信息
-            _timer.expires_from_now(boost::posix_time::microseconds(fc::minutes(1).count()));
+            _timer.expires_from_now(boost::posix_time::microseconds(1000));
             _timer.async_wait([&](const boost::system::error_code &e) {
                 post_dynamic_property();
             });
@@ -309,10 +312,12 @@ namespace test {
                             break;
                         }
                     }
-                    std::this_thread::sleep_for(std::chrono::operator ""ms(500));
+                    // std::this_thread::sleep_for(std::chrono::operator ""ms(500));
+                      std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(500));
                 }
                 my->post_dynamic_property();
-                std::this_thread::sleep_for(std::chrono::operator ""ms(1000));
+                // std::this_thread::sleep_for(std::chrono::operator ""ms(1000));
+                std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(1000));
                 elog("update dynamic end.");
 
             }).join();

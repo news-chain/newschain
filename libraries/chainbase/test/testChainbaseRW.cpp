@@ -95,7 +95,6 @@ BOOST_AUTO_TEST_SUITE(open_and_create_rw)
 
 
 
-
         } catch (...) {
             bfs::remove_all(temp);
             throw;

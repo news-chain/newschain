@@ -132,8 +132,9 @@ namespace factory {
 
     std::string string_json_rpc(const std::string &str) {
         std::string ret;
-        ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +
-              "}],\"id\":-1,\"method\":\"call\"}";
+//        ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + str +
+//              "}],\"id\":-1,\"method\":\"call\"}";
+        ret = "{\"jsonrpc\":\"2.0\",\"params\":[\"chain_api\",\"push_transaction\"," + str + "],\"id\":-1,\"method\":\"call\"}";
         return ret;
     }
 
@@ -204,7 +205,7 @@ namespace factory {
                                 uint64_t random = rng() % transfer_names.size();
                                 account_name op_name = transfer_names[random];
 
-                                if (names_balance[op_name] <= 100) {
+                                if (names_balance[0] <= 100) {
                                     trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME,
                                                                 op_name, asset(NEWS_SYMBOL, 1));
                                     names_balance[op_name] += 1;
@@ -256,7 +257,8 @@ namespace factory {
                 if ((fc::time_point::now() - start) < fc::seconds(1)) {
                     int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
                     if (sl != 0) {
-                        std::this_thread::sleep_for(std::chrono::operator ""ms(sl));
+                        // std::this_thread::sleep_for(std::chrono::operator ""ms(sl));
+                            std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(sl));
                     }
                 }
                 start = fc::time_point::now();
@@ -287,6 +289,7 @@ namespace factory {
 
     void create_factory::update_dynamic_property(dynamic_global_property_object obj) {
         _help.property_object = std::move(obj);
+//        edump((_help.property_object));
     }
 
     void create_factory::stop() {

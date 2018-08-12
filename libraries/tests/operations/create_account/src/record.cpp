@@ -11,8 +11,8 @@ namespace test {
 
     std::string variable_to_json(const std::string &trx, uint64_t id) {
         auto json =
-                "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\",{\"trx\":" + trx +
-                "}],\"id\":" + std::to_string(id) + ",\"method\":\"call\"}";
+                "{\"jsonrpc\":\"2.0\",\"params\":[\"chain_api\",\"push_transaction\"," + trx +
+                "],\"id\":" + std::to_string(id) + ",\"method\":\"call\"}";
         return json;
     }
 
@@ -92,6 +92,11 @@ namespace test {
 //                    elog("error ${e}", ("e", dd.second.ret.error));
 //                }
                 failed++;
+                if(failed * 1.0 / (send_count * 1.0) > 0.1){
+                    elog("error ${e}", ("e", dd.second.ret.error));
+                    std::cerr << "failed too many." << std::endl;
+                    exit(2);
+                }
                 remove_data.push_back(dd.first);
             } else {
                 success++;

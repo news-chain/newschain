@@ -36,6 +36,9 @@ namespace test {
     }
 
     void record::add_send_data(uint64_t id, tools::get_context cxt) {
+        if(id == 0 ){
+            return;
+        }
         if (_data.find(id) == _data.end()) {
             _data[id] = cxt;
         } else {
@@ -44,6 +47,9 @@ namespace test {
     }
 
     bool record::update_data(uint64_t id, tools::get_context cxt) {
+        if(id == 0){
+            return true;
+        }
         if (_data.find(id) != _data.end()) {
             _data[id].get_time = cxt.get_time;
             _data[id].ret = cxt.ret;
@@ -79,7 +85,7 @@ namespace test {
                 all_time += spend;
             }
 
-            if(dd.second.ret.jsonrpc.length() == 0){
+            if(dd.second.ret.jsonrpc.length() == 0 || dd.second.ret.id == 0){
                 not_receive++;
                 if(now - dd.second.send_time > fc::minutes(1)){
                     time_out++;
@@ -87,15 +93,15 @@ namespace test {
                 }
                 continue;
             }
-            else if (dd.second.ret.error.valid()) {
+            else if (dd.second.ret.id != 0 && dd.second.ret.error.valid() ) {
 //                if(failed % 10 == 0){
-//                    elog("error ${e}", ("e", dd.second.ret.error));
+                    elog("error ${e}", ("e", dd.second.ret));
 //                }
                 failed++;
                 if(failed * 1.0 / (send_count * 1.0) > 0.1){
-                    elog("error ${e}", ("e", dd.second.ret.error));
-                    std::cerr << "failed too many." << std::endl;
-                    exit(2);
+//                    elog("error ${e}", ("e", dd.second.ret));
+//                    std::cerr << "failed too many." << std::endl;
+//                    exit(2);
                 }
                 remove_data.push_back(dd.first);
             } else {

@@ -20,10 +20,17 @@
 #include <fc/exception/exception.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <fc/log/logger_config.hpp>
+#include <test/types.hpp>
+
+#include <fc/io/json.hpp>
 
 int main(int argc, char **argv) {
-
-
+//    std::string str = "{\"jsonrpc\":\"2.0\",\"result\":{\"id\":0,\"head_block_num\":2956,\"head_block_id\":\"00000b8c28883ea6e9ddadb8b4e021c94412a7d6\",\"time\":\"2018-08-13T03:31:06\",\"current_producer\":0,\"last_irreversible_block_num\":2935,\"current_aslot\":165822},\"error\":null,\"id\":1}";
+//
+//    tools::result_body ret;
+//    fc::variant vv = fc::json::from_string(str);
+//    ret = vv.as<tools::result_body>();
+//    ilog("${s}", ("s", ret));
 
     try {
         auto config = fc::logging_config::default_config();

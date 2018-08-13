@@ -18,6 +18,9 @@
 #include <fc/io/json.hpp>
 #include <chrono>
 
+
+
+
 namespace test {
 
 
@@ -104,7 +107,7 @@ namespace test {
                                     auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
 //                                    ilog("send  ========= ${s}", ("s", send));
                                     if (send.id == 0) {
-//                                        elog("send id  == 0 . ${e}", ("e", send));
+//                                        elog("send id  == 0 . ${e}", ("e", cxt->data));
                                     }
                                     get_cxt->id = send.id;
                                     get_cxt->send = send;
@@ -121,7 +124,7 @@ namespace test {
                             }
 
                             if (count <= 0) {
-                                 post_dynamic_property();
+//                                 post_dynamic_property();
                                 if ((fc::time_point::now() - start).count() < fc::seconds(1).count()) {
                                     int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
                                     if (sl != 0) {
@@ -158,27 +161,30 @@ namespace test {
                     try {
                         while (get_queue.pop(cxt)) {
                             if (cxt != nullptr) {
-                                if (cxt->get_time != fc::time_point()) {              //更新接受数据
-                                    _record.update_data(cxt->id, *cxt);
-                                } else if (cxt->send_time != fc::time_point()) {            //发送数据
-                                    _record.add_send_data(cxt->id, *cxt);
-                                } else {
-                                    elog("unhandle message data.");
-                                }
                                 if (cxt->id == 0) {   //update dynamic_property
                                     try {
 //                                        elog("update dynamic : ${e}", ("e", cxt->ret));
                                         if (!cxt->ret.error.valid() && cxt->ret.result.valid()) {
                                             auto dy = cxt->ret.result->as<dynamic_global_property_object>();
                                             _create_factory.update_dynamic_property(dy);
-//                                            wlog("update dynamic property success.");
+                                            wlog("update dynamic property success.");
                                         } else {
-                                            elog("update dynamic property error.");
+                                            elog("update dynamic property error. ${E}  ${r}", ("E",cxt->send)("r", cxt->ret));
                                         }
                                     } catch (const fc::exception &e) {
-                                        elog("update dynamic property error. exception");
+//                                        elog("update dynamic property error. exception");
+                                        elog("update dynamic property error. exception  ${E}", ("E",cxt->send));
                                     }
 
+                                }
+                                else{
+                                    if (cxt->get_time != fc::time_point()) {              //更新接受数据
+                                        _record.update_data(cxt->id, *cxt);
+                                    } else if (cxt->send_time != fc::time_point()) {            //发送数据
+                                        _record.add_send_data(cxt->id, *cxt);
+                                    } else {
+                                        elog("unhandle message data.");
+                                    }
                                 }
 
                                 delete cxt;
@@ -348,6 +354,10 @@ namespace test {
             get_cxt->get_time = fc::time_point::now();
             get_cxt->ret = ret;
             my->get_queue.push(get_cxt);
+            if(ret.id == 0){
+//                elog("handle_message ${s}", ("s", ret));
+//                elog("handle_message ${s}", ("s", message));
+            }
         } FC_CAPTURE_AND_LOG((message))
 
     }

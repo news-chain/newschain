@@ -9,18 +9,24 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/reflect/variant.hpp>
 #include <fc/variant.hpp>
+#include <fc/variant_object.hpp>
 #include <fc/time.hpp>
 #include <boost/any.hpp>
+
 
 
 namespace tools{
 
 
 
-
+//    std::string                      jsonrpc = "2.0";
+//    fc::optional< fc::variant >      result;
+//    fc::optional< json_rpc_error >   error;
+//    fc::variant                      id;
 
     struct result_body{
-        std::string jsonrpc;
+        result_body():result(fc::variant()), error(fc::variant()){}
+        std::string jsonrpc = "2.0";
         fc::optional<fc::variant> result;
         fc::optional<fc::variant> error;
         int64_t     id;
@@ -32,7 +38,7 @@ namespace tools{
         std::string         jsonrpc;
         fc::variant         params;
         uint64_t            id;
-        std::string         call;
+        std::string         method;
     };
 
 
@@ -57,4 +63,5 @@ namespace tools{
 
 
 FC_REFLECT(tools::result_body, (jsonrpc)(result)(error)(id))
-FC_REFLECT(tools::send_body, (jsonrpc)(params)(id)(call))
+FC_REFLECT(tools::send_body, (jsonrpc)(params)(id)(method))
+FC_REFLECT(tools::get_context, (id)(send_time)(get_time)(send)(ret))

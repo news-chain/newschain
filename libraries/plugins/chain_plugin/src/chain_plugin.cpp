@@ -88,7 +88,6 @@ namespace news {
                     database *db;
                     uint32_t skip = 0;
                     fc::optional<fc::exception> *except;
-                    fc::time_point  push_time;
 
                     typedef bool result_type;
 
@@ -96,9 +95,7 @@ namespace news {
                         bool result = false;
 
                         try {
-//                                STATSD_START_TIMER( chain, write_time, push_block, 1.0f )
                             result = db->push_block(*block, skip);
-//                                STATSD_STOP_TIMER( chain, write_time, push_block )
                         }
                         catch (fc::exception &e) {
                             *except = e;
@@ -116,11 +113,7 @@ namespace news {
                         bool result = false;
 
                         try {
-//                                STATSD_START_TIMER( chain, write_time, push_tx, 1.0f )
-//                            ilog("accept_transaction ${trx}", ("trx", *trx));
                             db->push_transaction(*trx);
-//                                STATSD_STOP_TIMER( chain, write_time, push_tx )
-
                             result = true;
                         }
                         catch (fc::exception &e) {
@@ -139,19 +132,12 @@ namespace news {
                         bool result = false;
 
                         try {
-//                                STATSD_START_TIMER( chain, write_time, generate_block, 1.0f )
-                            auto start = fc::time_point::now();
-                            ilog("generate_block_request ${t} ", ("t", (start - push_time).count()));
                             req->block = db->generate_block(
                                     req->when,
                                     req->witness_owner,
                                     req->block_signing_private_key,
                                     req->skip
                             );
-                            ilog("generate_block_request ${t} -------- ", ("t", (fc::time_point::now() - start).count()));
-
-//                                STATSD_STOP_TIMER( chain, write_time, generate_block )
-
                             result = true;
                         }
                         catch (fc::exception &e) {
@@ -219,13 +205,10 @@ namespace news {
                                     while (true) {
                                         req_visitor.skip = cxt->skip;
                                         req_visitor.except = &(cxt->except);
-                                        req_visitor.push_time = cxt->push_time;
                                         cxt->success = cxt->req_ptr.visit(req_visitor);
                                         cxt->prom_ptr.visit(promise_visitor);
-
                                         if (is_syncing && start - db.head_block_time() < fc::minutes(1)) {
                                             start = fc::time_point::now();
-
                                             is_syncing = false;
                                             break;
                                         }
@@ -376,7 +359,6 @@ namespace news {
             chain_plugin::generate_block(const fc::time_point_sec when, const news::base::account_name &producer,
                                          const fc::ecc::private_key &sign_pk, uint32_t skip) {
 
-                auto start = fc::time_point::now();
                 generate_block_request req(when, producer, sign_pk, skip);
                 boost::promise<void> prom;
                 write_context cxt;
@@ -393,7 +375,6 @@ namespace news {
                 }
                 FC_ASSERT(cxt.success, "block generate error.");
 
-                ilog("generate_block time ${t}", ("t", (fc::time_point::now() - start).count()));
                 return req.block;
             }
 

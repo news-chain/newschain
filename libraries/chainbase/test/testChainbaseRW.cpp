@@ -23,13 +23,14 @@ using namespace boost::multi_index;
 struct book : public chainbase::object<0, book> {
 
     template<typename Constructor, typename Allocator>
-    book(Constructor &&c, chainbase::allocator<Allocator> a) {
+    book(Constructor &&c, chainbase::allocator<Allocator> a):str(a) {
         c(*this);
     }
 
     id_type id;
     int a;
     int b;
+    chainbase::shared_string str;
 };
 
 struct by_name;
@@ -73,26 +74,21 @@ BOOST_AUTO_TEST_SUITE(open_and_create_rw)
             BOOST_TEST_MESSAGE("Creating book");
             auto now = boost::posix_time::second_clock::local_time();
 
+            const std::string sss = "aaaaaaaaaa";
 
-            for(int i = 0; i < 10; i++){
-                for(int j = 0; j < 10; j++){
+            for(int i = 0; i < 100; i++){
+                for(int j = 0; j < 10000; j++){
                     db.create<book>([&](book &obj){
                         obj.a = i;
                         obj.b = j;
+                        obj.str.assign(sss.begin(), sss.end());
                     });
                 }
             }
+            db.commit(1);
+            db.flush();
 
-            const auto &itrx = db.get_index<book_index>().indices().get<by_ab>();
-            auto ee = itrx.lower_bound(boost::make_tuple(3, 3));
-            auto bb = itrx.upper_bound(boost::make_tuple(7, 7));
-            while(bb != ee && bb != itrx.end()){
-                std::cout << "id: " << bb->id._id << " a: " << bb->a << " b:" << bb->b << std::endl;
-                bb++;
-            }
-
-
-
+            int stop = 0;
 
 
         } catch (...) {

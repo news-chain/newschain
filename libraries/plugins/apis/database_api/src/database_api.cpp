@@ -65,7 +65,8 @@ namespace news{
             DEFINE_API_IMPL(database_api_impl, get_transaction)
             {
                 get_transaction_return ret;
-                return ret;
+                const auto &tr = _db.get_recent_transaction(args.id);
+                return tr;
             }
 
 

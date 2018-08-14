@@ -582,7 +582,7 @@ NEWS CHAIN (传播链)是基于区块链的流量传播生态系统，其目标�
 <p>（1）2018年5月8日，NEWS CHAIN主链上线</p>
 <h1><a id="user-content-how-to-build" class="anchor" aria-hidden="true" href="#how-to-build"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>how to build</h1>
 <h2><a id="user-content-building-on-ubuntu-1604" class="anchor" aria-hidden="true" href="#building-on-ubuntu-1604"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Building on Ubuntu 16.04</h2>
-<p>For Ubuntu 16.04 users, after installing the right packages with <code>apt</code> Steem
+<p>For Ubuntu 16.04 users, after installing the right packages with <code>apt</code> NEWS
 will build out of the box without further effort:</p>
 <pre><code># Required packages
 sudo apt-get install -y \
@@ -622,7 +622,7 @@ sudo apt-get install -y \
     perl
 
 git clone https://github.com/news-chain/newschain
-cd steem
+cd newschain
 git submodule update --init --recursive
 mkdir build
 cd build
@@ -654,13 +654,13 @@ sudo apt-get install -y \
     python3-jinja2
 </code></pre>
 <p>The Boost provided in the Ubuntu 14.04 package manager (Boost 1.55) is too old.
-Steem requires Boost 1.58 (as in Ubuntu 16.04) and works with versions up to 1.60 (including).
-So building Steem on Ubuntu 14.04 requires downloading and installing a more recent
+NEWS requires Boost 1.58 (as in Ubuntu 16.04) and works with versions up to 1.60 (including).
+So building NEWS on Ubuntu 14.04 requires downloading and installing a more recent
 version of Boost.</p>
 <p>According to <a href="http://boost.2283326.n4.nabble.com/1-58-1-bugfix-release-necessary-td4674686.html" rel="nofollow">this mailing list
 post</a>,
 Boost 1.58 is not compatible with gcc 4.8 (the default C++ compiler for
-Ubuntu 14.04) when compiling in C++11 mode (which Steem does).
+Ubuntu 14.04) when compiling in C++11 mode (which NEWS does).
 So we will use Boost 1.60.</p>
 <p>Here is how to build and install Boost 1.60 into your user's home directory
 (make sure you install all the packages above first):</p>
@@ -675,7 +675,7 @@ cd boost_1_60_0
 ./bootstrap.sh "--prefix=$BOOST_ROOT"
 ./b2 install
 </code></pre>
-<p>Then the instructions are the same as for steem:</p>
+<p>Then the instructions are the same as for NEWS:</p>
 <pre><code>git clone https://github.com/news-chain/newschain
 cd newschain
 git submodule update --init --recursive

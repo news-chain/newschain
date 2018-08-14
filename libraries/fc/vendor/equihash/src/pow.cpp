@@ -1,7 +1,7 @@
 /*Code by Dmitry Khovratovich, 2016
 CC0 license
 
-Modifications by Steemit, Inc. 2016
+Modifications by  it, Inc. 2016
 */
 
 #include <equihash/pow.hpp>
@@ -179,7 +179,7 @@ Proof Equihash::FindProof(){
 }
 
 /**
- * Added by Steemit, Inc. for single iteration
+ * Added by  it, Inc. for single iteration
  */
 Proof Equihash::FindProof( Nonce _nonce )
 {

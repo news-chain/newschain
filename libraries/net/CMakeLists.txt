@@ -11,7 +11,7 @@ add_library( net ${SOURCES} ${HEADERS} )
 
 target_link_libraries( net
    PUBLIC  fc )
- #PUBLIC steem_protocol statsd_plugin fc )
+ #PUBLIC  _protocol statsd_plugin fc )
 target_include_directories( net
   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"  "${CMAKE_CURRENT_BINARY_DIR}/include" "${CMAKE_SOURCE_DIR}/libraries/chain/include" "${CMAKE_SOURCE_DIR}/libraries/chainbase/include"
        # "${CMAKE_SOURCE_DIR}/libraries/plugins/chain_plugin/include"

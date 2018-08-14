@@ -13,8 +13,8 @@ namespace news { namespace base {
         class fixed_string_impl;
 
 //        class asset_symbol_type;
-//        class legacy_steem_asset_symbol_type;
-//        struct legacy_steem_asset;
+//        class legacy_ _asset_symbol_type;
+//        struct legacy_ _asset;
     } } // news::base
 
 namespace fc { namespace raw {
@@ -35,9 +35,9 @@ namespace fc { namespace raw {
 //        inline void unpack( Stream& s, news::base::asset_symbol_type& sym );
 //
 //        template< typename Stream >
-//        inline void pack( Stream& s, const news::base::legacy_steem_asset_symbol_type& sym );
+//        inline void pack( Stream& s, const news::base::legacy_ _asset_symbol_type& sym );
 //        template< typename Stream >
-//        inline void unpack( Stream& s, news::base::legacy_steem_asset_symbol_type& sym );
+//        inline void unpack( Stream& s, news::base::legacy_ _asset_symbol_type& sym );
 
     } // raw
 
@@ -48,7 +48,7 @@ namespace fc { namespace raw {
 
 //    inline void to_variant( const news::base::asset_symbol_type& sym, fc::variant& v );
 
-//    inline void from_variant( const fc::variant& v, news::base::legacy_steem_asset& leg );
-//    inline void to_variant( const news::base::legacy_steem_asset& leg, fc::variant& v );
+//    inline void from_variant( const fc::variant& v, news::base::legacy_ _asset& leg );
+//    inline void to_variant( const news::base::legacy_ _asset& leg, fc::variant& v );
 
 } // fc

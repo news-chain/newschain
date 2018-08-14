@@ -88,6 +88,6 @@ namespace news { namespace plugins { namespace json_rpc {
 
             struct void_type {};
 
-        } } } // steem::plugins::json_rpc
+        } } } //  ::plugins::json_rpc
 
 FC_REFLECT( news::plugins::json_rpc::void_type, )

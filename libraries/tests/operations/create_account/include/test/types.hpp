@@ -56,6 +56,9 @@ namespace tools{
 
 
 
+
+
+
     bool result_has_error(const result_body &body);
 }
 
@@ -65,3 +68,4 @@ namespace tools{
 FC_REFLECT(tools::result_body, (jsonrpc)(result)(error)(id))
 FC_REFLECT(tools::send_body, (jsonrpc)(params)(id)(method))
 FC_REFLECT(tools::get_context, (id)(send_time)(get_time)(send)(ret))
+

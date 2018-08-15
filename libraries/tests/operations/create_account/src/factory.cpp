@@ -144,9 +144,6 @@ namespace factory {
      *
      * */
 
-
-
-
     void create_factory::start() {
         _thread = std::make_shared<std::thread>([&]() {
 //            int64_t name = 20;
@@ -165,31 +162,28 @@ namespace factory {
 
                 if (sleep_second < 0) {
 
-
                     for (size_t i = 0; i < _max_cache; i++) {
                         signed_transaction trx;
 
-                        //第一次，创建账号
-                        if (transfer_names.size() < _max_cache && _type == producer_type::create_transfer) {
-                            for (int i = 0; i < _max_cache; i++) {
-                                transfer_names.push_back(rng());
+                        size_t created_accounts = 0;
+                        for(auto name : _test_accounts){
+                            if(name.second){
+                                created_accounts++;
+                                transfer_names.push_back(name.first);
                             }
-                            trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, transfer_names,
+                        }
+                        if (transfer_names.size() < _max_cache && _type == producer_type::create_transfer) {
+                            account_name  nn = rng();
+                            _test_accounts[nn] = false;
+                            trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, {nn},
                                                         names_pk);
+
                             result.push_back(trx);
                             break;
                         }
 
-                        if (transfer_names.size() < max_transfer_accounts_size &&
-                            _type == producer_type::create_transfers) {
-                            for (int i = 0; i < max_transfer_accounts_size; i++) {
-                                transfer_names.push_back(rng());
-                            }
-                            trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, transfer_names,
-                                                        names_pk);
-                            result.push_back(trx);
-                            break;
-                        }
+
+
 
                         switch (_type) {
                             case producer_type::create_accounts : {
@@ -206,8 +200,7 @@ namespace factory {
                                 account_name op_name = transfer_names[random];
 
                                 if (names_balance[0] <= 100) {
-                                    trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME,
-                                                                op_name, asset(NEWS_SYMBOL, 1));
+                                    trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, op_name, asset(NEWS_SYMBOL, 1));
                                     names_balance[op_name] += 1;
                                 } else {
                                     trx = _help.create_transfer(names_pk[op_name], op_name, NEWS_SYSTEM_ACCOUNT_NAME,
@@ -251,7 +244,6 @@ namespace factory {
                     _cb(result);
                 }
 
-
                 result.clear();
 
                 if ((fc::time_point::now() - start) < fc::seconds(1)) {
@@ -284,7 +276,7 @@ namespace factory {
     }
 
     create_factory::~create_factory() {
-        elog("~create_factory()");
+        std::cout << "factory close." << std::endl;
     }
 
     void create_factory::update_dynamic_property(dynamic_global_property_object obj) {
@@ -295,6 +287,40 @@ namespace factory {
     void create_factory::stop() {
 //        _running = false;
 
+    }
+
+    void create_factory::add_test_account(std::map<account_name, fc::ecc::private_key> accounts) {
+
+    }
+
+    //获取发送数据结果
+    void create_factory::update_data_get_context(const tools::get_context &cxt, bool success) {
+        if(success && _type == producer_type::create_transfer){
+            try {
+                fc::variant_object obj = fc::variant(cxt.send).as<fc::variant_object>();
+                if(obj["params"].is_array()){
+                    std::vector<fc::variant> vv =  obj["params"].as<std::vector<fc::variant>>();
+                    signed_transaction trx = vv[2].as<signed_transaction>();
+                    if(trx.operations.size() > 0){
+                        for(auto operation : trx.operations){
+                           const auto &op = operation.get<typename news::base::create_account_operation>();
+                            if(_test_accounts.find(op.name) != _test_accounts.end()){
+                                _test_accounts[op.name] = true;
+//                                elog("create account ${t} ${e}", ("t", cxt.send)("e", cxt.ret));
+                            }
+                            else{
+                                elog("not find accounts ${e}", ("e", op.name));
+                            }
+                        }
+                    }
+
+                }
+
+            }catch (const fc::exception &e){
+//                elog("transfer data error. ${e}", ("e", e));
+            }
+
+        }
     }
 
 

@@ -13,8 +13,6 @@
 namespace test{
 
     namespace bpo = boost::program_options;
-//    typedef std::funcation<void(const std::string &msg>     server_callback;
-
 
     namespace detail{
         class application_impl;

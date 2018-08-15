@@ -47,18 +47,16 @@ namespace news{
                 DEFINE_API_IMPL(chain_api_impl, push_transaction)
                 {
                     push_transaction_return result;
+                    result.success = false;
                     try {
                         _chain_plugin.accept_transaction(args);
+                        result.success = true;
                     }catch (const fc::exception &e){
                         result.error = e.to_detail_string();
-                        result.success = false;
+                        throw e;
                     }catch (const std::exception &e){
                         result.error = e.what();
-                        result.success = false;
-                    }
-                    catch (...){
-                        result.error = "uknown error.";
-                        result.success = false;
+                        throw e;
                     }
                     return result;
                 }

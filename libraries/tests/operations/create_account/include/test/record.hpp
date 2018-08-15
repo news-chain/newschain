@@ -11,10 +11,17 @@
 #include <news/chain/transaction.hpp>
 #include <atomic>
 #include <test/types.hpp>
+
+#include <boost/signals2.hpp>
+
 namespace  test{
 
     using namespace news::chain;
     using namespace news::base;
+
+
+    typedef boost::signals2::signal<void(const tools::get_context &, bool success)>   resultSignal;
+    typedef resultSignal::slot_type     slotType;
 
     class record{
     public:
@@ -27,10 +34,13 @@ namespace  test{
 
         void log_data_and_move();
         void stop();
+
+        boost::signals2::connection add_post_signal(slotType func);
+
     private:
         std::map<uint64_t, tools::get_context>  _data;
-//        uint64_t                            _id;
         std::atomic_long                    _id;
+        resultSignal                        _post_result;
     };
 
 

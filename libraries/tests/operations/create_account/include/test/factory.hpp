@@ -12,6 +12,7 @@
 #include <news/chain/block_header.hpp>
 #include <thread>
 #include <fc/crypto/pke.hpp>
+#include "types.hpp"
 
 namespace factory{
 
@@ -64,6 +65,10 @@ namespace factory{
         void            start();
         void            stop();
 
+        void            add_test_account(std::map<account_name, fc::ecc::private_key> accounts);
+
+        void            update_data_get_context(const tools::get_context &cxt, bool success);
+
     private:
         producer_type                               _type;
         produce_data                                _cb;
@@ -74,6 +79,7 @@ namespace factory{
         bool                                        _running;
         std::shared_ptr< std::thread >             _thread;
 
+        std::map<account_name, bool> _test_accounts;
     };
 
 

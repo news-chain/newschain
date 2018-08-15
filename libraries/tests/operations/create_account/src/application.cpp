@@ -293,6 +293,11 @@ namespace test {
             }
 
 
+            my->_record.add_post_signal([&](const tools::get_context &cxt, bool success){
+                my->_create_factory.update_data_get_context(cxt, success);
+            });
+
+
             my->_create_factory.update_param(type, my->_clients.size(), my->_trx_ops, my->_second_send + 10);
 
 

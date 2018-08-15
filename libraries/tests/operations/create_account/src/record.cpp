@@ -31,7 +31,6 @@ namespace test {
             _id++;
         }
 
-
         return data;
     }
 
@@ -95,18 +94,15 @@ namespace test {
             }
             else if (dd.second.ret.id != 0 && dd.second.ret.error.valid() ) {
 //                if(failed % 10 == 0){
-                    elog("error ${e}", ("e", dd.second.ret));
+//                    elog("error ${e} ", ("e", dd.second.ret));
 //                }
                 failed++;
-                if(failed * 1.0 / (send_count * 1.0) > 0.1){
-//                    elog("error ${e}", ("e", dd.second.ret));
-//                    std::cerr << "failed too many." << std::endl;
-//                    exit(2);
-                }
                 remove_data.push_back(dd.first);
+                _post_result(dd.second, false);
             } else {
                 success++;
                 remove_data.push_back(dd.first);
+                _post_result(dd.second, true);
             }
 
 
@@ -149,4 +145,10 @@ namespace test {
     void record::stop() {
         log_data_and_move();
     }
+
+    boost::signals2::connection record::add_post_signal(slotType func) {
+        return _post_result.connect(func);
+    }
+
+
 }

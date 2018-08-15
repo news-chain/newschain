@@ -225,7 +225,7 @@ namespace graphene { namespace net {
       if (exception_to_rethrow)
         throw *exception_to_rethrow;
     }
-
+	static uint32_t sendack = 0;
     void message_oriented_connection_impl::send_message(const message& message_to_send)
     {
       VERIFY_CORRECT_THREAD();
@@ -267,12 +267,13 @@ namespace graphene { namespace net {
         char* paddingSpace = padded_message.get() + sizeof(message_header) + message_to_send.size;
         size_t toClean = size_with_padding - size_of_message_and_header;
         memset(paddingSpace, 0, toClean);
-
+		dlog("_sock.write bytes befor ${size}  ${sendack}", ("size", size_with_padding)("sendack",++sendack));
         _sock.write(padded_message.get(), size_with_padding);
+		dlog("_sock.write bytes after ${size}   ${sendack}", ("size", size_with_padding)("sendack", sendack));
         _sock.flush();
         _bytes_sent += size_with_padding;
         _last_message_sent_time = fc::time_point::now();
-      } FC_RETHROW_EXCEPTIONS( warn, "unable to send message" );
+	  }FC_RETHROW_EXCEPTIONS( warn, "unable to send message" );
     }
 
     void message_oriented_connection_impl::close_connection()

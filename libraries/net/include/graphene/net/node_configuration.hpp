@@ -37,7 +37,7 @@ struct node_configuration
    uint32_t maximum_number_of_blocks_to_handle_at_one_time = GRAPHENE_NET_MAX_NUMBER_OF_BLOCKS_TO_HANDLE_AT_ONE_TIME;
    uint32_t maximum_number_of_sync_blocks_to_prefetch = GRAPHENE_NET_MAX_NUMBER_OF_BLOCKS_TO_PREFETCH;
    uint32_t maximum_blocks_per_peer_during_syncing = GRAPHENE_NET_MAX_BLOCKS_PER_PEER_DURING_SYNCING;
-   int64_t active_ignored_request_timeout_microseconds = 6000000;
+   int64_t active_ignored_request_timeout_microseconds = 10000000;
 };
 
 } }

@@ -194,12 +194,13 @@ namespace graphene { namespace net {
                                                      const message_hash_type& hash_of_message_to_cache,
                                                      const message_propagation_data& propagation_data,
                                                      const fc::uint160_t& message_content_hash )
-    {
+    { 
       _message_cache.insert( message_info(hash_of_message_to_cache,
                                          message_to_cache,
                                          block_clock,
                                          propagation_data,
-                                         message_content_hash ) );
+                                         message_content_hash ) );   
+	   
     }
 
     message blockchain_tied_message_cache::get_message( const message_hash_type& hash_of_message_to_lookup )
@@ -900,6 +901,12 @@ namespace graphene { namespace net {
     {
       while (!_p2p_network_connect_loop_done.canceled() && !_node_is_shutting_down)
       {
+		  if (!_actual_listening_endpoint.port())
+		  {
+			  wdump((_actual_listening_endpoint.port()));
+			  fc::usleep(fc::seconds(10));
+			  continue;
+		  }
         try
         {
           dlog("Starting an iteration of p2p_network_connect_loop().");
@@ -1178,6 +1185,7 @@ namespace graphene { namespace net {
             {
               const peer_connection_ptr& peer = peer_iter->peer;
               // if they have the item and we haven't already decided to ask them for too many other items
+			  wlog("peer_iter->item_ids.size()=${b}", ("b", peer_iter->item_ids.size()));
               if (peer_iter->item_ids.size() < GRAPHENE_NET_MAX_ITEMS_PER_PEER_DURING_NORMAL_OPERATION &&
                   peer->inventory_peer_advertised_to_us.find(item_iter->item) != peer->inventory_peer_advertised_to_us.end())
               {
@@ -1263,7 +1271,7 @@ namespace graphene { namespace net {
     {
       while (!_advertise_inventory_loop_done.canceled())
       {
-        dlog("beginning an iteration of advertise inventory");
+		dlog("beginning an iteration of advertise inventory active size${count}", ("count", _active_connections.size()));
         // swap inventory into local variable, clearing the node's copy
         std::unordered_set<item_id> inventory_to_advertise;
         inventory_to_advertise.swap(_new_inventory);
@@ -1276,7 +1284,7 @@ namespace graphene { namespace net {
         for (const peer_connection_ptr& peer : _active_connections)
         {
           // only advertise to peers who are in sync with us
-          //wdump((peer->peer_needs_sync_items_from_us));
+          wdump((peer->peer_needs_sync_items_from_us));
           if( !peer->peer_needs_sync_items_from_us )
           {
             std::map<uint32_t, std::vector<item_hash_t> > items_to_advertise_by_type;
@@ -1299,7 +1307,7 @@ namespace graphene { namespace net {
                 peer->inventory_advertised_to_peer.insert(peer_connection::timestamped_item_id(item_to_advertise, fc::time_point::now()));
                 ++total_items_to_send_to_this_peer;
                 if (item_to_advertise.item_type == trx_message_type)
-                  testnetlog("advertising transaction ${id} to peer ${endpoint}", ("id", item_to_advertise.item_hash)("endpoint", peer->get_remote_endpoint()));
+					dlog("advertising transaction ${id} to peer ${endpoint}", ("id", item_to_advertise.item_hash)("endpoint", peer->get_remote_endpoint()));
                 dlog("advertising item ${id} to peer ${endpoint}", ("id", item_to_advertise.item_hash)("endpoint", peer->get_remote_endpoint()));
               }
             }
@@ -2854,8 +2862,11 @@ namespace graphene { namespace net {
       {
         if (reply.msg_type == block_message_type)
           originating_peer->send_item(item_id(block_message_type, reply.as<graphene::net::block_message>().block_id));
-        else
-          originating_peer->send_message(reply);
+		else
+		{ 
+			wdump((reply.msg_type));
+			originating_peer->send_message(reply);
+		}
       }
     }
 
@@ -4445,7 +4456,8 @@ namespace graphene { namespace net {
       try
       {
         new_peer->connect_to(remote_endpoint, _actual_listening_endpoint);  // blocks until the connection is established and secure connection is negotiated
-
+		wdump((new_peer->get_local_endpoint().port()));
+		wdump((_actual_listening_endpoint.port()));
         // we connected to the peer.  guess they're not firewalled....
         new_peer->is_firewalled = firewalled_state::not_firewalled;
 

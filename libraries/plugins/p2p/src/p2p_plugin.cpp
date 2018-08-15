@@ -660,11 +660,7 @@ namespace news {
                         my->node->listen_on_endpoint(*my->endpoint, true);
                     }
 
-                    for (const auto &seed : my->seeds) {
-                        ilog("P2P adding seed node ${s}", ("s", seed));
-                        my->node->add_node(seed);
-                        my->node->connect_to_endpoint(seed);
-                    }
+                 
 
                     if (my->max_connections) {
                         if (my->config.find("maximum_number_of_connections") != my->config.end())
@@ -676,6 +672,14 @@ namespace news {
 
                     my->node->set_advanced_node_parameters(my->config);
                     my->node->listen_to_p2p_network();
+
+					for (const auto &seed : my->seeds) {
+						ilog("P2P adding seed node ${s}", ("s", seed));
+						my->node->add_node(seed);
+						my->node->connect_to_endpoint(seed);
+					}
+
+
                     my->node->connect_to_p2p_network();
                     block_id_type block_id;
 

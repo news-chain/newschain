@@ -23,7 +23,7 @@ using namespace boost::uuids;
 #include <random> 
 using namespace boost;
 using namespace std;
- 
+int sleeptime = 0;
 struct result_body {
 	std::string jsonrpc;
 	fc::optional<fc::variant> result;
@@ -228,6 +228,7 @@ public:
 						auto id = taskid++; 
 						std::string ret = string_json_rpc(id,fc::json::to_string(str));
 						client.send_message(ret); 
+						boost::this_thread::sleep(boost::posix_time::microsec(sleeptime));
 						taskresult rs;
 						auto times= fc::time_point::now().time_since_epoch().count(); 
 						if ((times - lastlogtime) > 1000000 * 60 )
@@ -454,6 +455,7 @@ public:
 	bool start_business(bool multiple=false)
 	{ 
 		mytask.clear();
+		isstop = false;
 		//if (!befor_transfer_one())
 		//	return false; 
 		//boost::this_thread::sleep(boost::posix_time::seconds(5));
@@ -518,7 +520,20 @@ public:
 						continue; 
 					auto money=asset(NEWS_SYMBOL, (productor()+1)*1L);
 					uint64_t id = taskid++;
-					auto str = ff.create_transfer(id, myusers[myusers_name[from]],myusers_name[from], myusers_name[to], money);
+					signed_transaction str;
+					if (multiple)
+					{
+						uint64_t to1 = productor();
+						uint64_t to2 = productor();
+						uint64_t to3 = productor();
+						std::map<account_name, asset> map;
+						map.insert(std::make_pair(to1, money));
+						map.insert(std::make_pair(to2, money));
+						map.insert(std::make_pair(to3, money));
+						str = ff.create_transfers(id, myusers[myusers_name[from]], myusers_name[from], map);
+					}
+					else
+						str = ff.create_transfer(id, myusers[myusers_name[from]],myusers_name[from], myusers_name[to], money);
 					std::string ret = string_json_rpc(id,fc::json::to_string(str));
 					client.send_message(ret); 
 					taskresult rs;
@@ -530,8 +545,8 @@ public:
 					}
 					rs.start_time = times;
 					rs.id = id;
-					rs.result = task_result::recvfail;
-					rs.op = option_user::transfer_one;
+					rs.result = task_result::recvfail; 
+					rs.op = multiple? option_user::transfer_ones: option_user::transfer_one;					 
 					{
 						std::lock_guard<std::mutex> lock(mutex_mytask);
 						mytask.insert(std::make_pair(id, std::move(rs)));
@@ -602,6 +617,7 @@ public:
 		{ 
 			it->join(); 
 		}
+		th_pool.clear();
 		endtime = fc::time_point::now().time_since_epoch().count();
 		return true;
 	}
@@ -640,11 +656,13 @@ private:
 	
 }; 
 
+
 int main(int argc, char **argv){
  
 		program_options::options_description opts("options");
 		opts.add_options()
 			("threadpool", program_options::value<std::string>(), "threads count default 8")
+			("sleep", program_options::value<std::string>(),"0")
 			("startid", program_options::value<std::string>(), "create user startid ,default 1000")
 			("ws", program_options::value<std::string>(), "set ws address for example (--ws=\"192.168.0.1:123456-192.168.2.2:7984\")")
 			("mode", program_options::value<std::string>(), "send-ws-mode(include primary and balance,default balance)");
@@ -660,8 +678,10 @@ int main(int argc, char **argv){
 				std::cout << "error startline of mode";
 				return -1;
 			}
+		} 
+		if (vm.count("sleep")) { 
+			sleeptime = lexical_cast<int>(vm["sleep"].as<string>().c_str());
 		}
-
 		int threadcount = 8;
 		if (vm.count("threadpool")) {
 			std::string wsaddress = vm["threadpool"].as<string>();

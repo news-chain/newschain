@@ -293,16 +293,17 @@ namespace graphene { namespace net
 #endif
       while (!_queued_messages.empty())
       {
+		 dlog("send_queued_messages_task size is ${t}", ("t", _queued_messages.size()));
         _queued_messages.front()->transmission_start_time = fc::time_point::now();
         message message_to_send = _queued_messages.front()->get_message(_node);
         try
         {
-          //dlog("peer_connection::send_queued_messages_task() calling message_oriented_connection::send_message() "
-          //     "to send message of type ${type} for peer ${endpoint}",
-          //     ("type", message_to_send.msg_type)("endpoint", get_remote_endpoint()));
+          dlog("peer_connection::send_queued_messages_task() calling message_oriented_connection::send_message() "
+               "to send message of type ${type} for peer ${endpoint}",
+               ("type", message_to_send.msg_type)("endpoint", get_remote_endpoint()));
           _message_connection.send_message(message_to_send);
-          //dlog("peer_connection::send_queued_messages_task()'s call to message_oriented_connection::send_message() completed normally for peer ${endpoint}",
-          //     ("endpoint", get_remote_endpoint()));
+          dlog("peer_connection::send_queued_messages_task()'s call to message_oriented_connection::send_message() completed normally for peer ${endpoint}",
+               ("endpoint", get_remote_endpoint()));
         }
         catch (const fc::canceled_exception&)
         {
@@ -341,7 +342,9 @@ namespace graphene { namespace net
     {
       VERIFY_CORRECT_THREAD();
       _total_queued_messages_size += message_to_send->get_size_in_queue();
+	  dlog("befor emplace message to queue the size is ${t}", ("t", _queued_messages.size()));
       _queued_messages.emplace(std::move(message_to_send));
+	  dlog("after emplace message to queue the size is ${t}", ("t", _queued_messages.size()));
       if (_total_queued_messages_size > GRAPHENE_NET_MAXIMUM_QUEUED_MESSAGES_IN_BYTES)
       {
         elog("send queue exceeded maximum size of ${max} bytes (current size ${current} bytes)",
@@ -362,20 +365,22 @@ namespace graphene { namespace net
 
       if (!_send_queued_messages_done.valid() || _send_queued_messages_done.ready())
       {
-        //dlog("peer_connection::send_message() is firing up send_queued_message_task");
+        dlog("peer_connection::send_message() is firing up send_queued_message_task");
         _send_queued_messages_done = fc::async([this](){ send_queued_messages_task(); }, "send_queued_messages_task");
       }
-      //else
-      //  dlog("peer_connection::send_message() doesn't need to fire up send_queued_message_task, it's already running");
+      else
+        dlog("peer_connection::send_message() doesn't need to fire up send_queued_message_task, it's already running");
     }
 
     void peer_connection::send_message(const message& message_to_send, size_t message_send_time_field_offset)
     {
+		dlog("befor start");
       VERIFY_CORRECT_THREAD();
       //dlog("peer_connection::send_message() enqueueing message of type ${type} for peer ${endpoint}",
       //     ("type", message_to_send.msg_type)("endpoint", get_remote_endpoint()));
       std::unique_ptr<queued_message> message_to_enqueue(new real_queued_message(message_to_send, message_send_time_field_offset));
       send_queueable_message(std::move(message_to_enqueue));
+	  dlog("after");
     }
 
     void peer_connection::send_item(const item_id& item_to_send)

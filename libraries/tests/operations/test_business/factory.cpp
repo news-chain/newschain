@@ -45,7 +45,19 @@ namespace factory{
 		trx.sign(sign_pk, NEWS_CHAIN_ID);
 		return trx;
 	}
-
+	signed_transaction helper::create_transfers(uint64_t taskid, private_key_type& sign_pk, const account_name& from, std::map<account_name, asset> maplist)
+	{ 
+		signed_transaction trx;
+		transfers_operation transfer;
+		transfer.from = from;
+		transfer.to_names = std::move(maplist);
+		fc::variant fc(taskid);
+		transfer.memo = fc.as<std::string>();
+		trx.operations.push_back(transfer);
+		trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + 300));
+		trx.sign(sign_pk, NEWS_CHAIN_ID);
+		return trx;
+	}
 
     signed_transaction
     helper::create_transfer(uint64_t taskid,private_key_type& sign_pk,const account_name& from, const account_name& to, asset& amount) 

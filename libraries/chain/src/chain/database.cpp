@@ -329,6 +329,7 @@ namespace news {
                 }
             }
 
+			_fork_database.set_max_size(gpo.head_block_num - gpo.last_irreversible_block_num + 1);
 
         }
 

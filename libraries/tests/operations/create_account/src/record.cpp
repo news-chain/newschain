@@ -54,7 +54,7 @@ namespace test {
             _data[id].ret = cxt.ret;
             return true;
         } else {
-            elog("not find data id ${id}", ("id", id));
+//            elog("not find data id ${id}", ("id", id));
         }
 
         return false;
@@ -93,9 +93,9 @@ namespace test {
                 continue;
             }
             else if (dd.second.ret.id != 0 && dd.second.ret.error.valid() ) {
-//                if(failed % 10 == 0){
-//                    elog("error ${e} ", ("e", dd.second.ret));
-//                }
+                if(failed % 100 == 0){
+                    elog("error ${e} ", ("e", dd.second.ret));
+                }
                 failed++;
                 remove_data.push_back(dd.first);
                 _post_result(dd.second, false);
@@ -134,7 +134,7 @@ namespace test {
 
         if(failed * 1.0 / (send_count * 1.0) > 0.1){
             std::cerr << "failed too many." << std::endl;
-            exit(2);
+//            exit(2);
         }
         if(time_out * 1.0 / (send_count * 1.0) > 0.1){
             std::cerr << "time_out too many" << std::endl;

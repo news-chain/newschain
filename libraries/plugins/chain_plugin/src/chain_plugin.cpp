@@ -232,7 +232,7 @@ namespace news {
                             }//
 
                             if (!is_syncing) {
-                                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(5));
                             }
 
                         }//while
@@ -407,6 +407,7 @@ namespace news {
                     wlog("accept_block #${b}, size ${s} time ${t} ",
                          ("b", block.block_num())("s", block.transactions.size())("t", block.timestamp));
                 }
+
                 boost::promise<void> prom;
                 write_context cxt;
                 cxt.req_ptr = &block;
@@ -416,6 +417,7 @@ namespace news {
 //                _my->write_queue.push(&cxt);
                 _my->write_block_queue.push(&cxt);
                 prom.get_future().get();
+
                 if (cxt.except) {
                     ilog("accept_block except ${e}", ("e", *(cxt.except)));
                     throw *(cxt.except);

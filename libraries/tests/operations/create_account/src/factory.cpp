@@ -50,6 +50,8 @@ namespace factory {
         trx.operations.push_back(transfer);
 
         trx.set_expiration(fc::time_point_sec(fc::time_point::now().sec_since_epoch() + EXPIRATION_TIME));
+        trx.ref_block_prefix = property_object.head_block_id._hash[1];
+        trx.ref_block_num = (uint16_t) (property_object.head_block_num & 0xffff);
         trx.sign(sign_pk, NEWS_CHAIN_ID);
 
         return trx;
@@ -165,21 +167,21 @@ namespace factory {
                     for (size_t i = 0; i < _max_cache; i++) {
                         signed_transaction trx;
 
-                        size_t created_accounts = 0;
-                        for(auto name : _test_accounts){
-                            if(name.second){
-                                created_accounts++;
-                                transfer_names.push_back(name.first);
+                        if (transfer_names.size() <= _max_cache && _type == producer_type::create_transfer) {
+                            transfer_names.clear();
+                            for(auto name : _test_accounts){
+                                if(name.second){
+                                    transfer_names.push_back(name.first);
+                                }
                             }
-                        }
-                        if (transfer_names.size() < _max_cache && _type == producer_type::create_transfer) {
+
                             account_name  nn = rng();
                             _test_accounts[nn] = false;
-                            trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, {nn},
-                                                        names_pk);
+                            trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, {nn}, names_pk);
 
                             result.push_back(trx);
-                            break;
+//                            break;
+                            continue;
                         }
 
 
@@ -297,27 +299,32 @@ namespace factory {
     void create_factory::update_data_get_context(const tools::get_context &cxt, bool success) {
         if(success && _type == producer_type::create_transfer){
             try {
-                fc::variant_object obj = fc::variant(cxt.send).as<fc::variant_object>();
-                if(obj["params"].is_array()){
-                    std::vector<fc::variant> vv =  obj["params"].as<std::vector<fc::variant>>();
-                    signed_transaction trx = vv[2].as<signed_transaction>();
-                    if(trx.operations.size() > 0){
-                        for(auto operation : trx.operations){
-                           const auto &op = operation.get<typename news::base::create_account_operation>();
-                            if(_test_accounts.find(op.name) != _test_accounts.end()){
-                                _test_accounts[op.name] = true;
+//                if(_test_accounts.size() <= _max_cache * 2){
+                    fc::variant_object obj = fc::variant(cxt.send).as<fc::variant_object>();
+                    if(obj["params"].is_array()){
+                        std::vector<fc::variant> vv =  obj["params"].as<std::vector<fc::variant>>();
+                        signed_transaction trx = vv[2].as<signed_transaction>();
+                        if(trx.operations.size() > 0){
+                            for(auto operation : trx.operations){
+                                const auto &op = operation.get<typename news::base::create_account_operation>();
+                                if(_test_accounts.find(op.name) != _test_accounts.end()){
+                                    _test_accounts[op.name] = true;
 //                                elog("create account ${t} ${e}", ("t", cxt.send)("e", cxt.ret));
-                            }
-                            else{
-                                elog("not find accounts ${e}", ("e", op.name));
+                                }
+                                else{
+                                    elog("not find accounts ${e}", ("e", op.name));
+                                }
                             }
                         }
-                    }
 
-                }
+                    }
+//                }
+
 
             }catch (const fc::exception &e){
 //                elog("transfer data error. ${e}", ("e", e));
+            }catch (...){
+
             }
 
         }

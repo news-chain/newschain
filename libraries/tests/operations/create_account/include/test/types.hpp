@@ -18,6 +18,12 @@
 namespace tools{
 
 
+    enum  producer_type{
+        create_accounts = 1,
+        create_transfer,
+        create_transfers
+    };
+
 
 //    std::string                      jsonrpc = "2.0";
 //    fc::optional< fc::variant >      result;

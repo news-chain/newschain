@@ -19,12 +19,8 @@ namespace factory{
     class helper;
     using namespace news::chain;
     using namespace news::base;
+    using  namespace tools;
 
-    enum  producer_type{
-        create_accounts = 1,
-        create_transfer,
-        create_transfers
-    };
 
 
     typedef std::function<void(std::vector<signed_transaction>)>    produce_data;

@@ -99,43 +99,39 @@ namespace test {
                     while (running) {
                         try {
                             if (write_queue.pop(cxt)) {
-                                if (cxt->data.length() > 0
-                                    //                                   && cxt->data.length() < 5000
-                                    && cxt != nullptr) {
+                                if (cxt->data.length() > 0  && cxt != nullptr) {
+                                    try {
 
-                                    get_context *get_cxt = new get_context();
-                                    auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
+                                        get_context *get_cxt = new get_context();
+                                        auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
 //                                    ilog("send  ========= ${s}", ("s", send));
-                                    if (send.id == 0) {
+                                        if (send.id == 0) {
 //                                        elog("send id  == 0 . ${e}", ("e", cxt->data));
-                                    }
-                                    get_cxt->id = send.id;
-                                    get_cxt->send = send;
-                                    get_cxt->send_time = fc::time_point::now();
-                                    cc->send_message(cxt->data);
-                                    get_queue.push(get_cxt);
-                                    count--;
-                                }
+                                        }
+                                        get_cxt->id = send.id;
+                                        get_cxt->send = send;
+                                        get_cxt->send_time = fc::time_point::now();
+                                        cc->send_message(cxt->data);
+                                        get_queue.push(get_cxt);
+                                        count--;
+                                    }catch (...){
 
-                                if (cxt != nullptr) {
+                                    }
                                     delete cxt;
                                     cxt = nullptr;
                                 }
+
                             }
 
                             if (count <= 0) {
-//                                 post_dynamic_property();
                                 if ((fc::time_point::now() - start).count() < fc::seconds(1).count()) {
                                     int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
                                     if (sl != 0) {
                                         std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(sl));
                                     }
-//                                    ilog("sleep for. ${t} ms", ("t", sl));
                                 }
                                 count = _second_send;
                                 start = fc::time_point::now();
-
-//                                ilog("update time ${t}", ("t", start));
                             }
 
                         } catch (const std::exception &e) {
@@ -194,9 +190,10 @@ namespace test {
                         }
                         //log data
                         if (fc::time_point::now() - start > fc::seconds(log_time)) {
+                            start = fc::time_point::now();
                             log_time = _log_time;
                             _record.log_data_and_move();
-                            start = fc::time_point::now();
+
                         }
                     }catch(const std::exception &e){
                         elog("${e}", ("e", e.what()));

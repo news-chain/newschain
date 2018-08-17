@@ -11,7 +11,7 @@ namespace test {
 
     std::string variable_to_json(const std::string &trx, uint64_t id) {
         auto json =
-                "{\"jsonrpc\":\"2.0\",\"params\":[\"chain_api\",\"push_transaction\"," + trx +
+                "{\"jsonrpc\":\"2.0\",\"params\":[\"network_broadcast_api\",\"broadcast_transaction\"," + trx +
                 "],\"id\":" + std::to_string(id) + ",\"method\":\"call\"}";
         return json;
     }

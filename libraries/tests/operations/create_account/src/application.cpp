@@ -104,7 +104,7 @@ namespace test {
 
                                         get_context *get_cxt = new get_context();
                                         auto send = fc::json::from_string(cxt->data).as<tools::send_body>();
-//                                    ilog("send  ========= ${s}", ("s", send));
+                                    ilog("send  ========= ${s}", ("s", send));
                                         if (send.id == 0) {
 //                                        elog("send id  == 0 . ${e}", ("e", cxt->data));
                                         }

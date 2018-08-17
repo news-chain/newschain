@@ -12,7 +12,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-#define EXPIRATION_TIME     180
+#define EXPIRATION_TIME     6000
 
 
 

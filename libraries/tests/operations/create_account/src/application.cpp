@@ -113,7 +113,7 @@ namespace test {
                                         get_cxt->send_time = fc::time_point::now();
                                         cc->send_message(cxt->data);
                                         get_queue.push(get_cxt);
-                                        count--;
+                                        --count;
                                     }catch (...){
 
                                     }
@@ -295,7 +295,7 @@ namespace test {
             });
 
 
-            my->_create_factory.update_param(type, my->_clients.size(), my->_trx_ops, my->_second_send + 10);
+            my->_create_factory.update_param(type, my->_clients.size(), my->_trx_ops, my->_second_send);
 
 
             my->_create_factory.set_producer_data_call([&](std::vector<signed_transaction> trx) {

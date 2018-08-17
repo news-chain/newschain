@@ -93,9 +93,9 @@ namespace test {
                 continue;
             }
             else if (dd.second.ret.id != 0 && dd.second.ret.error.valid() ) {
-                if(failed % 100 == 0){
+//                if(failed % 100 == 0){
                     elog("error ${e} ", ("e", dd.second.ret));
-                }
+//                }
                 failed++;
                 remove_data.push_back(dd.first);
                 _post_result(dd.second, false);

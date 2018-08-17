@@ -100,7 +100,7 @@ size_t stcp_socket::readsome( char* buffer, size_t len )
     } buffer_in_use_checker(_read_buffer_in_use);
 #endif
 
-    const size_t read_buffer_length = 4096;
+    const size_t read_buffer_length = 8192;
     if (!_read_buffer)
       _read_buffer.reset(new char[read_buffer_length], [](char* p){ delete[] p; });
 
@@ -141,7 +141,7 @@ size_t stcp_socket::writesome( const char* buffer, size_t len )
     } buffer_in_use_checker(_write_buffer_in_use);
 #endif
 
-    const std::size_t write_buffer_length = 4096;
+    const std::size_t write_buffer_length = 8192;
     if (!_write_buffer)
       _write_buffer.reset(new char[write_buffer_length], [](char* p){ delete[] p; });
     len = std::min<size_t>(write_buffer_length, len);

@@ -900,13 +900,7 @@ namespace graphene { namespace net {
     void node_impl::p2p_network_connect_loop()
     {
       while (!_p2p_network_connect_loop_done.canceled() && !_node_is_shutting_down)
-      {
-		  if (!_actual_listening_endpoint.port())
-		  {
-			  wdump((_actual_listening_endpoint.port()));
-			  fc::usleep(fc::seconds(10));
-			  continue;
-		  }
+      { 
         try
         {
           dlog("Starting an iteration of p2p_network_connect_loop().");
@@ -4367,10 +4361,11 @@ namespace graphene { namespace net {
 
         try
         {
-          _tcp_server.accept( new_peer->get_socket() );
+          _tcp_server.accept( new_peer->get_socket() ); 
           ilog( "accepted inbound connection from ${remote_endpoint}", ("remote_endpoint", new_peer->get_socket().remote_endpoint() ) );
           if (_node_is_shutting_down)
             return;
+		  new_peer->get_socket().set_reuse_address();
           new_peer->connection_initiation_time = fc::time_point::now();
           _handshaking_connections.insert( new_peer );
           _rate_limiter.add_tcp_socket( &new_peer->get_socket() );
@@ -4764,7 +4759,7 @@ namespace graphene { namespace net {
     void node_impl::initiate_connect_to(const peer_connection_ptr& new_peer)
     {
       new_peer->get_socket().open();
-      new_peer->get_socket().set_reuse_address();
+      new_peer->get_socket().set_reuse_address(); 
       new_peer->connection_initiation_time = fc::time_point::now();
       _handshaking_connections.insert(new_peer);
       _rate_limiter.add_tcp_socket(&new_peer->get_socket());

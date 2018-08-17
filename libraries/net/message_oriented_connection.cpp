@@ -33,6 +33,7 @@
 #include <graphene/net/config.hpp>
 
 #include <atomic>
+#include "mudo.hpp"
 
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER
@@ -68,6 +69,7 @@ namespace graphene { namespace net {
 #endif
 
       void read_loop();
+	  muduo::net::Buffer muduo_buffer;
       void start_read_loop();
     public:
       fc::tcp_socket& get_socket();
@@ -119,7 +121,7 @@ namespace graphene { namespace net {
     void message_oriented_connection_impl::accept()
     {
       VERIFY_CORRECT_THREAD();
-      _sock.accept();
+      _sock.accept(); 
       assert(!_read_loop_done.valid()); // check to be sure we never launch two read loops
       _read_loop_done = fc::async([=](){ read_loop(); }, "message read_loop");
     }
@@ -154,9 +156,10 @@ namespace graphene { namespace net {
       {
         message m;
         while( true )
-        {
+        {  
           char buffer[BUFFER_SIZE];
           _sock.read(buffer, BUFFER_SIZE);
+		  auto start = fc::time_point::now().time_since_epoch().count();
           _bytes_received += BUFFER_SIZE;
           memcpy((char*)&m, buffer, sizeof(message_header));
 
@@ -173,11 +176,16 @@ namespace graphene { namespace net {
           m.data.resize(m.size); // truncate off the padding bytes
 
           _last_message_received_time = fc::time_point::now();
-
+		  auto cost1=  _last_message_received_time.time_since_epoch().count()-start;
+		  dlog(" _delegate->on_message recvmsg   ${cost}", ("cost", cost1));
           try
           {
-            // message handling errors are warnings...
-            _delegate->on_message(_self, m);
+            // message handling errors are warnings... 
+			 
+            _delegate->on_message(_self, m); 
+			auto cost=fc::time_point::now().time_since_epoch().count() - _last_message_received_time.time_since_epoch().count();
+			dlog(" _delegate->on_message cast ${msgtype} ${cost}  ", ("msgtype", m.msg_type)("cost", cost));
+
           }
           /// Dedicated catches needed to distinguish from general fc::exception
           catch ( const fc::canceled_exception& e ) { throw e; }
@@ -267,9 +275,11 @@ namespace graphene { namespace net {
         char* paddingSpace = padded_message.get() + sizeof(message_header) + message_to_send.size;
         size_t toClean = size_with_padding - size_of_message_and_header;
         memset(paddingSpace, 0, toClean);
-		dlog("_sock.write bytes befor ${size}  ${sendack}", ("size", size_with_padding)("sendack",++sendack));
-        _sock.write(padded_message.get(), size_with_padding);
-		dlog("_sock.write bytes after ${size}   ${sendack}", ("size", size_with_padding)("sendack", sendack));
+		auto timestart = fc::time_point::now();
+		dlog("_sock.write bytes befor ${size}  ${sendack}", ("size", size_with_padding)("sendack", ++sendack));
+		_sock.write(padded_message.get(), size_with_padding);		
+		auto cost = fc::time_point::now().time_since_epoch().count() - timestart.time_since_epoch().count();
+		dlog("_sock.write bytes after ${size}   ${sendack} ${cost}", ("size", size_with_padding)("sendack", sendack)("cost", cost));
         _sock.flush();
         _bytes_sent += size_with_padding;
         _last_message_sent_time = fc::time_point::now();

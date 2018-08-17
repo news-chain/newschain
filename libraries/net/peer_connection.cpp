@@ -291,6 +291,7 @@ namespace graphene { namespace net
         ~counter() { assert(_send_message_queue_tasks_counter == 1); --_send_message_queue_tasks_counter; /* dlog("leaving peer_connection::send_queued_messages_task()"); */ }
       } concurrent_invocation_counter(_send_message_queue_tasks_running);
 #endif
+	  dlog("before send_queued_messages_task size is ${t}", ("t", _queued_messages.size()));
       while (!_queued_messages.empty())
       {
 		 dlog("send_queued_messages_task size is ${t}", ("t", _queued_messages.size()));
@@ -335,6 +336,7 @@ namespace graphene { namespace net
         _total_queued_messages_size -= _queued_messages.front()->get_size_in_queue();
         _queued_messages.pop();
       }
+	  dlog("after send_queued_messages_task size is ${t}", ("t", _queued_messages.size()));
       //dlog("leaving peer_connection::send_queued_messages_task() due to queue exhaustion");
     }
 
@@ -367,7 +369,7 @@ namespace graphene { namespace net
       {
         dlog("peer_connection::send_message() is firing up send_queued_message_task");
         _send_queued_messages_done = fc::async([this](){ send_queued_messages_task(); }, "send_queued_messages_task");
-      }
+	  }
       else
         dlog("peer_connection::send_message() doesn't need to fire up send_queued_message_task, it's already running");
     }

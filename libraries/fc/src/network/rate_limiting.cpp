@@ -352,9 +352,13 @@ namespace fc
         }
         _unused_write_tokens += write_operation.permitted_length - bytes_written;
       }
-      else
-        bytes_written = asio::write_some(socket, buffer, length, offset);
-      
+	  else {
+		  auto timestart = fc::time_point::now();
+		  bytes_written = asio::write_some(socket, buffer, length, offset);
+		  //bytes_written = asio::write(socket, buffer, length);
+		  auto cost = fc::time_point::now().time_since_epoch().count() - timestart.time_since_epoch().count();
+		  dlog("asio::write_some ${length} ${cost}", ("length", length)("cost", cost));
+	  }
       _actual_upload_rate.update(bytes_written);
       
       return bytes_written;

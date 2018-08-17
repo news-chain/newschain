@@ -6,6 +6,7 @@
 #include <fc/log/logger.hpp>
 #include <fc/io/stdio.hpp>
 #include <fc/exception/exception.hpp>
+#include <boost/asio.hpp>
 
 #if defined _WIN32 || defined WIN32 || defined OS_WIN64 || defined _WIN64 || defined WIN64 || defined WINNT
 # include <mstcpip.h>
@@ -23,7 +24,8 @@ namespace fc {
       impl() :
         _sock(fc::asio::default_io_service()),
         _io_hooks(this)
-      {}
+      { 
+	  }
       ~impl()
       {
         if( _sock.is_open() )
@@ -215,6 +217,9 @@ namespace fc {
     FC_ASSERT(my->_sock.is_open());
     boost::asio::socket_base::reuse_address option(enable);
     my->_sock.set_option(option);
+	my->_sock.set_option(boost::asio::ip::tcp::no_delay(true));
+	my->_sock.non_blocking(true);
+
 #if defined(__APPLE__) || defined(__linux__)
 # ifndef SO_REUSEPORT
 #  define SO_REUSEPORT 15

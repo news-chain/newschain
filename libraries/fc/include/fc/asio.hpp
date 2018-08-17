@@ -162,6 +162,19 @@ namespace asio {
         boost::asio::async_write(s, buf, detail::read_write_handler(p));
         return p->wait();
     }
+	template<typename AsyncWriteStream >
+	size_t write(AsyncWriteStream& s, const std::shared_ptr<const char> &buffer, size_t len) {
+		promise<size_t>::ptr p(new promise<size_t>("fc::asio::write"));
+		boost::asio::async_write(s, boost::asio::buffer(buffer.get(), len), detail::read_write_handler(p));
+		return p->wait();
+	}
+	template<typename AsyncWriteStream >
+	size_t write(AsyncWriteStream& s, const char* buffer, size_t len) {
+		promise<size_t>::ptr p(new promise<size_t>("fc::asio::write"));
+		boost::asio::async_write(s, boost::asio::buffer(buffer, len), detail::read_write_handler(p));
+		return p->wait();
+	}
+
 
     /** 
      *  @pre s.non_blocking() == true

@@ -68,6 +68,11 @@ namespace http{
     class client{
     public:
         client(std::string url);
+        client(const client&c){
+//            *this = c;
+            this->_url = c._url;
+        }
+        client(){}
         ~client();
 		void init();
 		void init(open_handler h, message_handler h1, close_handler h2, fail_handler h3);
@@ -75,6 +80,7 @@ namespace http{
 		void stop();
 
         void set_handle_message(std::function<void(std::string msg)> cb);
+        bool is_open();
     private:
 
         std::string _url;
@@ -84,5 +90,7 @@ namespace http{
         websocket_client_type::connection_ptr _connection;
 
         std::function<void(std::string msg)> _cb;
+
+        bool _is_open = false;
     };
 }

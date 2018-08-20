@@ -26,6 +26,12 @@ namespace factory{
     typedef std::function<void(std::vector<signed_transaction>)>    produce_data;
 
 
+    struct transfer_ops{
+        private_key_type    pk;
+        account_name        from;
+        account_name        to;
+        asset               amount;
+    };
 
 
 
@@ -38,6 +44,7 @@ namespace factory{
         signed_transaction  create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names);
         signed_transaction  create_accounts(private_key_type sign_pk, account_name creator, const std::vector<account_name> &names, std::map<account_name, fc::ecc::private_key> &map);
         signed_transaction  create_transfer(private_key_type sign_pk, account_name from, account_name to, asset amount);
+        signed_transaction  create_ops_transfer(std::vector<transfer_ops> ops);
         signed_transaction  create_transfers(private_key_type sign_pk, account_name from, std::vector<std::map<account_name, asset>> to_asset);
         std::string     get_string_dynamic_property();
 
@@ -64,6 +71,12 @@ namespace factory{
         void            add_test_account(std::map<account_name, fc::ecc::private_key> accounts);
 
         void            update_data_get_context(const tools::get_context &cxt, bool success);
+
+
+    private:
+
+
+
 
     private:
         producer_type                               _type;

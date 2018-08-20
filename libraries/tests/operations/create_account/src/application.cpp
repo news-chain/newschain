@@ -283,10 +283,12 @@ namespace test {
                 case 3:
                     type = factory::producer_type::create_transfers;
                     break;
-
+                case 4:
+                    type = factory::producer_type::create_ops_transfers;
+                    break;
                 default:
                     elog("unkown type ${e}", ("e", my->_send_type));
-                    assert(false);
+                    exit(1);
             }
 
 

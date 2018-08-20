@@ -21,7 +21,8 @@ namespace tools{
     enum  producer_type{
         create_accounts = 1,
         create_transfer,
-        create_transfers
+        create_transfers,
+        create_ops_transfers
     };
 
 

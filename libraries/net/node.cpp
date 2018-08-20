@@ -2755,15 +2755,12 @@ namespace graphene { namespace net {
         catch (const fc::exception& e)
         {
           elog("Caught unexpected exception: ${e}", ("e", e));
-          std::cerr << __FUNCTION__ <<  " exception:" << e.to_detail_string() << std::endl;
           assert(false && "exceptions not expected here");
         }
         catch (const std::exception& e)
         {
           elog("Caught unexpected exception: ${e}", ("e", e.what()));
-            std::cerr << __FUNCTION__ <<  " exception:" << e.what() << std::endl;
           assert(false && "exceptions not expected here");
-
         }
         catch (...)
         {
@@ -3660,13 +3657,11 @@ namespace graphene { namespace net {
           catch (const fc::exception& e)
           {
             elog("Caught unexpected exception: ${e}", ("e", e));
-            std::cerr << __FUNCTION__ << "exception: " << e.to_detail_string() << std::endl;
             assert(false && "exceptions not expected here");
           }
           catch (const std::exception& e)
           {
             elog("Caught unexpected exception: ${e}", ("e", e.what()));
-              std::cerr << __FUNCTION__ << "exception: " << e.what() << std::endl;
             assert(false && "exceptions not expected here");
           }
           catch (...)
@@ -4365,6 +4360,7 @@ namespace graphene { namespace net {
           ilog( "accepted inbound connection from ${remote_endpoint}", ("remote_endpoint", new_peer->get_socket().remote_endpoint() ) );
           if (_node_is_shutting_down)
             return;
+		  new_peer->get_socket().set_reuse_address();
           new_peer->connection_initiation_time = fc::time_point::now();
           _handshaking_connections.insert( new_peer );
           _rate_limiter.add_tcp_socket( &new_peer->get_socket() );

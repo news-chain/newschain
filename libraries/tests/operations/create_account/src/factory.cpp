@@ -188,6 +188,7 @@ namespace factory {
 
                 if (sleep_second < 0) {
 
+
                     for (size_t i = 0; i < _max_cache; i++) {
                         signed_transaction trx;
 
@@ -290,18 +291,22 @@ namespace factory {
                         }
 
                         names.clear();
+                        if (_cb) {
+                            _cb(result);
+                        }
+                        result.clear();
                     }
                 }
                 else{
                     sleep_second--;
                 }
-                if (_cb) {
-                    _cb(result);
-                }
 
-                result.clear();
 
+
+
+                elog("time ======= ${t}", ("t", (fc::time_point::now() - start).count()));
                 if ((fc::time_point::now() - start) < fc::seconds(1)) {
+
                     int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
                     if (sl != 0) {
                         // std::this_thread::sleep_for(std::chrono::operator ""ms(sl));
@@ -350,9 +355,8 @@ namespace factory {
 
     //获取发送数据结果
     void create_factory::update_data_get_context(const tools::get_context &cxt, bool success) {
-        if(success && (_type == producer_type::create_transfer || _type == producer_type::create_ops_transfers)){
+        if(success && (_type == producer_type::create_transfer)){
             try {
-//                if(_test_accounts.size() <= _max_cache * 2){
                     fc::variant_object obj = fc::variant(cxt.send).as<fc::variant_object>();
                     if(obj["params"].is_array()){
                         std::vector<fc::variant> vv =  obj["params"].as<std::vector<fc::variant>>();
@@ -376,6 +380,33 @@ namespace factory {
 
             }catch (const fc::exception &e){
 //                elog("transfer data error. ${e}", ("e", e));
+            }catch (...){
+
+            }
+
+        }
+        else if(success &&  _type == producer_type::create_ops_transfers){
+            try {
+                fc::variant_object obj = fc::variant(cxt.send).as<fc::variant_object>();
+                if(obj["params"].is_array()){
+                    std::vector<fc::variant> vv =  obj["params"].as<std::vector<fc::variant>>();
+                    auto trx_obj = vv[2].as<fc::variant_object>();
+                    if(trx_obj.contains("trx")){
+                        signed_transaction trx = trx_obj["trx"].as<signed_transaction>();
+                        if(trx.operations.size() > 0){
+                            for(auto operation : trx.operations){
+                                const auto &op = operation.get<typename news::base::create_account_operation>();
+                                if(_test_accounts.find(op.name) != _test_accounts.end()){
+                                    _test_accounts[op.name] = true;
+//                                elog("create account ${t} ${e}", ("t", cxt.send)("e", cxt.ret));
+                                }
+                                else{
+                                    elog("not find accounts ${e}", ("e", op.name));
+                                }
+                            }
+                        }
+                    }
+                }
             }catch (...){
 
             }

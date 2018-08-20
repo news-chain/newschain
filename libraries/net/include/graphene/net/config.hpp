@@ -92,7 +92,7 @@
  * parameter, so consider increasing or decreasing it if performance
  * during flooding is lacking.
  */
-#define GRAPHENE_NET_MAX_ITEMS_PER_PEER_DURING_NORMAL_OPERATION  1
+#define GRAPHENE_NET_MAX_ITEMS_PER_PEER_DURING_NORMAL_OPERATION  1000
 
 /**
  * Instead of fetching all item IDs from a peer, then fetching all blocks
@@ -102,12 +102,12 @@
  */
 #define GRAPHENE_NET_MIN_BLOCK_IDS_TO_PREFETCH               10000
 
-#define GRAPHENE_NET_MAX_TRX_PER_SECOND                      3000
+#define GRAPHENE_NET_MAX_TRX_PER_SECOND                      1000
 
 #define GRAPHENE_NET_MAX_NUMBER_OF_BLOCKS_TO_HANDLE_AT_ONE_TIME 200
 #define GRAPHENE_NET_MAX_NUMBER_OF_BLOCKS_TO_PREFETCH           (10 * GRAPHENE_NET_MAX_NUMBER_OF_BLOCKS_TO_HANDLE_AT_ONE_TIME)
 
-//#define GRAPHENE_NET_MAX_TRX_PER_SECOND                      1000
+#define GRAPHENE_NET_MAX_TRX_PER_SECOND                      1000
 
 /**
  * Set the ignored request time out to 1 second.  When we request a block

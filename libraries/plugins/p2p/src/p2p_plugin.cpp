@@ -24,8 +24,6 @@
 #include <chrono>
 #include <future>
 
-#include <wsClient.hpp>
-
 
 using namespace news::chain;
 
@@ -159,27 +157,6 @@ namespace news {
                         std::atomic_bool &_activityFlag;
                     };
 
-                };
-
-
-
-                class http_broadcast{
-                public:
-                    http_broadcast(){}
-                    http_broadcast(std::vector<std::string> nodes){
-
-                    }
-
-
-
-
-                    void broadcast(const news::chain::signed_block &block){
-
-                    }
-
-
-                private:
-                    std::vector<http::client>   _clients;
                 };
 
 
@@ -684,11 +661,7 @@ namespace news {
                         my->node->listen_on_endpoint(*my->endpoint, true);
                     }
 
-                    for (const auto &seed : my->seeds) {
-                        ilog("P2P adding seed node ${s}", ("s", seed));
-                        my->node->add_node(seed);
-                        my->node->connect_to_endpoint(seed);
-                    }
+                 
 
                     if (my->max_connections) {
                         if (my->config.find("maximum_number_of_connections") != my->config.end())
@@ -700,6 +673,14 @@ namespace news {
 
                     my->node->set_advanced_node_parameters(my->config);
                     my->node->listen_to_p2p_network();
+
+					for (const auto &seed : my->seeds) {
+						ilog("P2P adding seed node ${s}", ("s", seed));
+						my->node->add_node(seed);
+						my->node->connect_to_endpoint(seed);
+					}
+
+
                     my->node->connect_to_p2p_network();
                     block_id_type block_id;
 

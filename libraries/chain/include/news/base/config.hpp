@@ -13,7 +13,7 @@
 #define NEWS_BLOCK_INTERVAL             3
 #define NEWS_TRANSACTIONS_MAX_SIZE      (1024 * 32)
 #define NEWS_MIN_BLOCK_SIZE             (128)
-#define NEWS_MAX_BLOCK_SIZE             (1024 * 1024 * 2L)
+#define NEWS_MAX_BLOCK_SIZE             (1024 * 1024 * 1L)
 
 #define NEWS_MAX_PRODUCER_VOTE          21
 #define IRREVERSIBLE_BLOCK_NUM          (21)            //about 1min        18446744073709551616

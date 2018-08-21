@@ -172,21 +172,19 @@ namespace factory {
 
     void create_factory::start() {
         _thread = std::make_shared<std::thread>([&]() {
-//            int64_t name = 20;
             fc::time_point start = fc::time_point::now();
             boost::mt19937 rng(time(0));
 
             std::vector<account_name> transfer_names;
             std::map<account_name, fc::ecc::private_key> names_pk;
             std::map<account_name, int64_t> names_balance;
-            size_t max_transfer_accounts_size = 200;
 
             int sleep_second = 3;
             while (_running) {
                 std::vector<account_name> names;
                 std::vector<signed_transaction> result;
 
-                if (sleep_second < 0) {
+//                if (sleep_second < 0) {
 
 
                     for (size_t i = 0; i < _max_cache; i++) {
@@ -206,88 +204,86 @@ namespace factory {
 
                             result.push_back(trx);
 //                            break;
-                            continue;
+//                            continue;
                         }
-
-
-
-
-                        switch (_type) {
-                            case producer_type::create_accounts : {
-                                for (size_t j = 0; j < _trx_op; j++) {
-                                    names.push_back(rng());
+                        else{
+                            switch (_type) {
+                                case producer_type::create_accounts : {
+                                    for (size_t j = 0; j < _trx_op; j++) {
+                                        names.push_back(rng());
+                                    }
+                                    trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, names);
+                                    result.push_back(trx);
+                                    break;
                                 }
-                                trx = _help.create_accounts(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, names);
-                                result.push_back(trx);
-                                break;
-                            }
-                            case producer_type::create_transfer : {
+                                case producer_type::create_transfer : {
 
-                                uint64_t random = rng() % transfer_names.size();
-                                account_name op_name = transfer_names[random];
-
-                                if (names_balance[op_name] <= 100) {
-                                    trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, op_name, asset(NEWS_SYMBOL, 1));
-                                    names_balance[op_name] += 1;
-                                } else {
-                                    trx = _help.create_transfer(names_pk[op_name], op_name, NEWS_SYSTEM_ACCOUNT_NAME,
-                                                                asset(NEWS_SYMBOL, 1));
-                                    names_balance[op_name] -= 1;
-                                }
-                                result.push_back(trx);
-
-
-                                break;
-                            }
-                            case producer_type::create_transfers : {
-                                std::map<account_name, asset> tf_map;
-                                for (auto &itr : transfer_names) {
-                                    tf_map[itr] = asset(NEWS_SYMBOL, 1);
-                                }
-
-                                std::vector<std::map<account_name, asset>> assets;
-                                for (int j = 0; j < _trx_op; j++) {
-                                    assets.push_back(tf_map);
-                                }
-                                trx = _help.create_transfers(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, assets);
-                                result.push_back(trx);
-                                break;
-                            }
-                            case producer_type::create_ops_transfers:{
-                                std::vector<transfer_ops> ops;
-                                for(uint32_t i = 0; i < _trx_op; i++){
                                     uint64_t random = rng() % transfer_names.size();
                                     account_name op_name = transfer_names[random];
 
-                                    transfer_ops op;
-                                    if(names_balance[op_name] <= 100){
-                                        ++names_balance[op_name];
-                                        op.from = NEWS_SYSTEM_ACCOUNT_NAME;
-                                        op.to = op_name;
-                                        op.pk = NEWS_INIT_PRIVATE_KEY;
-                                        op.amount = asset(NEWS_SYMBOL, 1);
-                                        ops.push_back(op);
+                                    if (names_balance[op_name] <= 100) {
+                                        trx = _help.create_transfer(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, op_name, asset(NEWS_SYMBOL, 1));
+                                        names_balance[op_name] += 1;
+                                    } else {
+                                        trx = _help.create_transfer(names_pk[op_name], op_name, NEWS_SYSTEM_ACCOUNT_NAME,
+                                                                    asset(NEWS_SYMBOL, 1));
+                                        names_balance[op_name] -= 1;
                                     }
-                                    else{
-                                        --names_balance[op_name];
-                                        op.from = op_name;
-                                        op.to = NEWS_SYSTEM_ACCOUNT_NAME;
-                                        op.pk = names_pk[op_name];
-                                        op.amount = asset(NEWS_SYMBOL, 1);
-                                        ops.push_back(op);
-                                    }
+                                    result.push_back(trx);
+
+
+                                    break;
                                 }
-                                trx = _help.create_ops_transfer(ops);
-                                result.push_back(trx);
-                                break;
+                                case producer_type::create_transfers : {
+                                    std::map<account_name, asset> tf_map;
+                                    for (auto &itr : transfer_names) {
+                                        tf_map[itr] = asset(NEWS_SYMBOL, 1);
+                                    }
+
+                                    std::vector<std::map<account_name, asset>> assets;
+                                    for (uint32_t j = 0; j < _trx_op; j++) {
+                                        assets.push_back(tf_map);
+                                    }
+                                    trx = _help.create_transfers(NEWS_INIT_PRIVATE_KEY, NEWS_SYSTEM_ACCOUNT_NAME, assets);
+                                    result.push_back(trx);
+                                    break;
+                                }
+                                case producer_type::create_ops_transfers:{
+                                    std::vector<transfer_ops> ops;
+                                    for(uint32_t  j = 0; j < _trx_op; j++){
+                                        uint64_t random = rng() % transfer_names.size();
+                                        account_name op_name = transfer_names[random];
+
+                                        transfer_ops op;
+                                        if(names_balance[op_name] <= 100){
+                                            ++names_balance[op_name];
+                                            op.from = NEWS_SYSTEM_ACCOUNT_NAME;
+                                            op.to = op_name;
+                                            op.pk = NEWS_INIT_PRIVATE_KEY;
+                                            op.amount = asset(NEWS_SYMBOL, 1);
+                                            ops.push_back(op);
+                                        }
+                                        else{
+                                            --names_balance[op_name];
+                                            op.from = op_name;
+                                            op.to = NEWS_SYSTEM_ACCOUNT_NAME;
+                                            op.pk = names_pk[op_name];
+                                            op.amount = asset(NEWS_SYMBOL, 1);
+                                            ops.push_back(op);
+                                        }
+                                    }
+                                    trx = _help.create_ops_transfer(ops);
+                                    result.push_back(trx);
+                                    break;
+                                }
+
+
+                                default: {
+                                    elog("unkown type.");
+                                    assert(false);
+                                }
+
                             }
-
-
-                            default: {
-                                elog("unkown type.");
-                                assert(false);
-                            }
-
                         }
 
                         names.clear();
@@ -296,19 +292,19 @@ namespace factory {
                         }
                         result.clear();
                     }
-                }
-                else{
-                    sleep_second--;
-                }
+//                }
+//                else{
+//                    sleep_second--;
+//                }
 
 
 
 
-                elog("time ======= ${t}", ("t", (fc::time_point::now() - start).count()));
+//                elog("time ======= ${t}", ("t", (fc::time_point::now() - start).count()));
                 if ((fc::time_point::now() - start) < fc::seconds(1)) {
 
                     int64_t sl = (start + fc::seconds(1) - fc::time_point::now()).count() / 1000;
-                    if (sl != 0) {
+                    if (sl > 0) {
                         // std::this_thread::sleep_for(std::chrono::operator ""ms(sl));
                             std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(sl));
                     }

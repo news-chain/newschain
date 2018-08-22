@@ -7,7 +7,7 @@
 
 namespace http{
 
-    client::client(std::string url):_url(url) {
+    client::client(std::string url):_url(url),_is_open(false) {
 
     }
 
@@ -19,10 +19,11 @@ namespace http{
 	{
 		_client.clear_access_channels(websocketpp::log::alevel::all);
 		_client.clear_error_channels(websocketpp::log::alevel::all);
+		_is_open = false;
 
-
-		_client.set_open_handler([](websocketpp::connection_hdl hdl){
+		_client.set_open_handler([&](websocketpp::connection_hdl hdl){
 		     std::cout << "set_open_handler " << std::endl;
+		     _is_open = true;
 		 });
 	
 
@@ -84,10 +85,15 @@ namespace http{
 
     void client::send_message(std::string msg) {
         if(_connection->get_state() == websocketpp::session::state::open){
-            auto ec = _connection->send(msg);
-            if(ec){
-                std::cout << "send message error " << ec << std::endl;
-            }
+        	if(msg.length() > 0){
+				auto ec = _connection->send(msg);
+				if(ec){
+					std::cout << "send message error " << ec << std::endl;
+				}
+        	}
+           	else{
+				std::cout << "send message.length == 0 " << std::endl;
+        	};
         }
     }
 
@@ -101,6 +107,10 @@ namespace http{
 
     void client::set_handle_message(std::function<void(std::string msg)> cb) {
         _cb = cb;
+    }
+
+    bool client::is_open() {
+        return _is_open;
     }
 
 

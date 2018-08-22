@@ -20,7 +20,7 @@ namespace news{
 
             vector<digest_type>::size_type current_number_of_hashes = ids.size();
             while(current_number_of_hashes > 1){
-                uint32_t max = current_number_of_hashes = (current_number_of_hashes &1 );
+                uint32_t max = current_number_of_hashes - (current_number_of_hashes &1 );
                 uint32_t k = 0;
                 for(uint32_t i = 0;i < max ; i += 2){
                     ids[k++] = digest_type::hash(std::make_pair(ids[i], ids[i + 1]));

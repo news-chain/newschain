@@ -53,7 +53,7 @@ int main(int argc, char **argv){
         boost::program_options::options_description options;
         boost::program_options::options_description desc;
 
-
+        news::app::set_logging_program_options(options);
 
         auto &app = news::app::application::getInstance();
         app.add_program_options(desc, options);

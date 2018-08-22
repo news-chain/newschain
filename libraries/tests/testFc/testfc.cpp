@@ -3,28 +3,33 @@
 //
 
 
-#include <news/plugins/database_api/database_api_args.hpp>
+#include <fc/reflect/reflect.hpp>
+#include <fc/log/logger.hpp>
+#include <fc/io/varint.hpp>
+#include <fc/reflect/variant.hpp>
+#include <fc/io/json.hpp>
 
-#include <news/base/types.hpp>
+namespace test{
+    struct testRef{
+        int aaa = 0;
+        int bbb = 0;
+    };
+}
 
-using namespace news::plugins::database_api;
-using namespace news::base;
+FC_REFLECT(test::testRef, (aaa)(bbb))
+
+
+
 int main(int argc, char **argv) {
 
-    std::cout << "private_key_type " << sizeof(private_key_type) << std::endl;
-    std::cout << "digest_type " << sizeof(digest_type) << std::endl;
-    std::cout << "checksum_type " << sizeof(checksum_type) << std::endl;
-    std::cout << "chain_id_type " << sizeof(chain_id_type) << std::endl;
-    std::cout << "transaction_id_type " << sizeof(transaction_id_type) << std::endl;
-    std::cout << "block_id_type " << sizeof(block_id_type) << std::endl;
-    std::cout << "digest_type " << sizeof(digest_type) << std::endl;
-    std::cout << "account_name " << sizeof(account_name) << std::endl;
-    std::cout << "digest_type " << sizeof(signature_type) << std::endl;
-    std::cout << "share_type " << sizeof(share_type) << std::endl;
-    std::cout << "buffer_type " << sizeof(buffer_type) << std::endl;
-    std::cout << "time_point_sec " << sizeof(fc::time_point_sec) << std::endl;
+    test::testRef tt;
+    tt.aaa = 1000;
+    tt.bbb = 2000;
+    auto str = fc::json::to_string(tt);
 
+    auto kk = fc::json::from_string(str).as<test::testRef>();
 
+    edump((kk));
 
 
     return 0;

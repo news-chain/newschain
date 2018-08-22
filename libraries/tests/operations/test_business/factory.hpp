@@ -20,7 +20,7 @@ namespace factory{
         signed_transaction create_transfer(uint64_t taskid,private_key_type& sign_pk, const account_name& from, const account_name& to, asset& amount);
 		signed_transaction create_transfers(uint64_t taskid, private_key_type& sign_pk, const account_name& from, std::map<account_name, asset> maplist);
 		signed_transaction publish_comment(uint64_t taskid, private_key_type& sign_pk,	account_name   author,	std::string    title,		std::string    body,		std::string    permlink,	std::string    metajson	);
-		signed_transaction comment_vote(uint64_t taskid, private_key_type& sign_pk,	account_name   vote,  std::string    permlink, int ticks);
+		signed_transaction comment_vote(uint64_t taskid, private_key_type& sign_pk,	account_name   vote, account_name author, std::string    permlink, int ticks);
 	 
     };
 	  

@@ -116,8 +116,11 @@ public:
 					std::lock_guard<std::mutex> lock(mutex_myusers_name);
 					myusers_name.push_back(mytask[id].username);
 				}
-				if (mytask[id].op == option_user::publish_comment && fs == task_result::suces&&permlinkvector.size() < 30)
-					permlinkvector.push_back(mytask[id].permlink);
+				if (mytask[id].op == option_user::publish_comment && fs == task_result::suces)
+				{ 
+					permlinkvector.emplace_back(mytask[id].permlink);
+					permlink_map.emplace(std::make_pair(mytask[id].permlink, mytask[id].username));
+				}
 
 			}
 		}
@@ -166,9 +169,8 @@ public:
 
 
 	bool gen_account()
-	{
-		
-			mytask.clear();
+	{ 
+			mytask.clear(); 
 			assert(thread_counts>0); 
 			starttime = fc::time_point::now().time_since_epoch().count();
 			mytask.clear();
@@ -215,12 +217,7 @@ public:
 							client.stop();
 							break;
 						} 
-						int users_name_size = 0;
-						{
-							std::lock_guard<std::mutex> lock(mutex_myusers_name);
-							users_name_size=myusers_name.size();
-						} 
-		 
+					  
 						uint64_t genuser = startid++;						
 						news::base::private_key_type genkey; 
 					 
@@ -262,9 +259,10 @@ public:
 
 	bool vote_comment()
 	{
-		assert(thread_counts>0);
-		starttime = fc::time_point::now().time_since_epoch().count();
 		mytask.clear();
+		isstop = false;
+		assert(thread_counts>0);
+		starttime = fc::time_point::now().time_since_epoch().count(); 
 		for (int i = 0; i < thread_counts; i++)
 		{
 			std::thread* th = new std::thread([&]()
@@ -305,39 +303,35 @@ public:
 				std::default_random_engine engine(rd());
 				std::uniform_int_distribution<> dis(-99, 99);
 				auto  productor = std::bind(dis, engine);
+				auto permlinksize = permlinkvector.size();
+				auto myuse_size = myusers_name.size();
+				auto choise = 0;
+				auto choise_user = 0;
 				while (true)
 				{
 					if (isstop)
 					{
 						client.stop();
 						break;
-					}
-					 
-						boost::uuids::uuid a_uuid = boost::uuids::random_generator()();
-						const string tmp_uuid = boost::uuids::to_string(a_uuid);
+					} 
 						auto id = taskid++;
 						signed_transaction str;
 						taskresult rs;
-						if (create_comment-->0)
-						{ 
-						   rs.op = option_user::publish_comment;
-						   rs.permlink = a_uuid;
-						   std::cout << tmp_uuid.c_str() << std::endl;
-							str = ff.publish_comment(id, myusers[1], 1, "title", "body test", tmp_uuid.c_str(), "{a:text;}");
-							
-						}
-					else
-					{
-						if (permlinkvector.size() == 0)
-						{
-							std::cout << "publish comment fail" << std::endl;
-							return;
-						}
-					
+						boost::uuids::uuid tmp_uuid;
+						if (choise > permlinksize-1)
+							choise = 0; 
+						tmp_uuid = permlinkvector[choise++];
+
+						auto author = permlink_map[tmp_uuid];
+
+						if (choise_user > myuse_size - 1)
+							choise_user = 0;
 						
-						str = ff.comment_vote(id, myusers[1], 1, boost::uuids::to_string(permlinkvector[0]).c_str(), productor());
-						rs.op = option_user::comment_vote;
-					}
+						auto user= myusers_name[choise_user++];
+						auto pk = myusers[user];  
+					 
+						str = ff.comment_vote(id, pk,user, author, boost::uuids::to_string(tmp_uuid).c_str(), productor()); 
+					
 					std::string ret = string_json_rpc(id, fc::json::to_string(str));
 					client.send_message(ret); 
 					auto times = fc::time_point::now().time_since_epoch().count();
@@ -349,13 +343,13 @@ public:
 					rs.start_time = times;
 					rs.id = id;
 					rs.result = task_result::recvfail;
-					rs.username = 1; 
+					rs.username = user; 
+					rs.op = option_user::comment_vote;
 					{
 						std::lock_guard<std::mutex> lock(mutex_mytask);
 						mytask.insert(std::make_pair(id, std::move(rs)));
 					}
-					if (rs.op == option_user::publish_comment&&create_comment <= 0)
-						boost::this_thread::sleep(boost::posix_time::seconds(5));
+				 
 				}
 			});
 			std::shared_ptr<std::thread> sps(th);
@@ -422,8 +416,7 @@ public:
 					if (++i >= myusers_name.size())
 						i = 0; 
 					auto users = myusers_name[i];
-					auto pk=myusers[users].get_public_key();
-					std::cout << pk.to_base58().c_str() << std::endl;
+					auto pk=myusers[users].get_public_key(); 
 					auto str = ff.publish_comment(id, myusers[users], users, "title","body test",tmp_uuid.c_str(),"{a:text;}"); 
 					std::string ret = string_json_rpc(id, fc::json::to_string(str));
 					client.send_message(ret);
@@ -437,7 +430,8 @@ public:
 					rs.start_time = times;
 					rs.id = id;
 					rs.result = task_result::recvfail;
-					rs.username = 1;
+					rs.username = users;
+					rs.permlink = a_uuid;
 					rs.op = option_user::publish_comment;
 					{
 						std::lock_guard<std::mutex> lock(mutex_mytask);
@@ -455,11 +449,7 @@ public:
 	bool start_business(bool multiple=false)
 	{ 
 		mytask.clear();
-		isstop = false;
-		//if (!befor_transfer_one())
-		//	return false; 
-		//boost::this_thread::sleep(boost::posix_time::seconds(5));
-		//std::cout << "gen account ok" << std::endl;
+		isstop = false; 
 		init_money(); 
 		boost::this_thread::sleep(boost::posix_time::seconds(5));
 		mytask.clear();
@@ -600,10 +590,7 @@ public:
 		ilog("ok tps/s:${t}", ("t", rs));
 		 rs = (fail - failnetwork) / ((endtime - starttime) / 1000000); 
 		ilog("fail but network is ok tps/s:${t} ", ("t", rs));
-
-
-
-
+		 
 
 		ilog("the longest cost:${t}", ("t", long_time));
 		ilog("the shortest cost:${t}", ("t", short_time)); 
@@ -630,13 +617,13 @@ private:
 	
 	std::mutex mutex_myusers_name;
 	std::vector<news::base::account_name> myusers_name; 
-	users myusers;  
+	std::map<news::base::account_name, news::base::private_key_type> myusers;
 	std::mutex mutex_;
 
 
 	uint64_t starttime;
 	uint64_t endtime;
-	tasklist mytask;
+	std::map<int64_t, taskresult> mytask;
 	std::mutex mutex_mytask;
 	std::atomic<std::uint64_t> taskid;  
 
@@ -647,7 +634,7 @@ private:
 	std::atomic<std::uint64_t>  startid;
 
 	std::vector<boost::uuids::uuid> permlinkvector;
-
+	std::map<boost::uuids::uuid, account_name> permlink_map;
 
 	int wscount;
 	int wsindex; 

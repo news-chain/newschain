@@ -76,11 +76,12 @@ namespace factory{
             return trx;
     }
 	signed_transaction helper::comment_vote(uint64_t taskid, private_key_type& sign_pk,
-		account_name   vote, std::string    permlink, int ticks)
+		account_name   vote,account_name author, std::string    permlink, int ticks)
 	{
 		signed_transaction trx;
 		comment_vote_operation transfer;
 		transfer.voter = vote;
+		transfer.author = author;
 		transfer.permlink = permlink; 
 		transfer.ticks= ticks;  
 		fc::variant fc(taskid);

@@ -34,7 +34,7 @@ namespace news{
                 DEFINE_API_IMPL(account_history_api_impl, get_transaction)
                 {
                     get_transaction_return ret;
-                    const auto &his_index = _db.get_index<news::chain::operation_obj_index, news::chain::by_trx_id>();
+                    const auto &his_index = _db.get_index<news::chain::operation_obj_index, news::chain::by_op_trx_id>();
 
                     auto itr = his_index.find(args.trx_id);
                     FC_ASSERT(itr != his_index.end(), "unkown transaction ${id}", ("id", args.trx_id));

@@ -577,8 +577,7 @@ namespace news {
                         ("p2p-parameters", bpo::value<string>(), ("P2P network parameters. (Default: " +
                                                                   fc::json::to_string(
                                                                           graphene::net::node_configuration()) +
-                                                                  " )").c_str())
-                        ("post-block-ws", bpo::value<std::string>(), ("brodcast block"));
+                                                                  " )").c_str());
                 cli.add_options()
                         ("force-validate", bpo::bool_switch()->default_value(false),
                          "Force validation of all transactions. Deprecated in favor of p2p-force-validate")

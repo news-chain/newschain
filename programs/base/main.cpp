@@ -56,7 +56,7 @@ int main(int argc, char **argv){
         news::app::set_logging_program_options(options);
 
         auto &app = news::app::application::getInstance();
-        app.add_program_options(desc, options);
+
 
         regist_plugin(app);
 
@@ -65,15 +65,16 @@ int main(int argc, char **argv){
                 news::plugins::chain_plugin::chain_plugin
         >();
 
+        app.add_program_options(desc, options);
+
         bool init = app.initizlize<
                 news::plugins::chain_api_plugin::chain_api_plugin,
                 news::plugins::producer_plugin::producer_plugin,
                 news::plugins::block_api_plugin::block_api_plugin,
                 news::plugins::database_api::database_api_plugin,
-//                news::plugins::account_history_plugin::account_history_plugin,
+                news::plugins::account_history_plugin::account_history_plugin,
                 news::plugins::webserver::webserver_plugin,
                 news::plugins::network_broadcast::network_broadcast_plugin
-//                news::plugins::account_history_api::account_history_api_plugin
         >(argc, argv);
 
         if(!init){

@@ -39,15 +39,23 @@ namespace news{
 
 
         struct by_id;
-        struct by_trx_id;
+        struct by_op_trx_id;
+        struct by_location;
         typedef boost::multi_index_container<
                 operation_object,
                 indexed_by<
                         ordered_unique< tag<by_id>,
                                 member<operation_object, operation_object::id_type, &operation_object::id>
                         >,
-                        ordered_unique< tag<by_trx_id>,
-                                member<operation_object, transaction_id_type, &operation_object::trx_id>
+                        ordered_non_unique< tag< by_location >,
+                                member< operation_object, uint32_t, &operation_object::block >
+                        >,
+                        ordered_unique< tag<by_op_trx_id>,
+                                composite_key<operation_object,
+                                        member<operation_object, transaction_id_type, &operation_object::trx_id>,
+                                        member<operation_object, operation_object::id_type, &operation_object::id>
+                                >
+
                         >
                 >,chainbase::allocator <operation_object>
                 > operation_obj_index;

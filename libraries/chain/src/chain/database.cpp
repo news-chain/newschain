@@ -415,10 +415,12 @@ namespace news {
                          ("block_num", block.block_num())("block_size", block_size));
 //                   elog("block : ${b}", ("b", block.timestamp));
                 }
+
                 auto start = fc::time_point::now();
                 for (const auto &trx : block.transactions) {
                     apply_transaction(trx, skip);
                 }
+
                 if (block.transactions.size() > 3000) {
                     elog("apply_operation time : ${t}ms size ${s}",
                          ("t", (fc::time_point::now().time_since_epoch() - start.time_since_epoch()).count() / 1000)(
@@ -695,15 +697,9 @@ namespace news {
             }
             _current_trx_id = trx.id();
 
-
-//            auto &trx_index = get_index<transaction_obj_index>().indices().get<by_trx_id>();
-
             transaction_id_type trx_id = trx.id();
 
-//            idump((_skip_flags)(skip_transaction_dupe_check));
-
             FC_ASSERT((_skip_flags | skip_transaction_dupe_check) ||  (find<transaction_object, by_trx_obj_id>(trx_id) == nullptr), "Duplicate transaction check failed ${trxid}" , ("trxid", trx_id));
-//            FC_ASSERT((find<transaction_object, by_trx_obj_id>(trx_id) == nullptr), "Duplicate transaction check failed ${trxid}" , ("trxid", trx_id));
 
             if (BOOST_LIKELY(head_block_num()) > 0) {
 
@@ -1022,7 +1018,7 @@ namespace news {
             }
 
             const auto &hpo = get_hardfork_property_object();
-            elog("hpo size ${s}", ("s", hpo.processed_hadrdfork.size()));
+//            elog("hpo size ${s}", ("s", hpo.processed_hadrdfork.size()));
             modify(hpo, [&](hardfork_property_object &obj){
                 FC_ASSERT(hardfork == obj.last_hardfork + 1, "Hardfork being applied out of");
                 FC_ASSERT(obj.processed_hadrdfork.size() == hardfork, "Hardfork being applied out of");

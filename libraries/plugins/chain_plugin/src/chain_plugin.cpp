@@ -280,7 +280,8 @@ namespace news {
                         ("resync-blockchain", bpo::bool_switch()->default_value(false),
                          "clear database and block log, sync from p2p network.")
                         ("stop-replay-at-block", bpo::value<uint32_t>()->default_value(0),
-                         "Stop and exit after reaching given block number.");
+                         "Stop and exit after reaching given block number.")
+                        ("only-accept-block", bpo::value<bool>()->default_value(false), "only accept block, refused transactions");
             }
 
             void chain_plugin::plugin_initialize(const variables_map &options) {

@@ -237,7 +237,10 @@ namespace chainbase {
             return *ptr;
          }
 
-         const index_type& indices()const { return _indices; }
+         const index_type& indices()const 
+		 {
+			 return _indices;
+		 }
 
          class session {
             public:

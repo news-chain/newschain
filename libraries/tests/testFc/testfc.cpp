@@ -9,27 +9,17 @@
 #include <fc/reflect/variant.hpp>
 #include <fc/io/json.hpp>
 
-namespace test{
-    struct testRef{
-        int aaa = 0;
-        int bbb = 0;
-    };
-}
-
-FC_REFLECT(test::testRef, (aaa)(bbb))
-
-
+#include <news/chain/global_property_object.hpp>
 
 int main(int argc, char **argv) {
 
-    test::testRef tt;
-    tt.aaa = 1000;
-    tt.bbb = 2000;
-    auto str = fc::json::to_string(tt);
+    news::chain::dynamic_global_property_object object;
+    fc::variant_object oo = fc::variant(object).as<fc::variant_object>();
+    for(auto itr = oo.begin(); itr != oo.end(); itr++){
+        elog("key = : ${t}", ("t", itr->key()));
+        elog("key = : ${t}", ("t", itr->value()));
+    }
 
-    auto kk = fc::json::from_string(str).as<test::testRef>();
-
-    edump((kk));
 
 
     return 0;

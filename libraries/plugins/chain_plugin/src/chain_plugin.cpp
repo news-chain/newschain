@@ -367,7 +367,6 @@ namespace news {
                 cxt.prom_ptr = &prom;
                 cxt.push_time = fc::time_point::now();
 
-//                _my->write_queue.push(&cxt);
                 _my->write_block_queue.push(&cxt);
 
                 prom.get_future().get();

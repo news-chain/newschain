@@ -232,24 +232,31 @@ int main(int argc, char **argv){
 		return -1; 
 
 	std::shared_ptr<bip::managed_mapped_file>              _segment; 
-	std::string abs_path;
-	//strcpy(abs_path, argv[1]);
-    std::cin>>abs_path;
+	char abs_path[256] = { 0 };
+	strcpy(abs_path, argv[1]);
 	if (!boost::filesystem::exists(abs_path))
 	{
 		std::cout << abs_path << " is not exists" << std::endl;
 		return 0; 
 	}
-	_segment.reset(new bip::managed_mapped_file(bip::open_only,
-		abs_path.c_str()));
+	try {
+		_segment.reset(new bip::managed_mapped_file(bip::open_only,
+													abs_path));
 
+		{
+			db_account_object<news::base::account_object_index, news::base::account_object> obj(_segment,
+																								"account_object");
+			obj.read_from_mmp<news::base::by_id>();
+			//obj.insert_db<news::base::account_object>();
+			obj.insert_db();
+
+		}
+	}catch (std::exception& e)
 	{
-		db_account_object<news::base::account_object_index, news::base::account_object>  obj(_segment,"account_object");
-		obj.read_from_mmp<news::base::by_id>();
-		//obj.insert_db<news::base::account_object>();
-		obj.insert_db();
 
-	} 
+		std::cout<<e.what();
+		return -2;
+	}
 
 
 	excute_sql("commit");

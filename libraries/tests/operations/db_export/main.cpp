@@ -20,7 +20,7 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <chainbase/chainbase.hpp>
  
-#include "mysql.h"
+#include "mysql/mysql.h"
 
 using namespace chainbase;
 using namespace std; 
@@ -30,7 +30,37 @@ const char* host = "192.168.0.198";
 unsigned int port = 3306; 
 MYSQL myCont;
 bool hasinit = false;
-int64_t countsok = 0; 
+int64_t countsok = 0;
+
+
+bool init_mysql()
+{
+	mysql_init(&myCont);
+	if (!mysql_real_connect(&myCont, host, user, pswd, "news", port, NULL, 0))
+	{
+		std::cout << mysql_error(&myCont) << std::endl;
+		return false;
+	}
+	return hasinit = true;
+}
+void fater_mysql()
+{
+	if (hasinit)
+		mysql_close(&myCont);
+}
+void excute_sql(std::string sql)
+{
+	int ret = mysql_query(&myCont, sql.c_str());
+	if (ret)
+	{
+		std::cout << sql.c_str() << " fail" << std::endl;
+	}
+	countsok++;
+	if (countsok % 100 == 0)
+		std::cout << "has insert " << countsok << "lines" << std::endl;
+
+}
+
 
 /*
 class db_operator
@@ -71,13 +101,13 @@ public:
 		return 0;
 
 	}
-	template<typename obj>
+	//template<typename obj>
 	int insert_db()
 	{
 		std::vector<std::string> table_clom;
 		for (auto it : dblist)
 		{
-			fc::variant_object& oo = fc::variant(it).as<fc::variant_object>();
+			fc::variant_object oo = fc::variant(it).as<fc::variant_object>();
 			for (auto itr = oo.begin(); itr != oo.end(); itr++) {  
 					table_clom.emplace_back(itr->key()); 
 			}
@@ -86,7 +116,7 @@ public:
 		for ( auto it : dblist)
 		{
 			std::vector<std::string> values;
-			fc::variant_object& oo = fc::variant(it).as<fc::variant_object>();
+			auto oo=fc::variant(it).as<fc::variant_object>();
 			for (auto itr = oo.begin(); itr != oo.end(); itr++) { 
 				values.emplace_back(itr->value().as_string());
 			}
@@ -135,7 +165,7 @@ public:
 			default:
 				break;
 			}
-			excute_sql(buff_format);
+			excute_sql(std::string(buff_format));
 
 				
 		}
@@ -194,55 +224,31 @@ public:
 
 
 
-bool init_mysql()
-{
-	mysql_init(&myCont);
-	if (!mysql_real_connect(&myCont, host, user, pswd, "news", port, NULL, 0))
-	{
-		std::cout << mysql_error(&myCont) << std::endl;
-		return false;
-	}
-	hasinit = true;
-}
-void fater_mysql()
-{
-	if (hasinit)
-		mysql_close(&myCont);
-} 
-void excute_sql(std::string sql)
-{   
-	int ret = mysql_query(&myCont, sql.c_str());
-	if (ret)
-	{ 
-		std::cout << sql.c_str() << " fail" << std::endl;
-	} 
-	countsok++;
-	if (countsok % 100 == 0)
-	std::cout << "has insert " << countsok << "lines" << std::endl;
-
-}
-
 
 int main(int argc, char **argv){ 
+
 
 	if (!init_mysql())
 		return -1; 
 
 	std::shared_ptr<bip::managed_mapped_file>              _segment; 
-	char abs_path[256] = { 0 };
-	strcpy(abs_path, argv[1]);
+	std::string abs_path;
+	//strcpy(abs_path, argv[1]);
+    std::cin>>abs_path;
 	if (!boost::filesystem::exists(abs_path))
 	{
 		std::cout << abs_path << " is not exists" << std::endl;
 		return 0; 
 	}
 	_segment.reset(new bip::managed_mapped_file(bip::open_only,
-		abs_path));
+		abs_path.c_str()));
 
 	{
 		db_account_object<news::base::account_object_index, news::base::account_object>  obj(_segment,"account_object");
 		obj.read_from_mmp<news::base::by_id>();
-		obj.insert_db<news::base::account_object>();
+		//obj.insert_db<news::base::account_object>();
+		obj.insert_db();
+
 	} 
 
 

@@ -1,4 +1,3 @@
 .idea/
-cmake-build-*
-old.txt
 build*/
+cmake-build-*

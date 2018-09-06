@@ -76,7 +76,7 @@ if( CLANG_TIDY_EXE )
    )
 endif( CLANG_TIDY_EXE )
 
-add_subdirectory( test )
+#add_subdirectory( test )
 
 install( TARGETS
    chainbase
